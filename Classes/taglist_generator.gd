@@ -1,0 +1,138 @@
+class_name  TagListGenerator
+extends Node
+
+var _gen_tags: Array[String] = []
+var _implied_tags: Array[String] = []
+
+var _unexplored_parents: Array[Tag] = []
+var _explored_parents: Array[Tag] = []
+
+var _dad_queue: Array = []
+var _groped_dads: Array = []
+var _kid_return: Array = []
+
+var priority_dict: Dictionary = {}
+
+
+func generate_tag_list(resource_tags: Array, generic_tags: Array) -> void:
+	_gen_tags.clear()
+	_implied_tags.clear()
+	_explored_parents.clear()
+	_unexplored_parents.clear()
+	_gen_tags.append_array(generic_tags)
+
+	for tag in resource_tags:
+#		_user_tags.append(tag.get_tag())
+		if not priority_dict.has(str(tag.tag_priority)):
+			priority_dict[str(tag.tag_priority)] = []
+
+		priority_dict[str(tag.tag_priority)].append(tag.get_tag())
+		_explored_parents.append(tag)
+		
+		for parent_tag in tag.parents:
+			if Tagger.tag_manager.has_tag(parent_tag):
+
+				_unexplored_parents.append(
+					Tagger.tag_manager.get_tag(parent_tag))
+			else:
+				if not _implied_tags.has(parent_tag):# and not _user_tags.has(parent_tag):
+					_implied_tags.append(parent_tag)
+		
+		__explore_parents()
+
+
+func explore_parents(_is_first_run: bool = true) -> void:
+	if _is_first_run:
+		_groped_dads.clear()
+		_kid_return.clear()
+	
+	for tag_file in _dad_queue:
+		_groped_dads.append(tag_file)
+		
+		var _tag_name = tag_file.get_tag()
+		_kid_return.append(_tag_name)
+		
+		for new_parent in tag_file.parents:
+			if Tagger.tag_manager.has_tag(new_parent):
+				var _new_parent_to_look = Tagger.tag_manager.get_tag(new_parent)
+				if _groped_dads.has(_new_parent_to_look):
+					continue
+				_dad_queue.append(_new_parent_to_look)
+			else:
+				_kid_return.append(new_parent)
+		
+		_dad_queue.erase(tag_file) # Do this at the end
+	
+	if not _dad_queue.is_empty():
+		explore_parents(false)
+
+
+func __explore_parents():
+	var _parents_queue: Array[Tag] = _unexplored_parents.duplicate()
+	
+	for parent_tag in _parents_queue:
+		
+		_explored_parents.append(parent_tag)
+		_unexplored_parents.erase(parent_tag)
+		
+		var _tag_name = parent_tag.get_tag()
+		
+		if not priority_dict.has(str(parent_tag.tag_priority)):
+			priority_dict[str(parent_tag.tag_priority)] = []
+		
+		if not _implied_tags.has(_tag_name) and not priority_dict[str(parent_tag.tag_priority)].has(_tag_name):
+#			_implied_tags.append(_tag_name)
+			priority_dict[str(parent_tag.tag_priority)].append(_tag_name)
+		
+		for new_parent in parent_tag.parents:
+			if Tagger.tag_manager.has_tag(new_parent):
+				var _new_parent_to_look = Tagger.tag_manager.get_tag(new_parent)
+				if _explored_parents.has(_new_parent_to_look):
+					continue
+				_unexplored_parents.append(_new_parent_to_look)
+			else:
+				if not _implied_tags.has(new_parent):# and not _user_tags.has(new_parent):
+					_implied_tags.append(new_parent)
+		
+		if not _unexplored_parents.is_empty():
+			__explore_parents()
+
+
+func get_tag_list() -> String:
+	var priority_array: Array[int] = []
+	
+	for prio in priority_dict.keys():
+		priority_array.append(int(prio))
+	
+	priority_array.sort()
+	priority_array.reverse()
+	
+	var full_tags = []
+	
+	for prio_key in priority_array:
+		for tag_string in priority_dict[str(prio_key)]:
+			if not full_tags.has(tag_string):
+				full_tags.append(tag_string.replace(" ", Tagger.site_settings.whitespace_char))
+	
+	full_tags.append_array(_gen_tags)
+	
+	var _tag_string: String = ""
+	
+#	full_tags.append_array(_user_tags)
+	full_tags.append_array(_implied_tags)
+	
+	for tag in full_tags:
+		_tag_string += tag
+#		_tag_string += tag.replace(" ", Tagger.site_settings.whitespace_char)
+		_tag_string += Tagger.site_settings.tag_separator
+	
+	_tag_string = _tag_string.left(-1)
+	
+	for tag in Tagger.settings.constant_blacklist:
+		var _formatted_tag: String = tag.replace(" ", Tagger.site_settings.whitespace_char)
+		if not full_tags.has(_formatted_tag):
+			_tag_string += Tagger.site_settings.tag_separator
+			_tag_string += _formatted_tag
+
+	return _tag_string
+

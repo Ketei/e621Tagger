@@ -1,0 +1,1315 @@
+[gd_scene load_steps=14 format=3 uid="uid://baevxmkhc4c00"]
+
+[ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
+[ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
+[ext_resource type="Script" path="res://Scenes/tagger_controls.gd" id="2_o722f"]
+[ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
+[ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
+
+[sub_resource type="GDScript" id="GDScript_w31il"]
+script/source = "extends Control
+
+@onready var tag_to_add_line_edit = $TagToAddLineEdit
+@onready var categories_menu = $CategoriesMenu
+@onready var create_tags_button = $CreateTagsButton
+@onready var wiki_info = $WikiInfo
+@onready var add_parent_line_edit = $AddParentLineEdit
+@onready var parent_item_list = $ParentItemList
+@onready var tag_prio_box: SpinBox = $TagPrioBox
+
+
+var parent_tags: Array = []
+
+var text_timer: Timer
+
+
+func _ready():
+	create_tags_button.pressed.connect(create_tag)
+	tag_to_add_line_edit.text_changed.connect(check_if_can_add_tag)
+	add_parent_line_edit.text_submitted.connect(add_parent)
+	parent_item_list.item_activated.connect(remove_parent)
+	
+	text_timer = Timer.new()
+	text_timer.wait_time = 2.0
+	text_timer.autostart = false
+	text_timer.one_shot = true
+	text_timer.timeout.connect(on_timer_timeout)
+	add_child(text_timer)
+
+
+func check_if_can_add_tag(new_text: String) -> void:
+	if new_text == \"\" and not create_tags_button.disabled:
+		create_tags_button.disabled = true
+	elif new_text != \"\" and create_tags_button.disabled:
+		create_tags_button.disabled = false
+
+
+func add_parent(new_parent:String) -> void:
+	new_parent = new_parent.to_lower().strip_edges()
+	
+	if new_parent.is_empty() or parent_tags.has(new_parent):
+		add_parent_line_edit.clear()
+		return
+	
+	parent_tags.append(new_parent)
+	parent_item_list.add_item(new_parent)
+	add_parent_line_edit.clear()
+
+
+func remove_parent(parent_index: int) -> void:
+	parent_tags.remove_at(parent_index)
+	parent_item_list.remove_item(parent_index)
+
+
+func create_tag() -> void:
+	var target_tag: String = tag_to_add_line_edit.text
+	target_tag = target_tag.strip_edges().to_lower()
+	if Tagger.tag_manager.has_tag(target_tag):
+		clear_menu_items(\"Tag already exists!!!\")
+		return
+
+	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value))
+	
+	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
+		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
+	
+	Tagger.tag_manager.relation_database[target_tag.left(1)][target_tag] = _tag_path
+
+	clear_menu_items(\"Done!\")
+
+
+func clear_menu_items(btn_message: String) -> void:
+	create_tags_button.text = btn_message
+	tag_prio_box.set_value_no_signal(0)
+	categories_menu.select(0)
+	tag_to_add_line_edit.clear()
+	add_parent_line_edit.clear()
+	parent_tags.clear()
+	parent_item_list.clear()
+	wiki_info.clear()
+	text_timer.start()
+
+
+func on_timer_timeout() -> void:
+	create_tags_button.text = \"Create Tag\"
+
+"
+
+[sub_resource type="GDScript" id="GDScript_lfssu"]
+resource_name = "tag_reviewer_script"
+script/source = "extends Control
+
+
+@onready var tag_searcher = $TagSearcher
+@onready var tag_search_button = $TagSearcher/TagSearchButton
+@onready var name_line = $NameLine
+@onready var categories_menu: OptionButton = $CategoriesMenu
+@onready var wiki_edit = $WikiEdit
+@onready var tag_update_button = $TagUpdate
+@onready var tag_delete_button = $TagDelete
+
+@onready var parents_item_list: ItemList = $ParentsItemList
+@onready var add_parent_line_edit: LineEdit = $AddParentLineEdit
+
+@onready var tag_prio_box: SpinBox = $TagPrioBox
+
+
+var parents: Array = []
+var text_change_timer: Timer
+
+
+func _ready():
+	text_change_timer = Timer.new()
+	text_change_timer.wait_time = 1.0
+	text_change_timer.autostart = false
+	text_change_timer.one_shot = true
+	text_change_timer.timeout.connect(_on_timer_timeout)
+	add_child(text_change_timer)
+	
+	tag_searcher.text_submitted.connect(search_for_tag)
+	tag_search_button.pressed.connect(button_search_pressed)
+	tag_update_button.pressed.connect(update_tag)
+	
+	tag_delete_button.pressed.connect(delete_tag)
+	
+	parents_item_list.item_activated.connect(remove_parent)
+	add_parent_line_edit.text_submitted.connect(add_parent)
+	
+
+func update_tag() -> void:
+	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
+	
+	_tag.category = categories_menu.selected as Tagger.Categories
+	_tag.parents = parents.duplicate()
+	_tag.wiki_entry = wiki_edit.text
+	_tag.tag_priority = int(tag_prio_box.value)
+	_tag.save()
+	
+	tag_update_button.text = \"Updated!\"
+	text_change_timer.start()
+
+
+func delete_tag() -> void:
+	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
+	var _tag_path = \"user://database/tags/\" + _tag.file_name
+	if ResourceLoader.exists(_tag_path):
+		OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
+	
+	var _implication_replace: ImplicationDictionary = Tagger.tag_manager.get_implication(_tag.tag.left(1))
+	_implication_replace.tag_implications.erase(_tag.tag)
+	
+	Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
+
+	_implication_replace.save()
+	tag_delete_button.text = \"Deleted!\"
+	text_change_timer.start()
+	clear_and_disable()
+
+
+func clear_and_disable() -> void:
+	tag_prio_box.set_value_no_signal(0)
+	tag_prio_box.editable = false
+	tag_searcher.clear()
+	name_line.clear()
+	categories_menu.select(0)
+	categories_menu.disabled = true
+	parents.clear()
+	parents_item_list.clear()
+	add_parent_line_edit.editable = false
+	wiki_edit.clear()
+	wiki_edit.editable = false
+	tag_delete_button.disabled = true
+	tag_update_button.disabled = true
+
+
+func button_search_pressed() -> void:
+	search_for_tag(tag_searcher.text)
+
+
+func search_for_tag(new_text: String) -> void:
+	new_text = new_text.to_lower().strip_edges()
+	
+	new_text = Tagger.alias_database.get_alias(new_text)
+		
+	if new_text.is_empty():
+		clear_and_disable()
+		return
+	
+	if not Tagger.tag_manager.has_tag(new_text):
+		clear_and_disable()
+		return
+
+	parents.clear()
+	parents_item_list.clear()
+	
+	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
+
+	name_line.text = _tag.tag
+	categories_menu.select(_tag.category)
+
+	for parent_tag in _tag.parents:
+		parents.append(parent_tag)
+		parents_item_list.add_item(parent_tag)
+
+	wiki_edit.clear()
+	wiki_edit.text = _tag.wiki_entry
+	tag_prio_box.set_value_no_signal(_tag.tag_priority)
+	
+	tag_prio_box.editable = true
+	add_parent_line_edit.editable = true
+	categories_menu.disabled = false
+	wiki_edit.editable = true
+	tag_update_button.disabled = false
+	tag_delete_button.disabled = false
+	tag_searcher.clear()
+
+
+func add_parent(parent_text: String) -> void:
+	parent_text = parent_text.to_lower()
+	
+	if parent_text.is_empty() or parents.has(parent_text):
+		add_parent_line_edit.clear()
+		return
+	
+	parents.append(parent_text)
+	parents_item_list.add_item(parent_text)
+	add_parent_line_edit.clear()
+
+
+func remove_parent(parent_id: int) -> void:
+	parents.remove_at(parent_id)
+	parents_item_list.remove_item(parent_id)
+
+
+func _on_timer_timeout() -> void:
+	tag_update_button.text = \"Update Tag\"
+	tag_delete_button.text = \"Delete Tag\"
+
+"
+
+[sub_resource type="GDScript" id="GDScript_chh5e"]
+resource_name = "settings_set_up"
+script/source = "extends Control
+
+@onready var option_button = %OptionButton
+@onready var h_slider = %HSlider
+@onready var black_list: ItemList = %BlackList
+@onready var recreate_database_btn = %RecreateDatabaseBtn
+@onready var line_edit = %LineEdit
+
+@onready var constants_item_list = $Constants/TagList/ConstantsItemList
+@onready var constants_line_edit = $Constants/ConstantsLineEdit
+
+var constant_tags: Array = []
+
+var timer: Timer
+
+func _ready():
+	constants_item_list.item_activated.connect(remove_constant)
+	constants_line_edit.text_submitted.connect(add_constant)
+	option_button.selected = Tagger.site_settings.target_site
+	h_slider.value = Tagger.settings.suggestion_strength
+	line_edit.text = str(Tagger.settings.suggestion_strength)
+	recreate_database_btn.pressed.connect(__recreate_database)
+	
+	timer = Timer.new()
+	timer.wait_time = 2.0
+	timer.autostart = false
+	timer.one_shot = true	
+	timer.timeout.connect(on_timer_timeout)
+	add_child(timer)
+	
+	for item in Tagger.settings.suggestion_blacklist:
+		black_list.add_item(item)
+	
+	for constant in Tagger.settings.constant_blacklist:
+		constants_item_list.add_item(constant)
+		constant_tags.append(constant)
+
+
+func add_constant(new_constant: String) -> void:
+	new_constant = new_constant.to_lower().strip_edges()
+	if constant_tags.has(new_constant):
+		constants_line_edit.clear()
+		return
+	
+	constants_item_list.add_item(new_constant)
+	constant_tags.append(new_constant)
+	Tagger.settings.constant_blacklist.append(new_constant)
+	constants_line_edit.clear()
+	#Tagger.settings.save()
+
+
+func remove_constant(constant_id: int) -> void:
+	var constant_name: String = constant_tags[constant_id]
+	constant_tags.remove_at(constant_id)
+	constants_item_list.remove_item(constant_id)
+	Tagger.settings.constant_blacklist.erase(constant_name)
+	#Tagger.settings.save()
+
+
+func __recreate_database() -> void:
+	Tagger.tag_manager.recreate_implications()
+	recreate_database_btn.text = \"Done!\"
+	timer.start()
+
+
+func on_timer_timeout() -> void:
+	recreate_database_btn.text = \"Recreate tag database\"
+"
+
+[sub_resource type="GDScript" id="GDScript_p8ss3"]
+resource_name = "target_site_script"
+script/source = "extends Control
+
+@onready var option_button: OptionButton = $OptionButton
+
+func _ready():
+	option_button.item_selected.connect(_update_site)
+
+
+func _update_site(new_index) -> void:
+	Tagger.site_settings.target_site = new_index
+	#Tagger.site_settings.save()
+"
+
+[sub_resource type="GDScript" id="GDScript_y3wef"]
+script/source = "extends Control
+
+@onready var h_slider: HSlider = $HSlider
+@onready var line_edit: LineEdit = $LineEdit
+
+
+func _ready():
+	h_slider.drag_ended.connect(_drag_ended)
+	h_slider.value_changed.connect(_display_update)
+	#percentage_display.text_changed.connect(_text_set)
+	line_edit.text_submitted.connect(_update_percentage)
+
+
+func _update_percentage(new_text: String) -> void:
+	h_slider.value = int(new_text)
+	Tagger.settings.suggestion_strength = h_slider.value
+#	Tagger.settings.save()
+
+
+func _drag_ended(value_changed: bool) -> void:
+	if value_changed:
+		Tagger.settings.suggestion_strength = h_slider.value
+#		Tagger.settings.save()
+
+
+func _display_update(value) -> void:
+	if str(value) != line_edit.text:
+		line_edit.text = str(value)
+
+"
+
+[sub_resource type="GDScript" id="GDScript_jmlhj"]
+resource_name = "aliases_menu"
+script/source = "extends Control
+
+@onready var aliases_tree: Tree = $Aliases
+@onready var old_alias: LineEdit = $OldAlias
+@onready var new_alias: LineEdit = $NewAlias
+@onready var remove_alias_button: Button = $RemoveAliasButton
+@onready var add_alias_button: Button = $AddAliasButton
+
+
+func _ready():
+	old_alias.text_changed.connect(old_alias_update)
+	new_alias.text_changed.connect(new_alias_update)
+	remove_alias_button.pressed.connect(remove_alias)
+	add_alias_button.pressed.connect(add_alias)
+	
+	old_alias.text_submitted.connect(submit_old_alias)
+	new_alias.text_submitted.connect(submit_new_alias)
+
+
+func submit_new_alias(_text_submitted: String) -> void:
+	if not add_alias_button.disabled:
+		add_alias()
+
+
+func submit_old_alias(_text_submitted: String) -> void:
+	if not remove_alias_button.disabled:
+		remove_alias()
+
+
+func old_alias_update(new_text: String) -> void:
+	if new_text != \"\":
+		if remove_alias_button.disabled:
+			remove_alias_button.disabled = false
+		if new_alias.text != \"\" and add_alias_button.disabled:
+			add_alias_button.disabled = false
+	elif new_text == \"\":
+		if not remove_alias_button.disabled:
+			remove_alias_button.disabled = true
+		if not add_alias_button.disabled:
+			add_alias_button.disabled = true
+		
+
+func new_alias_update(new_text: String) -> void:
+	if old_alias.text != \"\" and new_text != \"\" and add_alias_button.disabled:
+		add_alias_button.disabled = false
+	elif (old_alias.text == \"\" or new_text == \"\") and not add_alias_button.disabled:
+		add_alias_button.disabled = true
+
+
+func add_alias() -> void:
+	var _old_string: String = old_alias.text
+	var _new_string: String = new_alias.text
+	
+	_old_string = _old_string.strip_edges().to_lower()
+	_new_string = _new_string.strip_edges().to_lower()
+	
+	if Tagger.alias_database.alias_exitst(_old_string, _new_string):
+		old_alias.clear()
+		new_alias.clear()
+		return
+	
+	if Tagger.alias_database.aliases.values().has(_new_string): # Level exists
+		var _target_branch = _new_string
+		
+		var _root: TreeItem = aliases_tree.get_root()
+		var _current_branch: TreeItem = _root.get_first_child()
+		
+		for ignored in range(_root.get_child_count()):
+			if _target_branch == _current_branch.get_text(0):
+				aliases_tree.create_tree_item(_old_string, _current_branch)
+				break
+			else:
+				_current_branch = _current_branch.get_next()
+	else: # Level doesn't exist
+		aliases_tree.create_item_and_subitem(_new_string, aliases_tree.get_root(), _old_string)
+	
+	Tagger.alias_database.add_alias(_old_string, _new_string)
+	Tagger.alias_database.save()
+	old_alias.clear()
+	new_alias.clear()
+
+
+func remove_alias() -> void:
+	var _old_string: String = old_alias.text
+	_old_string = _old_string.strip_edges().to_lower()
+	
+	
+	if not Tagger.alias_database.has_alias(_old_string):
+		old_alias.clear()
+		return
+	
+	var _target_branch = Tagger.alias_database.get_alias(_old_string)
+	var _root: TreeItem = aliases_tree.get_root()
+	var _level: TreeItem = _root.get_first_child()
+	
+	for index in range(_root.get_child_count()):
+		if _target_branch == _level.get_text(0):
+			var _aliases_list = _level.get_first_child()
+			
+			for ignore in range(_level.get_child_count()):
+				if _aliases_list.get_text(0) == _old_string:
+					_aliases_list.free()
+					if _level.get_child_count() == 0:
+						_level.free()
+					break
+				else:
+					_aliases_list = _aliases_list.get_next()
+			break
+		else:
+			_level = _level.get_next()
+	
+	Tagger.alias_database.remove_alias(_old_string)
+#	Tagger.alias_database.save()
+	old_alias.clear()
+
+"
+
+[sub_resource type="GDScript" id="GDScript_hr4cx"]
+resource_name = "test_script"
+script/source = "extends Tree
+
+func _ready():
+	var _alias_dict: Dictionary = Tagger.alias_database.get_alias_dictionary()
+	
+	var _root_level = create_item()
+	_root_level.set_text(0, \"Aliases\")
+	
+	for correct_alias in _alias_dict.keys():
+		var _item_model = create_item(_root_level)
+		_item_model.set_text(0, correct_alias)
+		_item_model.collapsed = true
+
+		for aliased_item in _alias_dict[correct_alias]:
+			create_tree_item(aliased_item, _item_model)
+	
+
+func create_tree_item(_item_text: String, _parent_item):
+	var item = create_item(_parent_item)
+	item.set_text(0, _item_text)
+
+
+func create_item_and_subitem(item_text: String, _parent_item, subitem_string: String) -> void:
+	var parent_item = create_item(_parent_item)
+	parent_item.set_text(0, item_text)
+	
+	var sub_item = create_item(parent_item)
+	sub_item.set_text(0, subitem_string)
+
+"
+
+[sub_resource type="GDScript" id="GDScript_mqjmn"]
+resource_name = "blacklist_control"
+script/source = "extends Control
+
+@onready var black_list = %BlackList
+@onready var add_to_black = %AddToBlack
+
+func _ready():
+	add_to_black.text_submitted.connect(add_to_blacklist)
+	black_list.item_activated.connect(remove_from_blacklist)
+
+
+func add_to_blacklist(new_item: String) -> void:
+	new_item = new_item.to_lower().strip_edges()
+	if Tagger.settings.suggestion_blacklist.has(new_item):
+		return
+	
+	black_list.add_item(new_item)
+	Tagger.settings.add_to_blacklist(new_item)
+#	Tagger.settings.save()
+	
+
+
+func remove_from_blacklist(index_id) -> void:
+	var _target = black_list.get_item_text(index_id)
+	black_list.remove_item(index_id)
+	Tagger.settings.remove_from_blacklist(_target)
+#	Tagger.settings.save()
+"
+
+[node name="MainApplication" type="Control"]
+clip_contents = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3k5pd")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="MenuBar" type="MenuBar" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 117.0
+offset_bottom = 48.0
+
+[node name="Menu" type="PopupMenu" parent="MenuBar"]
+unique_name_in_owner = true
+size = Vector2i(132, 100)
+item_count = 6
+item_0/text = "Tag list"
+item_0/id = 0
+item_1/text = "Load"
+item_1/id = 2
+item_2/text = "Create Tag"
+item_2/id = 4
+item_3/text = "Review tag"
+item_3/id = 5
+item_4/text = "Preferences"
+item_4/id = 3
+item_5/text = "Exit"
+item_5/id = 1
+
+[node name="Tagger" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_o722f")
+
+[node name="CurrentTags" type="Control" parent="Tagger"]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 448.0
+offset_bottom = 632.0
+
+[node name="ItemList" type="ItemList" parent="Tagger/CurrentTags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
+theme_override_constants/h_separation = 10
+max_columns = 2
+same_column_width = true
+fixed_icon_size = Vector2i(10, 10)
+
+[node name="LineEdit" type="LineEdit" parent="Tagger"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 640.0
+offset_right = 256.0
+offset_bottom = 671.0
+placeholder_text = "Add Tag"
+
+[node name="ClearTags" type="Button" parent="Tagger"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 272.0
+offset_top = 640.0
+offset_right = 448.0
+offset_bottom = 672.0
+text = "Clear tags"
+
+[node name="SuggestionsEnabledBtn" type="CheckButton" parent="Tagger"]
+layout_mode = 0
+offset_left = 584.0
+offset_top = -8.0
+offset_right = 632.0
+offset_bottom = 16.0
+tooltip_text = "If enabled it'll search e621 for related tags and suggest them to you based on suggestion strength."
+button_pressed = true
+
+[node name="Suggested" type="Control" parent="Tagger"]
+anchors_preset = 0
+offset_left = 464.0
+offset_top = 16.0
+offset_right = 656.0
+offset_bottom = 632.0
+
+[node name="SuggestedList" type="ItemList" parent="Tagger/Suggested"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
+same_column_width = true
+
+[node name="Label" type="Label" parent="Tagger/Suggested"]
+layout_mode = 0
+offset_top = -24.0
+offset_right = 119.0
+offset_bottom = 2.0
+text = "Suggested Tags"
+
+[node name="ClearSuggestButton" type="Button" parent="Tagger"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 464.0
+offset_top = 640.0
+offset_right = 656.0
+offset_bottom = 672.0
+text = "Clear suggestions"
+
+[node name="Implied Tags" type="Control" parent="Tagger"]
+anchors_preset = 0
+offset_left = 672.0
+offset_top = 16.0
+offset_right = 864.0
+offset_bottom = 632.0
+
+[node name="ImpliedList" type="ItemList" parent="Tagger/Implied Tags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+same_column_width = true
+
+[node name="Label" type="Label" parent="Tagger/Implied Tags"]
+layout_mode = 0
+offset_top = -24.0
+offset_right = 95.0
+offset_bottom = 2.0
+text = "Implied tags"
+
+[node name="CleanSuggestionsButton" type="Button" parent="Tagger"]
+layout_mode = 0
+offset_left = 672.0
+offset_top = 640.0
+offset_right = 864.0
+offset_bottom = 671.0
+tooltip_text = "Removes all the suggested tags that exist inside the implied tags."
+text = "Clean Suggestions"
+
+[node name="GenerateList" type="Button" parent="Tagger"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 880.0
+offset_top = 640.0
+offset_right = 1088.0
+offset_bottom = 671.0
+text = "Generate List"
+
+[node name="CopyToClipboard" type="Button" parent="Tagger"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1104.0
+offset_top = 640.0
+offset_right = 1264.0
+offset_bottom = 671.0
+text = "Copy to Clipboard"
+
+[node name="FinalTagList" type="TextEdit" parent="Tagger"]
+layout_mode = 0
+offset_left = 880.0
+offset_top = 16.0
+offset_right = 1264.0
+offset_bottom = 632.0
+placeholder_text = "Final tags"
+editable = false
+wrap_mode = 1
+scroll_smooth = true
+
+[node name="ListLoader" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 48.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_nde26")
+
+[node name="Label" type="Label" parent="ListLoader"]
+layout_mode = 0
+offset_left = 720.0
+offset_top = -24.0
+offset_right = 782.0
+offset_bottom = 2.0
+text = "Preview"
+
+[node name="InputTags" type="TextEdit" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_right = 704.0
+offset_bottom = 600.0
+wrap_mode = 1
+
+[node name="Separator" type="TextEdit" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 616.0
+offset_right = 120.0
+offset_bottom = 656.0
+placeholder_text = "Separator"
+draw_spaces = true
+
+[node name="Whitespace" type="TextEdit" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 128.0
+offset_top = 616.0
+offset_right = 240.0
+offset_bottom = 656.0
+placeholder_text = "Whitespace"
+draw_spaces = true
+
+[node name="TransferTags" type="Button" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 256.0
+offset_top = 616.0
+offset_right = 576.0
+offset_bottom = 648.0
+text = "Transfer tags"
+
+[node name="CheckBox" type="CheckBox" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 584.0
+offset_top = 616.0
+offset_right = 700.0
+offset_bottom = 648.0
+text = "Replace list"
+
+[node name="PreviewTags" type="Button" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 720.0
+offset_top = 624.0
+offset_right = 1264.0
+offset_bottom = 656.0
+text = "Generate preview"
+
+[node name="PreviewList" type="ItemList" parent="ListLoader"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 720.0
+offset_right = 1264.0
+offset_bottom = 600.0
+theme_override_constants/h_separation = 10
+max_columns = 0
+
+[node name="TagCreator" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_top = 64.0
+offset_right = 1280.0
+offset_bottom = 720.0
+script = SubResource("GDScript_w31il")
+
+[node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
+layout_mode = 0
+offset_left = 25.0
+offset_right = 273.0
+offset_bottom = 31.0
+placeholder_text = "Tag to add"
+
+[node name="CategoriesMenu" type="OptionButton" parent="TagCreator"]
+layout_mode = 0
+offset_left = 296.0
+offset_right = 552.0
+offset_bottom = 32.0
+item_count = 11
+selected = 0
+popup/item_0/text = "General"
+popup/item_0/id = 0
+popup/item_1/text = "Artist"
+popup/item_1/id = 1
+popup/item_2/text = "Series"
+popup/item_2/id = 2
+popup/item_3/text = "Character"
+popup/item_3/id = 3
+popup/item_4/text = "Species"
+popup/item_4/id = 4
+popup/item_5/text = "Gender"
+popup/item_5/id = 5
+popup/item_6/text = "Lore"
+popup/item_6/id = 6
+popup/item_7/text = "Genitals"
+popup/item_7/id = 7
+popup/item_8/text = "Objects"
+popup/item_8/id = 8
+popup/item_9/text = "Clothing"
+popup/item_9/id = 9
+popup/item_10/text = "Accesories"
+popup/item_10/id = 10
+
+[node name="Label" type="Label" parent="TagCreator/CategoriesMenu"]
+layout_mode = 0
+offset_top = -32.0
+offset_right = 114.0
+text = "Tag Category"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TagPrioBox" type="SpinBox" parent="TagCreator"]
+layout_mode = 0
+offset_left = 568.0
+offset_right = 672.0
+offset_bottom = 31.0
+allow_greater = true
+allow_lesser = true
+alignment = 1
+select_all_on_focus = true
+
+[node name="Label" type="Label" parent="TagCreator/TagPrioBox"]
+layout_mode = 0
+offset_top = -32.0
+offset_right = 89.0
+text = "Tag priority"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AddParentLineEdit" type="LineEdit" parent="TagCreator"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 536.0
+offset_right = 272.0
+offset_bottom = 576.0
+placeholder_text = "Add new parent tag"
+
+[node name="WikiInfo" type="TextEdit" parent="TagCreator"]
+layout_mode = 0
+offset_left = 296.0
+offset_top = 48.0
+offset_right = 1256.0
+offset_bottom = 576.0
+placeholder_text = "Wiki Info"
+wrap_mode = 1
+scroll_smooth = true
+
+[node name="CreateTagsButton" type="Button" parent="TagCreator"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 592.0
+offset_right = 1256.0
+offset_bottom = 640.0
+disabled = true
+text = "Create Tag"
+
+[node name="ParentItemList" type="ItemList" parent="TagCreator"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 48.0
+offset_right = 272.0
+offset_bottom = 528.0
+
+[node name="TagReviewer" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_left = 1.0
+offset_top = 64.0
+offset_right = 1281.0
+offset_bottom = 720.0
+script = SubResource("GDScript_lfssu")
+
+[node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 16.0
+offset_right = 192.0
+offset_bottom = 31.0
+
+[node name="TagSearchButton" type="Button" parent="TagReviewer/TagSearcher"]
+layout_mode = 0
+offset_left = 192.0
+offset_right = 304.0
+offset_bottom = 31.0
+text = "Search"
+
+[node name="NameLine" type="LineEdit" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 48.0
+offset_right = 320.0
+offset_bottom = 79.0
+editable = false
+
+[node name="TagName" type="Label" parent="TagReviewer/NameLine"]
+layout_mode = 0
+offset_left = -96.0
+offset_right = -5.0
+offset_bottom = 32.0
+text = "Tag Name:"
+vertical_alignment = 1
+
+[node name="CategoriesMenu" type="OptionButton" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 88.0
+offset_right = 320.0
+offset_bottom = 120.0
+disabled = true
+alignment = 1
+item_count = 11
+selected = 0
+popup/item_0/text = "General"
+popup/item_0/id = 0
+popup/item_1/text = "Artist"
+popup/item_1/id = 1
+popup/item_2/text = "Series"
+popup/item_2/id = 2
+popup/item_3/text = "Character"
+popup/item_3/id = 3
+popup/item_4/text = "Species"
+popup/item_4/id = 4
+popup/item_5/text = "Gender"
+popup/item_5/id = 5
+popup/item_6/text = "Lore"
+popup/item_6/id = 6
+popup/item_7/text = "Genitals"
+popup/item_7/id = 7
+popup/item_8/text = "Objects"
+popup/item_8/id = 8
+popup/item_9/text = "Clothing"
+popup/item_9/id = 9
+popup/item_10/text = "Accesories"
+popup/item_10/id = 10
+
+[node name="CategoryLabel" type="Label" parent="TagReviewer/CategoriesMenu"]
+layout_mode = 0
+offset_left = -120.0
+offset_right = -8.0
+offset_bottom = 32.0
+text = "Tag Category:"
+vertical_alignment = 1
+
+[node name="TagPrioBox" type="SpinBox" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 136.0
+offset_right = 320.0
+offset_bottom = 167.0
+tooltip_text = "Refers to what tags will come first when GENERATING the tag list. The items added first are the ones of highest priority."
+allow_greater = true
+allow_lesser = true
+alignment = 1
+editable = false
+
+[node name="Priority" type="Label" parent="TagReviewer/TagPrioBox"]
+layout_mode = 0
+offset_left = -72.0
+offset_right = -10.0
+offset_bottom = 32.0
+text = "Priority:"
+vertical_alignment = 1
+
+[node name="ParentsItemList" type="ItemList" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 192.0
+offset_right = 320.0
+offset_bottom = 528.0
+
+[node name="ParentsLabel" type="Label" parent="TagReviewer/ParentsItemList"]
+layout_mode = 0
+offset_top = -32.0
+offset_right = 112.0
+text = "Parent Tags:"
+vertical_alignment = 1
+
+[node name="AddParentLineEdit" type="LineEdit" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 536.0
+offset_right = 320.0
+offset_bottom = 575.0
+placeholder_text = "Add new parent"
+editable = false
+
+[node name="WikiEdit" type="TextEdit" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 344.0
+offset_right = 1256.0
+offset_bottom = 576.0
+placeholder_text = "Wiki Info"
+editable = false
+wrap_mode = 1
+
+[node name="WikiLabel" type="Label" parent="TagReviewer/WikiEdit"]
+layout_mode = 0
+offset_top = -32.0
+offset_right = 112.0
+text = "Wiki Entry:"
+vertical_alignment = 1
+
+[node name="TagUpdate" type="Button" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 592.0
+offset_right = 320.0
+offset_bottom = 640.0
+disabled = true
+text = "Update Tag"
+
+[node name="TagDelete" type="Button" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 1128.0
+offset_top = 592.0
+offset_right = 1256.0
+offset_bottom = 640.0
+disabled = true
+text = "Delete Tag"
+
+[node name="Settings" type="Control" parent="."]
+anchors_preset = 0
+offset_top = 56.0
+offset_right = 1280.0
+offset_bottom = 720.0
+script = SubResource("GDScript_chh5e")
+
+[node name="Target Site" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 64.0
+offset_top = 8.0
+offset_right = 432.0
+offset_bottom = 48.0
+script = SubResource("GDScript_p8ss3")
+
+[node name="OptionButton" type="OptionButton" parent="Settings/Target Site"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 136.0
+offset_top = 8.0
+offset_right = 360.0
+offset_bottom = 39.0
+item_count = 2
+selected = 0
+popup/item_0/text = "E621 / Itaku"
+popup/item_0/id = 0
+popup/item_1/text = "Postybirb"
+popup/item_1/id = 1
+
+[node name="Label" type="Label" parent="Settings/Target Site"]
+layout_mode = 0
+offset_top = 8.0
+offset_right = 126.0
+offset_bottom = 40.0
+text = "Target Platform:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Strength" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 32.0
+offset_top = 80.0
+offset_right = 552.0
+offset_bottom = 112.0
+script = SubResource("GDScript_y3wef")
+
+[node name="HSlider" type="HSlider" parent="Settings/Strength"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 168.0
+offset_right = 416.0
+offset_bottom = 32.0
+
+[node name="Label" type="Label" parent="Settings/Strength/HSlider"]
+layout_mode = 0
+offset_left = -168.0
+offset_right = -8.0
+offset_bottom = 32.0
+text = "Suggestion Strength:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LineEdit" type="LineEdit" parent="Settings/Strength"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 424.0
+offset_right = 491.063
+offset_bottom = 31.0
+placeholder_text = "100"
+alignment = 1
+max_length = 3
+middle_mouse_paste_enabled = false
+select_all_on_focus = true
+
+[node name="Percentage" type="Label" parent="Settings/Strength/LineEdit"]
+layout_mode = 0
+offset_left = 72.0
+offset_right = 96.0
+offset_bottom = 32.0
+theme_override_font_sizes/font_size = 20
+text = "%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RecreateDatabaseBtn" type="Button" parent="Settings"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 128.0
+offset_top = 136.0
+offset_right = 448.0
+offset_bottom = 184.0
+tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
+text = "Recreate tag impliactions"
+
+[node name="Aliases" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 64.0
+offset_top = 264.0
+offset_right = 512.0
+offset_bottom = 584.0
+script = SubResource("GDScript_jmlhj")
+
+[node name="Aliases" type="Tree" parent="Settings/Aliases"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_hr4cx")
+
+[node name="OldAlias" type="LineEdit" parent="Settings/Aliases"]
+layout_mode = 0
+offset_top = 272.0
+offset_right = 208.0
+offset_bottom = 312.0
+placeholder_text = "Old name"
+alignment = 1
+
+[node name="NewAlias" type="LineEdit" parent="Settings/Aliases"]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 272.0
+offset_right = 448.0
+offset_bottom = 312.0
+placeholder_text = "New name"
+alignment = 1
+
+[node name="RemoveAliasButton" type="Button" parent="Settings/Aliases"]
+layout_mode = 0
+offset_top = 344.0
+offset_right = 208.0
+offset_bottom = 384.0
+disabled = true
+text = "Remove Alias"
+
+[node name="AddAliasButton" type="Button" parent="Settings/Aliases"]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 344.0
+offset_right = 448.0
+offset_bottom = 384.0
+disabled = true
+text = "Add alias"
+
+[node name="BlackListControl" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 575.0
+offset_top = 24.0
+offset_right = 1215.0
+offset_bottom = 392.0
+script = SubResource("GDScript_mqjmn")
+
+[node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1.0
+offset_top = -32.0
+offset_right = 257.0
+offset_bottom = -1.0
+placeholder_text = "Add to blacklist"
+alignment = 1
+
+[node name="BlackList" type="ItemList" parent="Settings/BlackListControl"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 8.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+max_columns = 3
+same_column_width = true
+
+[node name="Label" type="Label" parent="Settings/BlackListControl"]
+layout_mode = 0
+offset_left = 481.0
+offset_top = -24.0
+offset_right = 641.0
+offset_bottom = 8.0
+text = "Suggestion Blacklist"
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="Constants" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ConstantsLineEdit" type="LineEdit" parent="Settings/Constants"]
+layout_mode = 0
+offset_left = 576.0
+offset_top = 424.0
+offset_right = 755.0
+offset_bottom = 455.0
+tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
+placeholder_text = "Add to constants"
+
+[node name="TagList" type="Control" parent="Settings/Constants"]
+anchors_preset = 0
+offset_left = 768.0
+offset_top = 520.0
+offset_right = 1216.0
+offset_bottom = 648.0
+
+[node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -192.0
+offset_top = -56.0
+grow_horizontal = 2
+grow_vertical = 2
+max_columns = 3
+
+[node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
+unique_name_in_owner = true
+max_parallel_requests = 0
+post_limit = 1
+
+[node name="TagListGenerator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_3orkp")

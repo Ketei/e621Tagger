@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://vnykn8wp2h5y"]
+
+[ext_resource type="Texture2D" uid="uid://dgwk0htuyklxk" path="res://Textures/tag_icon.png" id="1_57fhu"]
+
+[node name="GeneralTagIcon" type="TextureRect"]
+modulate = Color(0.32549, 0.411765, 0.964706, 1)
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_57fhu")

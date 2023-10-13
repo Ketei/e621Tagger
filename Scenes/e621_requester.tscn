@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://b6wj2l5tgewim"]
+
+[ext_resource type="Script" path="res://Classes/e621Requester.gd" id="1_1ov12"]
+[ext_resource type="PackedScene" uid="uid://ch2qaswog0mgn" path="res://Scenes/e621Request.tscn" id="2_axeal"]
+
+[node name="e621Requester" type="Node"]
+script = ExtResource("1_1ov12")
+
+[node name="main_E621" parent="." instance=ExtResource("2_axeal")]
+timeout = 10.0

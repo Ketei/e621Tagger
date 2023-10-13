@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ch2qaswog0mgn"]
+
+[ext_resource type="Script" path="res://Classes/E621_request_script.gd" id="1_lcmft"]
+
+[node name="E621" type="HTTPRequest"]
+script = ExtResource("1_lcmft")

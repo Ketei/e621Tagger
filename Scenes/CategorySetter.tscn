@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxypi0fnsgaq7"]
+
+[sub_resource type="GDScript" id="GDScript_ii7er"]
+resource_name = "mass_category"
+script/source = "extends Control
+
+@export var general_tags: Array[Tag] = []
+@export var artists_tags: Array[Tag] = []
+@export var series_tags: Array[Tag] = []
+@export var character_tags: Array[Tag] = []
+@export var species_tags: Array[Tag] = []
+@export var gender_tags: Array[Tag] = []
+@export var lore_tags: Array[Tag] = []
+@export var genitals_tags: Array[Tag] = []
+@export var objects_tags: Array[Tag] = []
+@export var clothing_tags: Array[Tag] = []
+@export var accessories_tags: Array[Tag] = []
+
+@export var target_category: Dictionary = {
+	\"General\": Tagger.Categories.GENERAL,
+	\"Artist\": Tagger.Categories.ARTIST,
+	\"Series\": Tagger.Categories.SERIES,
+	\"Character\": Tagger.Categories.CHARACTER,
+	\"Species\": Tagger.Categories.SPECIES,
+	\"Gender\": Tagger.Categories.GENDER,
+	\"Lore\": Tagger.Categories.LORE,
+	\"Genitals\": Tagger.Categories.GENITALS,
+	\"Objects\": Tagger.Categories.OBJECTS,
+	\"Clothing\": Tagger.Categories.CLOTHING,
+	\"Accessories\": Tagger.Categories.ACCESSORIES,
+}
+
+func _ready():	
+	for tag in general_tags:
+		tag.category = Tagger.Categories.GENERAL
+	for tag in artists_tags:
+		tag.category = Tagger.Categories.ARTIST
+	for tag in series_tags:
+		tag.category = Tagger.Categories.SERIES
+	for tag in character_tags:
+		tag.category = Tagger.Categories.CHARACTER
+	for tag in species_tags:
+		tag.category = Tagger.Categories.SPECIES
+	for tag in gender_tags:
+		tag.category = Tagger.Categories.GENDER
+	for tag in lore_tags:
+		tag.category = Tagger.Categories.LORE
+	for tag in genitals_tags:
+		tag.category = Tagger.Categories.GENITALS
+	for tag in objects_tags:
+		tag.category = Tagger.Categories.OBJECTS
+	for tag in clothing_tags:
+		tag.category = Tagger.Categories.CLOTHING
+	for tag in accessories_tags:
+		tag.category = Tagger.Categories.ACCESSORIES
+
+"
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_ii7er")
