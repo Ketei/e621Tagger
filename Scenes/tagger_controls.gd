@@ -90,7 +90,7 @@ func clear_tags() -> void:
 
 func clean_suggestions() -> void:
 	for tag in _implied_tags:
-		if suggestion_tags.has(tag):
+		if suggestion_tags.has(tag) or _full_tag_list.has(tag):
 			var _remove_index: int = suggestion_tags.find(tag)
 			suggestion_tags.remove_at(_remove_index)
 			suggested_list.remove_item(_remove_index)
@@ -296,7 +296,7 @@ func add_valid_tag(tag_name: String, tag_data: Tag) -> void:
 			implied_list.add_item(implied_parent)
 	
 	if offline_sugg_button.button_pressed:
-		for suggested_tag in tag_data.suggestions:
+		for suggested_tag in tag_list_generator._offline_suggestions:
 			if not suggestion_tags.has(suggested_tag):
 				suggestion_tags.append(suggested_tag)
 				suggested_list.add_item(suggested_tag)
