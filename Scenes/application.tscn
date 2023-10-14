@@ -596,7 +596,7 @@ func remove_from_blacklist(index_id) -> void:
 	var _target = black_list.get_item_text(index_id)
 	black_list.remove_item(index_id)
 	Tagger.settings.remove_from_blacklist(_target)
-#	Tagger.settings.save()
+
 "
 
 [sub_resource type="GDScript" id="GDScript_i3qtj"]
