@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=15 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -600,6 +600,33 @@ func remove_from_blacklist(index_id) -> void:
 #	Tagger.settings.save()
 "
 
+[sub_resource type="GDScript" id="GDScript_i3qtj"]
+script/source = "extends Control
+
+@onready var invalid_tags_line_edit = $InvalidTagsLineEdit
+@onready var invalid_tag_list = $InvalidItemList
+
+
+func _ready() -> void:
+	for invalid_tag in Tagger.settings.invalid_tags:
+		invalid_tag_list.add_item(invalid_tag)
+	
+	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
+	invalid_tag_list.item_activated.connect(remove_from_invalids)
+	
+
+func add_to_invalid_tags(tag_to_add: String) -> void:
+	if not Tagger.settings.invalid_tags.has(tag_to_add):
+		invalid_tag_list.add_item(tag_to_add)
+		Tagger.settings.invalid_tags.append(tag_to_add)
+	invalid_tags_line_edit.clear()
+
+func remove_from_invalids(tag_id: int) -> void:
+	var tag_text: String = invalid_tag_list.get_item_text(tag_id)
+	invalid_tag_list.remove_item(tag_id)
+	Tagger.settings.remove_from_invalids(tag_text)
+"
+
 [node name="MainApplication" type="Control"]
 clip_contents = true
 layout_mode = 3
@@ -644,6 +671,7 @@ item_5/text = "Exit"
 item_5/id = 1
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1194,7 +1222,6 @@ disabled = true
 text = "Delete Tag"
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -1341,23 +1368,32 @@ offset_bottom = 384.0
 disabled = true
 text = "Add alias"
 
+[node name="Label" type="Label" parent="Settings/Aliases"]
+layout_mode = 0
+offset_left = 920.0
+offset_top = -312.0
+offset_right = 1080.0
+offset_bottom = -280.0
+text = "Suggestion Blacklist"
+horizontal_alignment = 2
+vertical_alignment = 2
+
 [node name="BlackListControl" type="Control" parent="Settings"]
 anchors_preset = 0
-offset_left = 575.0
-offset_top = 24.0
-offset_right = 1215.0
-offset_bottom = 392.0
+offset_left = 984.0
+offset_top = 32.0
+offset_right = 1256.0
+offset_bottom = 648.0
 script = SubResource("GDScript_mqjmn")
 
 [node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 1.0
-offset_top = -32.0
-offset_right = 257.0
-offset_bottom = -1.0
+offset_top = -40.0
+offset_right = 272.0
+offset_bottom = -9.0
 placeholder_text = "Add to blacklist"
-alignment = 1
 
 [node name="BlackList" type="ItemList" parent="Settings/BlackListControl"]
 unique_name_in_owner = true
@@ -1365,22 +1401,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 8.0
-offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-max_columns = 3
+max_columns = 2
 same_column_width = true
-
-[node name="Label" type="Label" parent="Settings/BlackListControl"]
-layout_mode = 0
-offset_left = 481.0
-offset_top = -24.0
-offset_right = 641.0
-offset_bottom = 8.0
-text = "Suggestion Blacklist"
-horizontal_alignment = 2
-vertical_alignment = 2
 
 [node name="Constants" type="Control" parent="Settings"]
 anchors_preset = 0
@@ -1405,14 +1429,47 @@ offset_bottom = 648.0
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
 layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.429
+anchor_top = -0.437
+anchor_right = 0.411
+anchor_bottom = 0.937
+offset_left = 0.192017
+offset_top = -0.0639992
+offset_right = 7.87199
+offset_bottom = 8.064
+max_columns = 3
+
+[node name="InvalidTags" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 576.0
+offset_top = 32.0
+offset_right = 960.0
+offset_bottom = 400.0
+script = SubResource("GDScript_i3qtj")
+
+[node name="InvalidTagsLabel" type="Label" parent="Settings/InvalidTags"]
+layout_mode = 0
+offset_top = -72.0
+offset_right = 91.0
+offset_bottom = -46.0
+text = "Invalid Tags"
+
+[node name="InvalidTagsLineEdit" type="LineEdit" parent="Settings/InvalidTags"]
+layout_mode = 0
+offset_top = -40.0
+offset_right = 256.0
+offset_bottom = -9.0
+placeholder_text = "Add to invalid tags"
+
+[node name="InvalidItemList" type="ItemList" parent="Settings/InvalidTags"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -192.0
-offset_top = -56.0
 grow_horizontal = 2
 grow_vertical = 2
-max_columns = 3
+max_columns = 2
 
 [node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
 unique_name_in_owner = true
