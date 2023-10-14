@@ -589,8 +589,7 @@ func add_to_blacklist(new_item: String) -> void:
 	
 	black_list.add_item(new_item)
 	Tagger.settings.add_to_blacklist(new_item)
-#	Tagger.settings.save()
-	
+	add_to_black.clear()
 
 
 func remove_from_blacklist(index_id) -> void:
