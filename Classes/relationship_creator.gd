@@ -25,7 +25,7 @@ extends Node
 #		build_specific_implications(_indexes, override_char, override_file)
 	
 	
-static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0) -> String:
+static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = []) -> String:
 	var _tag_dict: Dictionary = {}
 	
 	var _tag := Tag.new()
@@ -34,6 +34,7 @@ static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.
 	_tag.parents = tag_parents
 	_tag.wiki_entry = tag_wiki_info
 	_tag.tag_priority = tag_prio
+	_tag.suggestions = tag_suggestions.duplicate()
 	var tag_path: String = _tag.save()
 	
 	var _implication : ImplicationDictionary

@@ -16,6 +16,8 @@ script/source = "extends Control
 @onready var add_parent_line_edit = $AddParentLineEdit
 @onready var parent_item_list = $ParentItemList
 @onready var tag_prio_box: SpinBox = $TagPrioBox
+@onready var suggestion_item_list: ItemList = $SuggestionItemList
+@onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
 
 
 var parent_tags: Array = []
@@ -23,7 +25,13 @@ var parent_tags: Array = []
 var text_timer: Timer
 
 
+var tag_suggestion_array: Array[String] = []
+
+
 func _ready():
+	suggestion_line_edit.text_submitted.connect(add_suggestion)
+	suggestion_item_list.item_activated.connect(remove_suggestion)
+
 	create_tags_button.pressed.connect(create_tag)
 	tag_to_add_line_edit.text_changed.connect(check_if_can_add_tag)
 	add_parent_line_edit.text_submitted.connect(add_parent)
@@ -35,6 +43,18 @@ func _ready():
 	text_timer.one_shot = true
 	text_timer.timeout.connect(on_timer_timeout)
 	add_child(text_timer)
+
+
+func add_suggestion(new_suggestion: String) -> void:
+	if not tag_suggestion_array.has(new_suggestion):
+		tag_suggestion_array.append(new_suggestion)
+		suggestion_item_list.add_item(new_suggestion)
+		suggestion_line_edit.clear()
+
+
+func remove_suggestion(item_id: int) -> void:
+	tag_suggestion_array.remove_at(item_id)
+	suggestion_item_list.remove_item(item_id)
 
 
 func check_if_can_add_tag(new_text: String) -> void:
@@ -68,7 +88,7 @@ func create_tag() -> void:
 		clear_menu_items(\"Tag already exists!!!\")
 		return
 
-	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value))
+	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value), tag_suggestion_array)
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
@@ -80,6 +100,9 @@ func create_tag() -> void:
 
 func clear_menu_items(btn_message: String) -> void:
 	create_tags_button.text = btn_message
+	tag_suggestion_array.clear()
+	suggestion_item_list.clear()
+	suggestion_line_edit.clear()
 	tag_prio_box.set_value_no_signal(0)
 	categories_menu.select(0)
 	tag_to_add_line_edit.clear()
@@ -113,12 +136,18 @@ script/source = "extends Control
 
 @onready var tag_prio_box: SpinBox = $TagPrioBox
 
+@onready var tag_suggestion_list: ItemList = $TagSuggestionList
+@onready var tag_suggestion_line_edit: LineEdit = $TagSuggestionLineEdit
+
 
 var parents: Array = []
+var suggestions_array: Array[String] = []
 var text_change_timer: Timer
 
 
 func _ready():
+	tag_suggestion_line_edit.text_submitted.connect(add_suggested)
+	tag_suggestion_list.item_activated.connect(remove_suggested)
 	text_change_timer = Timer.new()
 	text_change_timer.wait_time = 1.0
 	text_change_timer.autostart = false
@@ -143,6 +172,7 @@ func update_tag() -> void:
 	_tag.parents = parents.duplicate()
 	_tag.wiki_entry = wiki_edit.text
 	_tag.tag_priority = int(tag_prio_box.value)
+	_tag.suggestions = suggestions_array.duplicate()
 	_tag.save()
 	
 	tag_update_button.text = \"Updated!\"
@@ -167,6 +197,9 @@ func delete_tag() -> void:
 
 
 func clear_and_disable() -> void:
+	tag_suggestion_list.clear()
+	tag_suggestion_line_edit.clear()
+	tag_suggestion_line_edit.editable = false
 	tag_prio_box.set_value_no_signal(0)
 	tag_prio_box.editable = false
 	tag_searcher.clear()
@@ -202,6 +235,10 @@ func search_for_tag(new_text: String) -> void:
 	parents.clear()
 	parents_item_list.clear()
 	
+	tag_suggestion_list.clear()
+	suggestions_array.clear()
+	tag_suggestion_line_edit.clear()
+	
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 
 	name_line.text = _tag.tag
@@ -210,11 +247,16 @@ func search_for_tag(new_text: String) -> void:
 	for parent_tag in _tag.parents:
 		parents.append(parent_tag)
 		parents_item_list.add_item(parent_tag)
-
+	
+	for suggested_tag in _tag.suggestions:
+		suggestions_array.append(suggested_tag)
+		tag_suggestion_list.add_item(suggested_tag)
+	
 	wiki_edit.clear()
 	wiki_edit.text = _tag.wiki_entry
 	tag_prio_box.set_value_no_signal(_tag.tag_priority)
 	
+	tag_suggestion_line_edit.editable = true
 	tag_prio_box.editable = true
 	add_parent_line_edit.editable = true
 	categories_menu.disabled = false
@@ -239,6 +281,17 @@ func add_parent(parent_text: String) -> void:
 func remove_parent(parent_id: int) -> void:
 	parents.remove_at(parent_id)
 	parents_item_list.remove_item(parent_id)
+
+
+func add_suggested(new_suggestion: String) -> void:
+	suggestions_array.append(new_suggestion)
+	tag_suggestion_list.add_item(new_suggestion)
+	tag_suggestion_line_edit.clear()
+
+
+func remove_suggested(sug_id: int) -> void:
+	suggestions_array.remove_at(sug_id)
+	tag_suggestion_list.remove_item(sug_id)
 
 
 func _on_timer_timeout() -> void:
@@ -639,17 +692,37 @@ text = "Clear tags"
 
 [node name="SuggestionsEnabledBtn" type="CheckButton" parent="Tagger"]
 layout_mode = 0
-offset_left = 584.0
-offset_top = -8.0
-offset_right = 632.0
-offset_bottom = 16.0
-tooltip_text = "If enabled it'll search e621 for related tags and suggest them to you based on suggestion strength."
+offset_left = 464.0
+offset_top = 16.0
+offset_right = 664.0
+offset_bottom = 48.0
+tooltip_text = "Offer suggestions using the e621 API. Requires an internet connection and for the API to be working."
 button_pressed = true
+text = "Online Suggestions"
+
+[node name="OfflineSuggButton" type="CheckButton" parent="Tagger"]
+layout_mode = 0
+offset_left = 464.0
+offset_top = 48.0
+offset_right = 664.0
+offset_bottom = 80.0
+tooltip_text = "Offer suggestions that come attatched to tags."
+button_pressed = true
+text = "Offline Suggestions"
+
+[node name="Label" type="Label" parent="Tagger"]
+layout_mode = 0
+offset_left = 464.0
+offset_top = -10.0
+offset_right = 583.0
+offset_bottom = 16.0
+text = "Suggested Tags:"
+vertical_alignment = 1
 
 [node name="Suggested" type="Control" parent="Tagger"]
 anchors_preset = 0
 offset_left = 464.0
-offset_top = 16.0
+offset_top = 80.0
 offset_right = 656.0
 offset_bottom = 632.0
 
@@ -662,13 +735,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 same_column_width = true
-
-[node name="Label" type="Label" parent="Tagger/Suggested"]
-layout_mode = 0
-offset_top = -24.0
-offset_right = 119.0
-offset_bottom = 2.0
-text = "Suggested Tags"
 
 [node name="ClearSuggestButton" type="Button" parent="Tagger"]
 unique_name_in_owner = true
@@ -906,7 +972,7 @@ placeholder_text = "Add new parent tag"
 layout_mode = 0
 offset_left = 296.0
 offset_top = 48.0
-offset_right = 1256.0
+offset_right = 1024.0
 offset_bottom = 576.0
 placeholder_text = "Wiki Info"
 wrap_mode = 1
@@ -928,6 +994,22 @@ offset_top = 48.0
 offset_right = 272.0
 offset_bottom = 528.0
 
+[node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
+layout_mode = 0
+offset_left = 1032.0
+offset_top = 48.0
+offset_right = 1264.0
+offset_bottom = 536.0
+
+[node name="SugestionLineEdit" type="LineEdit" parent="TagCreator"]
+layout_mode = 0
+offset_left = 1032.0
+offset_top = 544.0
+offset_right = 1264.0
+offset_bottom = 575.0
+tooltip_text = "Tags to suggest if this tag is used."
+placeholder_text = "Suggestions"
+
 [node name="TagReviewer" type="Control" parent="."]
 visible = false
 anchors_preset = 0
@@ -940,13 +1022,13 @@ script = SubResource("GDScript_lfssu")
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
 offset_left = 16.0
-offset_right = 192.0
+offset_right = 295.0
 offset_bottom = 31.0
 
 [node name="TagSearchButton" type="Button" parent="TagReviewer/TagSearcher"]
 layout_mode = 0
-offset_left = 192.0
-offset_right = 304.0
+offset_left = 287.0
+offset_right = 399.0
 offset_bottom = 31.0
 text = "Search"
 
@@ -954,8 +1036,9 @@ text = "Search"
 layout_mode = 0
 offset_left = 112.0
 offset_top = 48.0
-offset_right = 320.0
+offset_right = 415.0
 offset_bottom = 79.0
+alignment = 1
 editable = false
 
 [node name="TagName" type="Label" parent="TagReviewer/NameLine"]
@@ -970,7 +1053,7 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = 136.0
 offset_top = 88.0
-offset_right = 320.0
+offset_right = 415.0
 offset_bottom = 120.0
 disabled = true
 alignment = 1
@@ -1011,7 +1094,7 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = 88.0
 offset_top = 136.0
-offset_right = 320.0
+offset_right = 415.0
 offset_bottom = 167.0
 tooltip_text = "Refers to what tags will come first when GENERATING the tag list. The items added first are the ones of highest priority."
 allow_greater = true
@@ -1027,32 +1110,59 @@ offset_bottom = 32.0
 text = "Priority:"
 vertical_alignment = 1
 
+[node name="ParentsLabel" type="Label" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 184.0
+offset_right = 128.0
+offset_bottom = 216.0
+text = "Parent Tags:"
+vertical_alignment = 1
+
 [node name="ParentsItemList" type="ItemList" parent="TagReviewer"]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 192.0
-offset_right = 320.0
+offset_top = 216.0
+offset_right = 207.0
 offset_bottom = 528.0
-
-[node name="ParentsLabel" type="Label" parent="TagReviewer/ParentsItemList"]
-layout_mode = 0
-offset_top = -32.0
-offset_right = 112.0
-text = "Parent Tags:"
-vertical_alignment = 1
 
 [node name="AddParentLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 536.0
-offset_right = 320.0
+offset_right = 207.0
 offset_bottom = 575.0
 placeholder_text = "Add new parent"
 editable = false
 
+[node name="TagSuggestionLabel" type="Label" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 223.0
+offset_top = 184.0
+offset_right = 343.0
+offset_bottom = 216.0
+text = "Suggestions:"
+vertical_alignment = 1
+
+[node name="TagSuggestionList" type="ItemList" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 223.0
+offset_top = 216.0
+offset_right = 415.0
+offset_bottom = 528.0
+
+[node name="TagSuggestionLineEdit" type="LineEdit" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 223.0
+offset_top = 536.0
+offset_right = 415.0
+offset_bottom = 576.0
+placeholder_text = "Add new suggestion"
+editable = false
+
 [node name="WikiEdit" type="TextEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 344.0
+offset_left = 431.0
 offset_right = 1256.0
 offset_bottom = 576.0
 placeholder_text = "Wiki Info"
@@ -1070,7 +1180,7 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = 16.0
 offset_top = 592.0
-offset_right = 320.0
+offset_right = 415.0
 offset_bottom = 640.0
 disabled = true
 text = "Update Tag"

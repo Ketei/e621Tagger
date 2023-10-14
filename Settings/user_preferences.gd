@@ -330,6 +330,7 @@ extends Resource
 
 @export var constant_blacklist: Array[String] = []
 @export var search_suggested: bool = true
+@export var load_suggested: bool = true
 
 @export var invalid_tags: Array[String] = [
 	"2 armed",

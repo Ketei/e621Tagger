@@ -7,6 +7,7 @@ extends Resource
 @export var variants: Dictionary = {}
 @export var category: Tagger.Categories = Tagger.Categories.GENERAL
 @export var parents: Array = []
+@export var suggestions: Array[String] = []
 @export var wiki_entry: String = ""
 
 @export var file_name: String = ""

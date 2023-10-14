@@ -13,6 +13,7 @@ extends Control
 @onready var clear_tags_button = %ClearTags
 @onready var suggestions_enabled_btn: CheckButton = $SuggestionsEnabledBtn
 @onready var clean_suggestions_button = $CleanSuggestionsButton
+@onready var offline_sugg_button: CheckButton = $OfflineSuggButton
 
 
 var tag_queue: Array[String] = []
@@ -31,7 +32,9 @@ var copy_timer: Timer
 
 func _ready():
 	suggestions_enabled_btn.button_pressed = Tagger.settings.search_suggested
+	offline_sugg_button.button_pressed = Tagger.settings.load_suggested
 	
+	offline_sugg_button.toggled.connect(toggle_suggestion_load)
 	line_edit.text_submitted.connect(submit_text)
 	item_list.item_activated.connect(remove_item)
 	item_list.empty_clicked.connect(deselect_items)
@@ -67,6 +70,10 @@ func _unhandled_key_input(event):
 
 func disable_suggested_search(is_toggled: bool) -> void:
 	Tagger.settings.search_suggested = is_toggled
+
+
+func toggle_suggestion_load(is_toggled: bool) -> void:
+	Tagger.settings.load_suggested = is_toggled
 
 
 func clear_tags() -> void:
@@ -288,6 +295,12 @@ func add_valid_tag(tag_name: String, tag_data: Tag) -> void:
 			_implied_tags.append(implied_parent)
 			implied_list.add_item(implied_parent)
 	
+	if offline_sugg_button.button_pressed:
+		for suggested_tag in tag_data.suggestions:
+			if not suggestion_tags.has(suggested_tag):
+				suggestion_tags.append(suggested_tag)
+				suggested_list.add_item(suggested_tag)
+
 	item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
 	item_list.ensure_current_is_visible()
 
