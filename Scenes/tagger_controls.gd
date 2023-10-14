@@ -100,15 +100,13 @@ func deselect_items(_at_position: Vector2, _mouse_button_index: int):
 
 func remove_item(item_id: int) -> void:
 	var _id_name: String = item_list.get_item_text(item_id)
-	
-	#quick_erase(_id_name, _full_tag_list)
-	_full_tag_list.remove_at(item_id)
-	
+
 	if generic_tags.has(_id_name):
 		quick_erase(_id_name, generic_tags)
-	else:
+	elif valid_tags.has(_id_name):
 		valid_tags.erase(_id_name)
 	
+	_full_tag_list.remove_at(item_id)
 	item_list.remove_item(item_id)
 	regenerate_implied()
 
