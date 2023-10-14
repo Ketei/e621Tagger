@@ -591,7 +591,6 @@ item_5/text = "Exit"
 item_5/id = 1
 
 [node name="Tagger" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1086,6 +1085,7 @@ disabled = true
 text = "Delete Tag"
 
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0

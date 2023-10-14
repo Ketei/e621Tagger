@@ -24,12 +24,9 @@ var suggestion_tags: Array[String] = []
 var _implied_tags: Array[String] = []
 
 var _full_tag_list: Array[String] = []
-var _scroll_length: int = 0
 
 var suggestion_timer: Timer
 var copy_timer: Timer
-
-@onready var _scrollbar: VScrollBar = $CurrentTags/ItemList.get_v_scroll_bar()
 
 
 func _ready():
@@ -127,7 +124,7 @@ func regenerate_implied() -> void:
 	tag_list_generator.explore_parents()
 	
 	for imp_tag in tag_list_generator._kid_return:
-		if imp_tag in _full_tag_list:
+		if _full_tag_list.has(imp_tag) or _implied_tags.has(imp_tag):
 			continue		
 		_implied_tags.append(imp_tag)
 		implied_list.add_item(imp_tag)
@@ -254,9 +251,9 @@ func transfer_suggested(item_activated) -> void:
 	else:
 		add_generic_tag(_tag_text)
 	
-	tag_queue.append(_tag_text)
-	
-	start_suggestion_lookup()
+	if suggestions_enabled_btn.button_pressed:
+		tag_queue.append(_tag_text)
+		start_suggestion_lookup()
 
 
 func generate_tag_list() -> void:
