@@ -152,6 +152,12 @@ func submit_text(text_to_add: String) -> void: # Adds a tag.
 		return
 		
 	var _target_tag: String = Tagger.alias_database.get_alias(text_to_add)
+	
+	if Tagger.settings.invalid_tags.has(_target_tag):
+		add_invalid_tag(_target_tag)
+		line_edit.clear()
+		return
+	
 		
 	if _full_tag_list.has(_target_tag):
 		item_list.select(_full_tag_list.find(_target_tag))
@@ -303,6 +309,12 @@ func add_generic_tag(tag_name: String) -> void:
 	generic_tags.append(tag_name)
 	_full_tag_list.append(tag_name)
 	item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
+	item_list.ensure_current_is_visible()
+
+
+func add_invalid_tag(inv_tag_name: String) -> void:
+	_full_tag_list.append(inv_tag_name)
+	item_list.select(item_list.add_item(inv_tag_name, load("res://Textures/bad.png")))
 	item_list.ensure_current_is_visible()
 
 
