@@ -4,16 +4,14 @@ extends Control
 @onready var item_list = $CurrentTags/ItemList
 @onready var e_621_requester = %e621Requester
 @onready var suggested_list = $Suggested/SuggestedList
-@onready var clear_suggest_button = %ClearSuggestButton
 @onready var tag_list_generator: TagListGenerator = %TagListGenerator
 @onready var generate_list = %GenerateList
 @onready var final_tag_list = $FinalTagList
 @onready var implied_list = $"Implied Tags/ImpliedList"
 @onready var copy_to_clipboard = %CopyToClipboard
-@onready var clear_tags_button = %ClearTags
-@onready var suggestions_enabled_btn: CheckButton = $SuggestionsEnabledBtn
 @onready var clean_suggestions_button = $CleanSuggestionsButton
-@onready var offline_sugg_button: CheckButton = $OfflineSuggButton
+
+@onready var tagger_menu_bar: PopupMenu = $TaggerMenuBar/Tagger
 
 
 var tag_queue: Array[String] = []
@@ -31,20 +29,19 @@ var copy_timer: Timer
 
 
 func _ready():
-	suggestions_enabled_btn.button_pressed = Tagger.settings.search_suggested
-	offline_sugg_button.button_pressed = Tagger.settings.load_suggested
 	
-	offline_sugg_button.toggled.connect(toggle_suggestion_load)
+	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(2), Tagger.settings.search_suggested)
+	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(3), Tagger.settings.load_suggested)
+	
+	tagger_menu_bar.id_pressed.connect(tagger_menu_pressed)
+	
 	line_edit.text_submitted.connect(submit_text)
 	item_list.item_activated.connect(remove_item)
 	item_list.empty_clicked.connect(deselect_items)
 	e_621_requester.get_finished.connect(suggestions_found)
-	clear_suggest_button.pressed.connect(clear_suggestion_box)
 	suggested_list.item_activated.connect(transfer_suggested)
 	generate_list.pressed.connect(generate_tag_list)
 	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
-	clear_tags_button.pressed.connect(clear_tags)
-	suggestions_enabled_btn.toggled.connect(disable_suggested_search)
 	clean_suggestions_button.pressed.connect(clean_suggestions)
 	
 	suggestion_timer = Timer.new()
@@ -68,12 +65,19 @@ func _unhandled_key_input(event):
 			item_list.remove_item(selected_item)
 
 
-func disable_suggested_search(is_toggled: bool) -> void:
-	Tagger.settings.search_suggested = is_toggled
-
-
-func toggle_suggestion_load(is_toggled: bool) -> void:
-	Tagger.settings.load_suggested = is_toggled
+func tagger_menu_pressed(option_id: int) -> void:
+	var item_index: int = tagger_menu_bar.get_item_index(option_id)
+	
+	if option_id == 0:
+		clear_tags()
+	elif option_id == 1:
+		clear_suggestion_box()
+	elif option_id == 2:
+		tagger_menu_bar.toggle_item_checked(item_index)
+		Tagger.settings.search_suggested = tagger_menu_bar.is_item_checked(item_index)
+	elif option_id == 3:
+		tagger_menu_bar.toggle_item_checked(item_index)
+		Tagger.settings.load_suggested = tagger_menu_bar.is_item_checked(tagger_menu_bar.get_item_index(option_id))
 
 
 func clear_tags() -> void:
@@ -89,8 +93,8 @@ func clear_tags() -> void:
 
 
 func clean_suggestions() -> void:
-	for tag in _implied_tags:
-		if suggestion_tags.has(tag) or _full_tag_list.has(tag):
+	for tag in suggestion_tags.duplicate():
+		if _implied_tags.has(tag) or _full_tag_list.has(tag):
 			var _remove_index: int = suggestion_tags.find(tag)
 			suggestion_tags.remove_at(_remove_index)
 			suggested_list.remove_item(_remove_index)
@@ -179,7 +183,7 @@ func submit_text(text_to_add: String) -> void: # Adds a tag.
 
 	line_edit.clear()
 
-	if suggestions_enabled_btn.button_pressed:
+	if Tagger.settings.search_suggested:
 		tag_queue.append(_target_tag)
 		start_suggestion_lookup()
 
@@ -262,7 +266,7 @@ func transfer_suggested(item_activated) -> void:
 	else:
 		add_generic_tag(_tag_text)
 	
-	if suggestions_enabled_btn.button_pressed:
+	if Tagger.settings.search_suggested:
 		tag_queue.append(_tag_text)
 		start_suggestion_lookup()
 
@@ -295,7 +299,7 @@ func add_valid_tag(tag_name: String, tag_data: Tag) -> void:
 			_implied_tags.append(implied_parent)
 			implied_list.add_item(implied_parent)
 	
-	if offline_sugg_button.button_pressed:
+	if Tagger.settings.load_suggested:
 		for suggested_tag in tag_list_generator._offline_suggestions:
 			if not suggestion_tags.has(suggested_tag):
 				suggestion_tags.append(suggested_tag)
