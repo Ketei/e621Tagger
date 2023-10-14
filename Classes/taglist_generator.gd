@@ -10,6 +10,7 @@ var _explored_parents: Array[Tag] = []
 var _dad_queue: Array = []
 var _groped_dads: Array = []
 var _kid_return: Array = []
+var _offline_suggestions: Array[String] = []
 
 var priority_dict: Dictionary = {}
 
@@ -45,6 +46,7 @@ func explore_parents(_is_first_run: bool = true) -> void:
 	if _is_first_run:
 		_groped_dads.clear()
 		_kid_return.clear()
+		_offline_suggestions.clear()
 	
 	for tag_file in _dad_queue:
 		_groped_dads.append(tag_file)
@@ -54,12 +56,16 @@ func explore_parents(_is_first_run: bool = true) -> void:
 		
 		for new_parent in tag_file.parents:
 			if Tagger.tag_manager.has_tag(new_parent):
-				var _new_parent_to_look = Tagger.tag_manager.get_tag(new_parent)
+				var _new_parent_to_look: Tag = Tagger.tag_manager.get_tag(new_parent)
 				if _groped_dads.has(_new_parent_to_look):
 					continue
 				_dad_queue.append(_new_parent_to_look)
 			else:
 				_kid_return.append(new_parent)
+		
+		for suggestion in tag_file.suggestions:
+			if not _offline_suggestions.has(suggestion):
+				_offline_suggestions.append(suggestion)
 		
 		_dad_queue.erase(tag_file) # Do this at the end
 	
