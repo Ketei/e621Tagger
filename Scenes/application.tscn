@@ -628,7 +628,7 @@ offset_bottom = 48.0
 
 [node name="Menu" type="PopupMenu" parent="MenuBar"]
 unique_name_in_owner = true
-size = Vector2i(132, 100)
+size = Vector2i(132, 170)
 item_count = 6
 item_0/text = "Tag list"
 item_0/id = 0
@@ -774,7 +774,7 @@ offset_left = 672.0
 offset_top = 640.0
 offset_right = 864.0
 offset_bottom = 671.0
-tooltip_text = "Removes all the suggested tags that exist inside the implied tags."
+tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
 text = "Clean Suggestions"
 
 [node name="GenerateList" type="Button" parent="Tagger"]
@@ -899,16 +899,17 @@ script = SubResource("GDScript_w31il")
 
 [node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
-offset_left = 25.0
-offset_right = 273.0
+offset_left = 32.0
+offset_right = 496.0
 offset_bottom = 31.0
 placeholder_text = "Tag to add"
 
 [node name="CategoriesMenu" type="OptionButton" parent="TagCreator"]
 layout_mode = 0
-offset_left = 296.0
-offset_right = 552.0
-offset_bottom = 32.0
+offset_left = 112.0
+offset_top = 48.0
+offset_right = 256.0
+offset_bottom = 80.0
 item_count = 11
 selected = 0
 popup/item_0/text = "General"
@@ -936,17 +937,17 @@ popup/item_10/id = 10
 
 [node name="Label" type="Label" parent="TagCreator/CategoriesMenu"]
 layout_mode = 0
-offset_top = -32.0
-offset_right = 114.0
-text = "Tag Category"
-horizontal_alignment = 1
+offset_left = -88.0
+offset_bottom = 32.0
+text = "Category:"
 vertical_alignment = 1
 
 [node name="TagPrioBox" type="SpinBox" parent="TagCreator"]
 layout_mode = 0
-offset_left = 568.0
-offset_right = 672.0
-offset_bottom = 31.0
+offset_left = 352.0
+offset_top = 48.0
+offset_right = 512.0
+offset_bottom = 79.0
 allow_greater = true
 allow_lesser = true
 alignment = 1
@@ -954,25 +955,39 @@ select_all_on_focus = true
 
 [node name="Label" type="Label" parent="TagCreator/TagPrioBox"]
 layout_mode = 0
-offset_top = -32.0
-offset_right = 89.0
-text = "Tag priority"
-horizontal_alignment = 1
+offset_left = -80.0
+offset_bottom = 32.0
+text = "Priority:"
 vertical_alignment = 1
 
 [node name="AddParentLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
 offset_left = 24.0
 offset_top = 536.0
-offset_right = 272.0
+offset_right = 256.0
 offset_bottom = 576.0
 placeholder_text = "Add new parent tag"
 
+[node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
+layout_mode = 0
+offset_left = 272.0
+offset_top = 96.0
+offset_right = 496.0
+offset_bottom = 528.0
+
+[node name="SugestionLineEdit" type="LineEdit" parent="TagCreator"]
+layout_mode = 0
+offset_left = 272.0
+offset_top = 536.0
+offset_right = 496.0
+offset_bottom = 576.0
+tooltip_text = "Tags to suggest if this tag is used."
+placeholder_text = "Suggestions"
+
 [node name="WikiInfo" type="TextEdit" parent="TagCreator"]
 layout_mode = 0
-offset_left = 296.0
-offset_top = 48.0
-offset_right = 1024.0
+offset_left = 520.0
+offset_right = 1256.0
 offset_bottom = 576.0
 placeholder_text = "Wiki Info"
 wrap_mode = 1
@@ -990,25 +1005,9 @@ text = "Create Tag"
 [node name="ParentItemList" type="ItemList" parent="TagCreator"]
 layout_mode = 0
 offset_left = 24.0
-offset_top = 48.0
-offset_right = 272.0
+offset_top = 96.0
+offset_right = 256.0
 offset_bottom = 528.0
-
-[node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
-layout_mode = 0
-offset_left = 1032.0
-offset_top = 48.0
-offset_right = 1264.0
-offset_bottom = 536.0
-
-[node name="SugestionLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 0
-offset_left = 1032.0
-offset_top = 544.0
-offset_right = 1264.0
-offset_bottom = 575.0
-tooltip_text = "Tags to suggest if this tag is used."
-placeholder_text = "Suggestions"
 
 [node name="TagReviewer" type="Control" parent="."]
 visible = false
