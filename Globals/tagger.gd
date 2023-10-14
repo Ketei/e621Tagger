@@ -25,7 +25,7 @@ var settings: UserSettings
 var site_settings: SiteSettings
 var tag_manager: TagManager
 
-const e6_headers: Array = ["User-Agent: Tag Suggester (by Ketei)"] 
+const e6_headers: Array = ["User-Agent: Taglist Maker/v0.2.0 (by Ketei)"] 
 const implications_path: String = "user://database/implications/"
 const tags_path: String = "user://database/tags/"
 
