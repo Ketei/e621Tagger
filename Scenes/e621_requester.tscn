@@ -7,4 +7,3 @@
 script = ExtResource("1_1ov12")
 
 [node name="main_E621" parent="." instance=ExtResource("2_axeal")]
-timeout = 10.0
