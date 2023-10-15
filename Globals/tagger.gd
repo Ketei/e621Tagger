@@ -20,7 +20,7 @@ enum Sites {
 	HYDRUS,
 }
 
-const e6_headers: Array = ["User-Agent: Taglist Maker/v0.3.0 (by Ketei)"] 
+const e6_headers: Array = ["User-Agent: Taglist Maker/v0.4.0 (by Ketei)"] 
 const implications_path: String = "user://database/implications/"
 const tags_path: String = "user://database/tags/"
 
