@@ -82,10 +82,9 @@ func add_online_to_list() -> void:
 		var temp_format: e621Tag = e621_tag
 		var tag_name: String = temp_format.tag_name
 		
-		if tag_search_array.has(tag_name):
+		if tag_search_array.has(tag_name) or temp_format.category == e621Tag.Category.ARTIST or temp_format.category == e621Tag.Category.INVALID:
 			continue
-		
-		
+
 		item_list.append(tag_name)
 		
 		if item_list.size() == tags_to_add:
@@ -942,7 +941,6 @@ wrap_mode = 1
 scroll_smooth = true
 
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
-visible = false
 anchors_preset = 0
 offset_top = -32.0
 offset_right = 1280.0
@@ -955,7 +953,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 color = Color(0.184314, 0.184314, 0.184314, 0.588235)
 
 [node name="QuickSearch" type="Control" parent="Tagger/AddAutoComplete"]
