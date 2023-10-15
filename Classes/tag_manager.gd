@@ -22,7 +22,7 @@ static func load_database() -> TagManager:
 		if _resource:
 			_relation_return.relation_database[_resource.implication_index] = _resource.tag_implications
 			_relation_return.relation_paths[_resource.implication_index] = Tagger.implications_path + external_resource
-
+	
 	return _relation_return
 
 
@@ -79,3 +79,22 @@ func get_implication(implication_key: String) -> ImplicationDictionary:
 	
 	return ResourceLoader.load(relation_paths[implication_key])
 	
+
+func search_with_prefix(prefix_search: String) -> Array[String]:
+	prefix_search = prefix_search.strip_edges().to_lower()
+	
+	var return_array: Array[String] = []
+	
+	if prefix_search.is_empty() or not relation_database.has(prefix_search.left(1)):
+		return return_array
+	
+	var tags_array: Array = relation_database[prefix_search.left(1)].keys()
+	
+	for tag in tags_array:
+		if tag.begins_with(prefix_search):
+			return_array.append(tag)
+	
+	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	return return_array
+

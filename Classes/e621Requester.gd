@@ -19,6 +19,8 @@ enum Category {
 
 @export var max_parallel_requests: int = 5
 @export var progress_bar : ProgressBar
+@export var timeout_time: float = 0.0
+
 
 @export_group("Search")
 @export var match_name: Array[String] = []
@@ -31,9 +33,10 @@ enum Category {
 @export var match_category: Category = Category.ANY
 @export_enum("date", "count", "name") var order: String = "date"
 
-@onready var main_e621:e621Request = $main_E621
+@onready var main_e621: e621Request = $main_E621
 
 var response_array: Array = []
+var response_array_unflipped: Array = []
 
 var current_queue_index: int = 0
 var queue_pictures: Array[e621Post] = []
@@ -45,6 +48,7 @@ var active_requesters: int = 0
 
 func _ready():
 	main_e621.job_finished.connect(_get_finished)
+	main_e621.timeout = timeout_time
 	
 	for gen in range(max_parallel_requests):
 		var e6_request := e621Request.new()
@@ -108,8 +112,13 @@ func get_tags() -> void:
 
 func _get_finished(requester: e621Request) -> void:
 	response_array = requester.request_result.duplicate()
+	response_array_unflipped = response_array.duplicate()
 	response_array.reverse()
 	get_finished.emit()
+
+
+func cancel_main_request() -> void:
+	main_e621.cancel_request()
 
 
 # ------------------- Pic download functions -----------------

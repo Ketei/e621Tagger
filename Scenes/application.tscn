@@ -1,10 +1,114 @@
-[gd_scene load_steps=14 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=17 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
 [ext_resource type="Script" path="res://Scenes/tagger_controls.gd" id="2_o722f"]
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
+[ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="4_83kdk"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
+
+[sub_resource type="GDScript" id="GDScript_6n0ht"]
+script/source = "extends Control
+
+signal add_tag_signal(tag_string)
+
+
+@export var tags_to_add: int = 10
+
+@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
+@onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
+@onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
+@onready var cancel_auto_button = $CancelAutoButton
+
+@onready var add_auto_complete_node = $\"..\"
+@onready var add_selected_button = $AddSelectedButton
+
+
+var tag_search_array: Array[String] = []
+var is_tagger_requesting: float = false
+
+
+func _ready():
+	e6_requester_quick_search.get_finished.connect(add_online_to_list)
+	auto_com_line_edit.text_submitted.connect(search_for_prefix)
+	cancel_auto_button.pressed.connect(close_add)
+	add_selected_button.pressed.connect(add_selected_to_list)
+
+
+func add_selected_to_list() -> void:
+	if not auto_complete_item_list.is_anything_selected():
+		return
+	
+	var selected_item_list: Array = auto_complete_item_list.get_selected_items()
+
+
+	for index_select in selected_item_list:
+		var tag_text: String = auto_complete_item_list.get_item_text(index_select)
+		add_tag_signal.emit(tag_text)
+	
+	selected_item_list.reverse()
+	
+	for index_remove in selected_item_list:
+		tag_search_array.remove_at(index_remove)
+		auto_complete_item_list.remove_item(index_remove)
+	
+	auto_complete_item_list.deselect_all()
+
+
+func search_for_prefix(prefix_to_search: String) -> void:
+	if is_tagger_requesting:
+		e6_requester_quick_search.cancel_main_request()
+	
+	tag_search_array.clear()
+	
+	for tag in Tagger.tag_manager.search_with_prefix(prefix_to_search):
+		if not tag_search_array.has(tag):
+			auto_complete_item_list.add_item(tag, load(\"res://Textures/valid_tag.png\"))
+			tag_search_array.append(tag)
+	
+	auto_com_line_edit.clear()
+	
+	e6_requester_quick_search.match_name = [prefix_to_search.strip_edges() + \"*\"]
+	e6_requester_quick_search.get_tags()
+	is_tagger_requesting = true
+
+
+func add_online_to_list() -> void:
+	is_tagger_requesting = false
+	
+	var item_list: Array[String] = []
+	
+	for e621_tag in e6_requester_quick_search.response_array_unflipped:
+		var temp_format: e621Tag = e621_tag
+		var tag_name: String = temp_format.tag_name
+		
+		if tag_search_array.has(tag_name) or temp_format.category == e621Tag.Category.ARTIST or temp_format.category == e621Tag.Category.INVALID:
+			continue
+
+		item_list.append(tag_name)
+		
+		if item_list.size() == tags_to_add:
+			break
+	
+	for item in item_list:
+		tag_search_array.append(item)
+		auto_complete_item_list.add_item(item, load(\"res://Textures/generic_tag.png\"))
+
+
+func clear_all_items() -> void:
+	auto_com_line_edit.clear()
+	auto_complete_item_list.clear()
+	tag_search_array.clear()
+	if is_tagger_requesting:
+		e6_requester_quick_search.cancel_main_request()
+		is_tagger_requesting = false
+
+
+func close_add() -> void:
+	add_auto_complete_node.visible = false
+	clear_all_items()
+
+"
 
 [sub_resource type="GDScript" id="GDScript_w31il"]
 script/source = "extends Control
@@ -313,11 +417,14 @@ script/source = "extends Control
 @onready var constants_item_list = $Constants/TagList/ConstantsItemList
 @onready var constants_line_edit = $Constants/ConstantsLineEdit
 
+@onready var open_tags_button = $OpenTagsButton
+
 var constant_tags: Array = []
 
 var timer: Timer
 
 func _ready():
+	open_tags_button.pressed.connect(open_tags_folder)
 	constants_item_list.item_activated.connect(remove_constant)
 	constants_line_edit.text_submitted.connect(add_constant)
 	option_button.selected = Tagger.site_settings.target_site
@@ -338,6 +445,10 @@ func _ready():
 	for constant in Tagger.settings.constant_blacklist:
 		constants_item_list.add_item(constant)
 		constant_tags.append(constant)
+
+
+func open_tags_folder() -> void:
+	OS.shell_open(ProjectSettings.globalize_path(Tagger.tags_path))
 
 
 func add_constant(new_constant: String) -> void:
@@ -589,15 +700,41 @@ func add_to_blacklist(new_item: String) -> void:
 	
 	black_list.add_item(new_item)
 	Tagger.settings.add_to_blacklist(new_item)
-#	Tagger.settings.save()
-	
+	add_to_black.clear()
 
 
 func remove_from_blacklist(index_id) -> void:
 	var _target = black_list.get_item_text(index_id)
 	black_list.remove_item(index_id)
 	Tagger.settings.remove_from_blacklist(_target)
-#	Tagger.settings.save()
+
+"
+
+[sub_resource type="GDScript" id="GDScript_i3qtj"]
+script/source = "extends Control
+
+@onready var invalid_tags_line_edit = $InvalidTagsLineEdit
+@onready var invalid_tag_list = $InvalidItemList
+
+
+func _ready() -> void:
+	for invalid_tag in Tagger.settings.invalid_tags:
+		invalid_tag_list.add_item(invalid_tag)
+	
+	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
+	invalid_tag_list.item_activated.connect(remove_from_invalids)
+	
+
+func add_to_invalid_tags(tag_to_add: String) -> void:
+	if not Tagger.settings.invalid_tags.has(tag_to_add):
+		invalid_tag_list.add_item(tag_to_add)
+		Tagger.settings.invalid_tags.append(tag_to_add)
+	invalid_tags_line_edit.clear()
+
+func remove_from_invalids(tag_id: int) -> void:
+	var tag_text: String = invalid_tag_list.get_item_text(tag_id)
+	invalid_tag_list.remove_item(tag_id)
+	Tagger.settings.remove_from_invalids(tag_text)
 "
 
 [node name="MainApplication" type="Control"]
@@ -623,7 +760,7 @@ color = Color(0.25098, 0.282353, 0.341176, 1)
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 117.0
+offset_right = 64.0
 offset_bottom = 48.0
 
 [node name="Menu" type="PopupMenu" parent="MenuBar"]
@@ -644,6 +781,7 @@ item_5/text = "Exit"
 item_5/id = 1
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -652,6 +790,38 @@ offset_top = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_o722f")
+
+[node name="TaggerMenuBar" type="MenuBar" parent="Tagger"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 104.0
+offset_bottom = 16.0
+
+[node name="Tagger" type="PopupMenu" parent="Tagger/TaggerMenuBar"]
+size = Vector2i(250, 170)
+hide_on_checkable_item_selection = false
+item_count = 6
+item_0/text = "Tag lists"
+item_0/id = 99
+item_0/disabled = true
+item_0/separator = true
+item_1/text = "Clear all"
+item_1/id = 0
+item_2/text = "Clear suggestions"
+item_2/id = 1
+item_3/text = "Suggestions"
+item_3/id = 100
+item_3/disabled = true
+item_3/separator = true
+item_4/text = "Enable online suggestions"
+item_4/checkable = 1
+item_4/checked = true
+item_4/id = 2
+item_5/text = "Enable offline suggestions"
+item_5/checkable = 1
+item_5/checked = true
+item_5/id = 3
 
 [node name="CurrentTags" type="Control" parent="Tagger"]
 anchors_preset = 0
@@ -677,54 +847,36 @@ fixed_icon_size = Vector2i(10, 10)
 layout_mode = 0
 offset_left = 16.0
 offset_top = 640.0
-offset_right = 256.0
+offset_right = 400.0
 offset_bottom = 671.0
 placeholder_text = "Add Tag"
 
-[node name="ClearTags" type="Button" parent="Tagger"]
-unique_name_in_owner = true
+[node name="OpenAutoCompleteBTN" type="Button" parent="Tagger"]
 layout_mode = 0
-offset_left = 272.0
+offset_left = 408.0
 offset_top = 640.0
 offset_right = 448.0
 offset_bottom = 672.0
-text = "Clear tags"
-
-[node name="SuggestionsEnabledBtn" type="CheckButton" parent="Tagger"]
-layout_mode = 0
-offset_left = 464.0
-offset_top = 16.0
-offset_right = 664.0
-offset_bottom = 48.0
-tooltip_text = "Offer suggestions using the e621 API. Requires an internet connection and for the API to be working."
-button_pressed = true
-text = "Online Suggestions"
-
-[node name="OfflineSuggButton" type="CheckButton" parent="Tagger"]
-layout_mode = 0
-offset_left = 464.0
-offset_top = 48.0
-offset_right = 664.0
-offset_bottom = 80.0
-tooltip_text = "Offer suggestions that come attatched to tags."
-button_pressed = true
-text = "Offline Suggestions"
+tooltip_text = "Search for tags"
+icon = ExtResource("4_83kdk")
+icon_alignment = 1
+expand_icon = true
 
 [node name="Label" type="Label" parent="Tagger"]
 layout_mode = 0
 offset_left = 464.0
-offset_top = -10.0
-offset_right = 583.0
+offset_top = -16.0
+offset_right = 587.0
 offset_bottom = 16.0
 text = "Suggested Tags:"
-vertical_alignment = 1
 
 [node name="Suggested" type="Control" parent="Tagger"]
 anchors_preset = 0
 offset_left = 464.0
-offset_top = 80.0
+offset_top = 16.0
 offset_right = 656.0
 offset_bottom = 632.0
+metadata/_edit_group_ = true
 
 [node name="SuggestedList" type="ItemList" parent="Tagger/Suggested"]
 layout_mode = 1
@@ -735,15 +887,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 same_column_width = true
-
-[node name="ClearSuggestButton" type="Button" parent="Tagger"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 464.0
-offset_top = 640.0
-offset_right = 656.0
-offset_bottom = 672.0
-text = "Clear suggestions"
 
 [node name="Implied Tags" type="Control" parent="Tagger"]
 anchors_preset = 0
@@ -763,14 +906,13 @@ same_column_width = true
 
 [node name="Label" type="Label" parent="Tagger/Implied Tags"]
 layout_mode = 0
-offset_top = -24.0
+offset_top = -32.0
 offset_right = 95.0
-offset_bottom = 2.0
-text = "Implied tags"
+text = "Implied tags:"
 
 [node name="CleanSuggestionsButton" type="Button" parent="Tagger"]
 layout_mode = 0
-offset_left = 672.0
+offset_left = 464.0
 offset_top = 640.0
 offset_right = 864.0
 offset_bottom = 671.0
@@ -805,6 +947,91 @@ placeholder_text = "Final tags"
 editable = false
 wrap_mode = 1
 scroll_smooth = true
+
+[node name="AddAutoComplete" type="Control" parent="Tagger"]
+visible = false
+anchors_preset = 0
+offset_top = -32.0
+offset_right = 1280.0
+offset_bottom = 688.0
+
+[node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.184314, 0.184314, 0.184314, 0.588235)
+
+[node name="QuickSearch" type="Control" parent="Tagger/AddAutoComplete"]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 352.0
+offset_right = 448.0
+offset_bottom = 664.0
+script = SubResource("GDScript_6n0ht")
+
+[node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.454902, 0.505882, 0.580392, 1)
+
+[node name="MArc" type="ColorRect" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="AutoCompleteItemList" type="ItemList" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 408.0
+offset_bottom = 256.0
+select_mode = 1
+fixed_icon_size = Vector2i(10, 10)
+
+[node name="AutoComLineEdit" type="LineEdit" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 264.0
+offset_right = 240.0
+offset_bottom = 296.0
+placeholder_text = "Enter tag"
+
+[node name="CancelAutoButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 344.0
+offset_top = 264.0
+offset_right = 408.0
+offset_bottom = 295.0
+text = "Close"
+
+[node name="e621RequesterQuickSearch" parent="Tagger/AddAutoComplete/QuickSearch" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 0
+timeout_time = 5.0
+order = "count"
+
+[node name="AddSelectedButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 248.0
+offset_top = 264.0
+offset_right = 336.0
+offset_bottom = 295.0
+tooltip_text = "Adds all selected tags to the main list"
+text = "Add"
 
 [node name="ListLoader" type="Control" parent="."]
 visible = false
@@ -1194,7 +1421,6 @@ disabled = true
 text = "Delete Tag"
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -1216,12 +1442,14 @@ offset_left = 136.0
 offset_top = 8.0
 offset_right = 360.0
 offset_bottom = 39.0
-item_count = 2
+item_count = 3
 selected = 0
 popup/item_0/text = "E621 / Itaku"
 popup/item_0/id = 0
 popup/item_1/text = "Postybirb"
 popup/item_1/id = 1
+popup/item_2/text = "Hydrus"
+popup/item_2/id = 2
 
 [node name="Label" type="Label" parent="Settings/Target Site"]
 layout_mode = 0
@@ -1278,12 +1506,20 @@ text = "%"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="OpenTagsButton" type="Button" parent="Settings"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 136.0
+offset_right = 208.0
+offset_bottom = 184.0
+text = "Open tags folder"
+
 [node name="RecreateDatabaseBtn" type="Button" parent="Settings"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 128.0
+offset_left = 216.0
 offset_top = 136.0
-offset_right = 448.0
+offset_right = 512.0
 offset_bottom = 184.0
 tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
 text = "Recreate tag impliactions"
@@ -1341,23 +1577,32 @@ offset_bottom = 384.0
 disabled = true
 text = "Add alias"
 
+[node name="Label" type="Label" parent="Settings/Aliases"]
+layout_mode = 0
+offset_left = 920.0
+offset_top = -312.0
+offset_right = 1080.0
+offset_bottom = -280.0
+text = "Suggestion Blacklist"
+horizontal_alignment = 2
+vertical_alignment = 2
+
 [node name="BlackListControl" type="Control" parent="Settings"]
 anchors_preset = 0
-offset_left = 575.0
-offset_top = 24.0
-offset_right = 1215.0
-offset_bottom = 392.0
+offset_left = 984.0
+offset_top = 32.0
+offset_right = 1256.0
+offset_bottom = 648.0
 script = SubResource("GDScript_mqjmn")
 
 [node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 1.0
-offset_top = -32.0
-offset_right = 257.0
-offset_bottom = -1.0
+offset_top = -40.0
+offset_right = 272.0
+offset_bottom = -9.0
 placeholder_text = "Add to blacklist"
-alignment = 1
 
 [node name="BlackList" type="ItemList" parent="Settings/BlackListControl"]
 unique_name_in_owner = true
@@ -1365,22 +1610,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 8.0
-offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-max_columns = 3
+max_columns = 2
 same_column_width = true
-
-[node name="Label" type="Label" parent="Settings/BlackListControl"]
-layout_mode = 0
-offset_left = 481.0
-offset_top = -24.0
-offset_right = 641.0
-offset_bottom = 8.0
-text = "Suggestion Blacklist"
-horizontal_alignment = 2
-vertical_alignment = 2
 
 [node name="Constants" type="Control" parent="Settings"]
 anchors_preset = 0
@@ -1405,18 +1638,52 @@ offset_bottom = 648.0
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
 layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.429
+anchor_top = -0.437
+anchor_right = 0.411
+anchor_bottom = 0.937
+offset_left = 0.192017
+offset_top = -0.0639992
+offset_right = 7.87199
+offset_bottom = 8.064
+max_columns = 3
+
+[node name="InvalidTags" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 576.0
+offset_top = 32.0
+offset_right = 960.0
+offset_bottom = 400.0
+script = SubResource("GDScript_i3qtj")
+
+[node name="InvalidTagsLabel" type="Label" parent="Settings/InvalidTags"]
+layout_mode = 0
+offset_top = -72.0
+offset_right = 91.0
+offset_bottom = -46.0
+text = "Invalid Tags"
+
+[node name="InvalidTagsLineEdit" type="LineEdit" parent="Settings/InvalidTags"]
+layout_mode = 0
+offset_top = -40.0
+offset_right = 256.0
+offset_bottom = -9.0
+placeholder_text = "Add to invalid tags"
+
+[node name="InvalidItemList" type="ItemList" parent="Settings/InvalidTags"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -192.0
-offset_top = -56.0
 grow_horizontal = 2
 grow_vertical = 2
-max_columns = 3
+max_columns = 2
 
 [node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
 unique_name_in_owner = true
 max_parallel_requests = 0
+timeout_time = 10.0
 post_limit = 1
 
 [node name="TagListGenerator" type="Node" parent="."]

@@ -562,3 +562,11 @@ func remove_from_blacklist(tag_to_remove: String) -> void:
 	suggestion_blacklist[target_index] = suggestion_blacklist.back()
 	suggestion_blacklist.resize(suggestion_blacklist.size() - 1)
 
+
+func remove_from_invalids(tag_to_remove: String) -> void:
+	var target_index = invalid_tags.find(tag_to_remove)
+	if target_index == -1:
+		return
+	
+	invalid_tags[target_index] = suggestion_blacklist.back()
+	suggestion_blacklist.resize(suggestion_blacklist.size() - 1)

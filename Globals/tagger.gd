@@ -16,18 +16,19 @@ enum Categories {
 
 enum Sites {
 	E621,
-	POSTYBIRB
+	POSTYBIRB,
+	HYDRUS,
 }
 
+const e6_headers: Array = ["User-Agent: Taglist Maker/v0.3.0 (by Ketei)"] 
+const implications_path: String = "user://database/implications/"
+const tags_path: String = "user://database/tags/"
 
 var alias_database: AliasDatabase
 var settings: UserSettings
 var site_settings: SiteSettings
 var tag_manager: TagManager
 
-const e6_headers: Array = ["User-Agent: Taglist Maker/v0.2.2 (by Ketei)"] 
-const implications_path: String = "user://database/implications/"
-const tags_path: String = "user://database/tags/"
 
 func _init():
 	verify_folder_structure()
