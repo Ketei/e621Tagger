@@ -10,6 +10,8 @@ extends Control
 @onready var implied_list = $"Implied Tags/ImpliedList"
 @onready var copy_to_clipboard = %CopyToClipboard
 @onready var clean_suggestions_button = $CleanSuggestionsButton
+@onready var add_auto_complete = $AddAutoComplete
+@onready var open_auto_complete_btn = $OpenAutoCompleteBTN
 
 @onready var tagger_menu_bar: PopupMenu = $TaggerMenuBar/Tagger
 
@@ -29,7 +31,10 @@ var copy_timer: Timer
 
 
 func _ready():
+	$AddAutoComplete/QuickSearch.add_tag_signal.connect(add_tag)
 	
+	add_auto_complete.visible = false
+	open_auto_complete_btn.pressed.connect(show_searcher)
 	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(2), Tagger.settings.search_suggested)
 	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(3), Tagger.settings.load_suggested)
 	
@@ -63,6 +68,10 @@ func _unhandled_key_input(event):
 	if event.is_action_pressed("ui_text_delete") and item_list.is_anything_selected():
 		for selected_item in item_list.get_selected_items():
 			item_list.remove_item(selected_item)
+
+
+func show_searcher() -> void:
+	add_auto_complete.visible = true
 
 
 func tagger_menu_pressed(option_id: int) -> void:
@@ -151,7 +160,19 @@ func quick_erase(element_to_erase, array_ref: Array) -> void:
 	
 	array_ref[_index_target] = array_ref.back()
 	array_ref.resize(array_ref.size() - 1)
+
+
+func add_tag(tag_to_add: String) -> void:
+	if _full_tag_list.has(tag_to_add):
+		return
 	
+	if Tagger.tag_manager.has_tag(tag_to_add):
+		if not valid_tags.has(tag_to_add):
+			var _tag_loading = Tagger.tag_manager.get_tag(tag_to_add)
+			add_valid_tag(tag_to_add, _tag_loading)
+	else:
+		add_generic_tag(tag_to_add)
+
 
 func submit_text(text_to_add: String) -> void: # Adds a tag.
 	text_to_add = text_to_add.to_lower().strip_edges()
@@ -166,20 +187,14 @@ func submit_text(text_to_add: String) -> void: # Adds a tag.
 		add_invalid_tag(_target_tag)
 		line_edit.clear()
 		return
-	
-		
+
 	if _full_tag_list.has(_target_tag):
 		item_list.select(_full_tag_list.find(_target_tag))
 		item_list.ensure_current_is_visible()
 		line_edit.clear()
 		return
 	
-	if Tagger.tag_manager.has_tag(_target_tag):
-		if not valid_tags.has(_target_tag):
-			var _tag_loading = Tagger.tag_manager.get_tag(_target_tag)
-			add_valid_tag(_target_tag, _tag_loading)
-	else:
-		add_generic_tag(_target_tag)
+	add_tag(text_to_add)
 
 	line_edit.clear()
 

@@ -1,10 +1,115 @@
-[gd_scene load_steps=15 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=17 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
 [ext_resource type="Script" path="res://Scenes/tagger_controls.gd" id="2_o722f"]
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
+[ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="4_83kdk"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
+
+[sub_resource type="GDScript" id="GDScript_6n0ht"]
+script/source = "extends Control
+
+signal add_tag_signal(tag_string)
+
+
+@export var tags_to_add: int = 10
+
+@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
+@onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
+@onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
+@onready var cancel_auto_button = $CancelAutoButton
+
+@onready var add_auto_complete_node = $\"..\"
+@onready var add_selected_button = $AddSelectedButton
+
+
+var tag_search_array: Array[String] = []
+var is_tagger_requesting: float = false
+
+
+func _ready():
+	e6_requester_quick_search.get_finished.connect(add_online_to_list)
+	auto_com_line_edit.text_submitted.connect(search_for_prefix)
+	cancel_auto_button.pressed.connect(close_add)
+	add_selected_button.pressed.connect(add_selected_to_list)
+
+
+func add_selected_to_list() -> void:
+	if not auto_complete_item_list.is_anything_selected():
+		return
+	
+	var selected_item_list: Array = auto_complete_item_list.get_selected_items()
+
+
+	for index_select in selected_item_list:
+		var tag_text: String = auto_complete_item_list.get_item_text(index_select)
+		add_tag_signal.emit(tag_text)
+	
+	selected_item_list.reverse()
+	
+	for index_remove in selected_item_list:
+		tag_search_array.remove_at(index_remove)
+		auto_complete_item_list.remove_item(index_remove)
+	
+	auto_complete_item_list.deselect_all()
+
+
+func search_for_prefix(prefix_to_search: String) -> void:
+	if is_tagger_requesting:
+		e6_requester_quick_search.cancel_main_request()
+	
+	tag_search_array.clear()
+	
+	for tag in Tagger.tag_manager.search_with_prefix(prefix_to_search):
+		if not tag_search_array.has(tag):
+			auto_complete_item_list.add_item(tag, load(\"res://Textures/valid_tag.png\"))
+			tag_search_array.append(tag)
+	
+	auto_com_line_edit.clear()
+	
+	e6_requester_quick_search.match_name = [prefix_to_search.strip_edges() + \"*\"]
+	e6_requester_quick_search.get_tags()
+	is_tagger_requesting = true
+
+
+func add_online_to_list() -> void:
+	is_tagger_requesting = false
+	
+	var item_list: Array[String] = []
+	
+	for e621_tag in e6_requester_quick_search.response_array_unflipped:
+		var temp_format: e621Tag = e621_tag
+		var tag_name: String = temp_format.tag_name
+		
+		if tag_search_array.has(tag_name):
+			continue
+		
+		
+		item_list.append(tag_name)
+		
+		if item_list.size() == tags_to_add:
+			break
+	
+	for item in item_list:
+		tag_search_array.append(item)
+		auto_complete_item_list.add_item(item, load(\"res://Textures/generic_tag.png\"))
+
+
+func clear_all_items() -> void:
+	auto_com_line_edit.clear()
+	auto_complete_item_list.clear()
+	tag_search_array.clear()
+	if is_tagger_requesting:
+		e6_requester_quick_search.cancel_main_request()
+		is_tagger_requesting = false
+
+
+func close_add() -> void:
+	add_auto_complete_node.visible = false
+	clear_all_items()
+
+"
 
 [sub_resource type="GDScript" id="GDScript_w31il"]
 script/source = "extends Control
@@ -735,9 +840,20 @@ fixed_icon_size = Vector2i(10, 10)
 layout_mode = 0
 offset_left = 16.0
 offset_top = 640.0
-offset_right = 448.0
+offset_right = 400.0
 offset_bottom = 671.0
 placeholder_text = "Add Tag"
+
+[node name="OpenAutoCompleteBTN" type="Button" parent="Tagger"]
+layout_mode = 0
+offset_left = 408.0
+offset_top = 640.0
+offset_right = 448.0
+offset_bottom = 672.0
+tooltip_text = "Search for tags"
+icon = ExtResource("4_83kdk")
+icon_alignment = 1
+expand_icon = true
 
 [node name="Label" type="Label" parent="Tagger"]
 layout_mode = 0
@@ -824,6 +940,92 @@ placeholder_text = "Final tags"
 editable = false
 wrap_mode = 1
 scroll_smooth = true
+
+[node name="AddAutoComplete" type="Control" parent="Tagger"]
+visible = false
+anchors_preset = 0
+offset_top = -32.0
+offset_right = 1280.0
+offset_bottom = 688.0
+
+[node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.184314, 0.184314, 0.184314, 0.588235)
+
+[node name="QuickSearch" type="Control" parent="Tagger/AddAutoComplete"]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 352.0
+offset_right = 448.0
+offset_bottom = 664.0
+script = SubResource("GDScript_6n0ht")
+
+[node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.454902, 0.505882, 0.580392, 1)
+
+[node name="MArc" type="ColorRect" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="AutoCompleteItemList" type="ItemList" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 408.0
+offset_bottom = 256.0
+select_mode = 1
+fixed_icon_size = Vector2i(10, 10)
+
+[node name="AutoComLineEdit" type="LineEdit" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 264.0
+offset_right = 240.0
+offset_bottom = 296.0
+placeholder_text = "Enter tag"
+
+[node name="CancelAutoButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 344.0
+offset_top = 264.0
+offset_right = 408.0
+offset_bottom = 295.0
+text = "Close"
+
+[node name="e621RequesterQuickSearch" parent="Tagger/AddAutoComplete/QuickSearch" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 0
+timeout_time = 5.0
+order = "count"
+
+[node name="AddSelectedButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
+layout_mode = 0
+offset_left = 248.0
+offset_top = 264.0
+offset_right = 336.0
+offset_bottom = 295.0
+tooltip_text = "Adds all selected tags to the main list"
+text = "Add"
 
 [node name="ListLoader" type="Control" parent="."]
 visible = false
@@ -1468,6 +1670,7 @@ max_columns = 2
 [node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
 unique_name_in_owner = true
 max_parallel_requests = 0
+timeout_time = 10.0
 post_limit = 1
 
 [node name="TagListGenerator" type="Node" parent="."]
