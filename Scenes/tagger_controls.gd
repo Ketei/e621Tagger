@@ -180,7 +180,7 @@ func submit_text(text_to_add: String) -> void: # Adds a tag.
 	if text_to_add == "":
 		line_edit.clear()
 		return
-		
+	
 	var _target_tag: String = Tagger.alias_database.get_alias(text_to_add)
 	
 	if Tagger.settings.invalid_tags.has(_target_tag):
@@ -194,7 +194,7 @@ func submit_text(text_to_add: String) -> void: # Adds a tag.
 		line_edit.clear()
 		return
 	
-	add_tag(text_to_add)
+	add_tag(_target_tag)
 
 	line_edit.clear()
 
