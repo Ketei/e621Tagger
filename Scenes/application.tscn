@@ -23,12 +23,14 @@ signal add_tag_signal(tag_string)
 @onready var add_auto_complete_node = $\"..\"
 @onready var add_selected_button = $AddSelectedButton
 @onready var some_fix_option: OptionButton = $SomeFixOption
+@onready var request_cooldown_timer = $\"../RequestCooldownTimer\"
 
 var tag_search_array: Array[String] = []
 var is_tagger_requesting: float = false
 
 
 func _ready():
+	request_cooldown_timer.timeout.connect(timer_timeout)
 	e6_requester_quick_search.get_finished.connect(add_online_to_list)
 	auto_com_line_edit.text_submitted.connect(search_for_tag)
 	cancel_auto_button.pressed.connect(close_add)
@@ -56,6 +58,7 @@ func add_selected_to_list() -> void:
 
 
 func search_for_tag(tag_to_search: String) -> void:
+	auto_com_line_edit.editable = false
 	tag_to_search = tag_to_search.strip_edges().to_lower()
 	
 	if is_tagger_requesting:
@@ -72,7 +75,6 @@ func search_for_tag(tag_to_search: String) -> void:
 		tag_for_url = \"*\" + tag_to_search 
 	elif some_fix_option.selected == 2:
 		tag_for_url = \"*\" + tag_to_search + \"*\"
-	
 	
 	if some_fix_option.selected == 0:
 		for tag in Tagger.tag_manager.search_with_prefix(tag_to_search):
@@ -98,7 +100,8 @@ func search_for_tag(tag_to_search: String) -> void:
 	e6_requester_quick_search.match_name = [tag_for_url]
 	e6_requester_quick_search.get_tags()
 	is_tagger_requesting = true
-
+	request_cooldown_timer.start()
+	
 
 func add_online_to_list() -> void:
 	is_tagger_requesting = false
@@ -135,6 +138,9 @@ func close_add() -> void:
 	add_auto_complete_node.visible = false
 	clear_all_items()
 
+
+func timer_timeout() -> void:
+	auto_com_line_edit.editable = true
 "
 
 [sub_resource type="GDScript" id="GDScript_w31il"]
@@ -975,7 +981,6 @@ wrap_mode = 1
 scroll_smooth = true
 
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
-visible = false
 anchors_preset = 0
 offset_top = -32.0
 offset_right = 1280.0
@@ -1073,6 +1078,9 @@ offset_right = 464.0
 offset_bottom = 295.0
 tooltip_text = "Adds all selected tags to the main list"
 text = "Add"
+
+[node name="RequestCooldownTimer" type="Timer" parent="Tagger/AddAutoComplete"]
+one_shot = true
 
 [node name="ListLoader" type="Control" parent="."]
 visible = false
