@@ -965,6 +965,7 @@ grow_vertical = 2
 color = Color(0.184314, 0.184314, 0.184314, 0.588235)
 
 [node name="QuickSearch" type="Control" parent="Tagger/AddAutoComplete"]
+visible = false
 anchors_preset = 0
 offset_left = 16.0
 offset_top = 352.0
