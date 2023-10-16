@@ -12,6 +12,7 @@ var current_menu: int = 0
 
 
 func _ready():
+	
 	menu.id_pressed.connect(trigger_options)
 	
 	list_loader.visible = false
