@@ -98,3 +98,43 @@ func search_with_prefix(prefix_search: String) -> Array[String]:
 	
 	return return_array
 
+
+func search_with_suffix(suffix_search: String) -> Array[String]:
+	suffix_search = suffix_search.strip_edges().to_lower()
+	var all_tag_list: Array = []
+	var return_array: Array[String] = []
+	
+	for key_char in relation_database.keys():
+		all_tag_list.append_array(relation_database[key_char].keys())
+	
+	for tag in all_tag_list:
+		if tag.ends_with(suffix_search):
+			return_array.append(tag)
+	
+	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	return return_array
+	
+
+
+func search_for_content(contain_search: String) -> Array[String]:
+	contain_search = contain_search.strip_edges().to_lower()
+#	print("Tag to search for: " + contain_search)
+	var all_tag_list: Array = []
+	var return_array: Array[String] = []
+	
+	for keychar in relation_database.keys():
+		all_tag_list.append_array(relation_database[keychar].keys())
+	
+#	print("Searching in: " + str(all_tag_list))
+	
+	for tag in all_tag_list:
+#		print("Comparing \"" + tag + "\" with: " + contain_search)
+		if tag.contains(contain_search):
+			return_array.append(tag)
+	
+	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	return return_array
+	
+	
