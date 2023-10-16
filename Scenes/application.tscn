@@ -975,6 +975,7 @@ wrap_mode = 1
 scroll_smooth = true
 
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
+visible = false
 anchors_preset = 0
 offset_top = -32.0
 offset_right = 1280.0
@@ -990,7 +991,6 @@ grow_vertical = 2
 color = Color(0.184314, 0.184314, 0.184314, 0.588235)
 
 [node name="QuickSearch" type="Control" parent="Tagger/AddAutoComplete"]
-visible = false
 anchors_preset = 0
 offset_left = 16.0
 offset_top = 352.0
