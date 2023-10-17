@@ -184,7 +184,7 @@ func submit_text(text_to_add: String) -> void: # Adds a tag.
 	
 	var _target_tag: String = Tagger.alias_database.get_alias(text_to_add)
 	
-	if Tagger.settings.invalid_tags.has(_target_tag):
+	if Tagger.settings_lists.invalid_tags.has(_target_tag):
 		add_invalid_tag(_target_tag)
 		line_edit.clear()
 		return
@@ -210,6 +210,11 @@ func button_press() -> void:
 		line_edit.clear()
 
 
+func is_tag_added(tag_string: String) -> bool:
+	tag_string = tag_string.strip_edges().replace("_", " ")
+	return _full_tag_list.has(Tagger.alias_database.get_alias(tag_string))
+
+
 func load_tags(tags_to_load: Array, replace_tags: bool) -> void:
 	if replace_tags:
 		item_list.clear()
@@ -223,15 +228,22 @@ func load_tags(tags_to_load: Array, replace_tags: bool) -> void:
 		_implied_tags.clear()
 	
 	for tag in tags_to_load:
-		if tag in _full_tag_list:
-			continue
 		
 		var _aliased: String = Tagger.alias_database.get_alias(tag)
 		
 		if Tagger.tag_manager.has_tag(_aliased):
-			add_valid_tag(_aliased, Tagger.tag_manager.get_tag(_aliased))
+			
+			if generic_tags.has(_aliased):
+				var generic_index: int = _full_tag_list.find(_aliased)
+				item_list.remove_item(generic_index)
+				generic_tags.erase(_aliased)
+				_full_tag_list.remove_at(generic_index)
+			
+			if not _full_tag_list.has(_aliased):
+				add_valid_tag(_aliased, Tagger.tag_manager.get_tag(_aliased))
 		else:
-			add_generic_tag(_aliased)
+			if not _full_tag_list.has(_aliased):
+				add_generic_tag(_aliased)
 
 
 func start_suggestion_lookup() -> void:
