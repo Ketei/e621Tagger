@@ -21,6 +21,8 @@ extends Resource
 
 @export var file_version: String = "1.0"
 
+@export var open_tag_folder_on_creation: bool = true
+
 static var settings_version: String = "1.0" 
 
 
