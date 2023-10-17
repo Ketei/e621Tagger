@@ -531,6 +531,8 @@ extends Resource
 
 @export var constant_tags: Array[String] = []
 
+@export var suggestion_review_blacklist: Array[String] = []
+
 
 static func load_database() -> SettingLists:
 	if ResourceLoader.exists("user://settings_lists.tres"):
@@ -541,6 +543,19 @@ static func load_database() -> SettingLists:
 
 func save() -> void:
 	ResourceSaver.save(self, "user://settings_lists.tres")
+
+
+func remove_from_suggestion_review_blacklist(tag_to_remove: String) -> void:
+	if not suggestion_review_blacklist.has(tag_to_remove):
+		return
+	
+	if suggestion_review_blacklist.size() == 1:
+		suggestion_review_blacklist.clear()
+		return
+	
+	var target_index: int = suggestion_review_blacklist.find(tag_to_remove)
+	suggestion_review_blacklist[target_index] = suggestion_review_blacklist.back()
+	suggestion_review_blacklist.resize(suggestion_review_blacklist.size() - 1)
 
 
 func add_to_blacklist(tag_to_add: String) -> void:
