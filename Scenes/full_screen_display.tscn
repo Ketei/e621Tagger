@@ -1,0 +1,56 @@
+[gd_scene load_steps=3 format=3 uid="uid://dq3egjcbm6oqd"]
+
+[ext_resource type="Script" path="res://Classes/full_screen_lewd_display.gd" id="1_ust0f"]
+
+[sub_resource type="GDScript" id="GDScript_6nk4r"]
+resource_name = "lewd_text_script"
+script/source = "extends TextureRect
+
+signal hide_lewd_image()
+
+func _gui_input(event):
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			if expand_mode == TextureRect.EXPAND_KEEP_SIZE:
+				expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			else:
+				expand_mode = TextureRect.EXPAND_KEEP_SIZE
+		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			hide_lewd_image.emit()
+"
+
+[node name="FullScreenDisplay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ust0f")
+metadata/_edit_use_anchors_ = true
+
+[node name="BackgroundColour" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.18, 0.18, 0.18, 0.784314)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LewdTexture" type="TextureRect" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 0
+expand_mode = 3
+stretch_mode = 5
+script = SubResource("GDScript_6nk4r")

@@ -176,6 +176,7 @@ func add_tag(tag_to_add: String) -> void:
 
 func submit_text(text_to_add: String) -> void: # Adds a tag.
 	text_to_add = text_to_add.to_lower().strip_edges()
+	text_to_add = text_to_add.replace("_", " ")
 	
 	if text_to_add == "":
 		line_edit.clear()

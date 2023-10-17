@@ -18,6 +18,9 @@ static func load_database() -> TagManager:
 
 
 	for external_resource in DirAccess.get_files_at(Tagger.implications_path):
+		if external_resource.get_extension() != "tres":
+			continue
+		
 		var _resource: ImplicationDictionary = ResourceLoader.load(Tagger.implications_path + external_resource, "ImplicationDictionary")
 		if _resource:
 			_relation_return.relation_database[_resource.implication_index] = _resource.tag_implications
@@ -60,7 +63,14 @@ func recreate_implications() -> void:
 			_implication = ImplicationDictionary.create_implication(imp_file, chara)
 		
 		for tag_filename in sorted_files[chara]:
+			if tag_filename.get_extension() != "tres":
+				continue
+			
+			if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_filename.get_basename()):
+				DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_filename.get_basename())
+			
 			var _valid_tag: Tag = ResourceLoader.load(Tagger.tags_path + tag_filename)
+			
 			if _valid_tag:
 				_implication.tag_implications[_valid_tag.tag] = Tagger.tags_path + tag_filename
 				
@@ -115,7 +125,6 @@ func search_with_suffix(suffix_search: String) -> Array[String]:
 	
 	return return_array
 	
-
 
 func search_for_content(contain_search: String) -> Array[String]:
 	contain_search = contain_search.strip_edges().to_lower()
