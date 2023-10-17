@@ -20,10 +20,13 @@ func generate_tag_list(resource_tags: Array, generic_tags: Array) -> void:
 	_implied_tags.clear()
 	_explored_parents.clear()
 	_unexplored_parents.clear()
-	_gen_tags.append_array(generic_tags)
+	priority_dict.clear()
+	
+	for generic_tag in generic_tags:
+		_gen_tags.append(generic_tag.replace(" ", Tagger.site_settings.whitespace_char))
+	
 
 	for tag in resource_tags:
-#		_user_tags.append(tag.get_tag())
 		if not priority_dict.has(str(tag.tag_priority)):
 			priority_dict[str(tag.tag_priority)] = []
 
@@ -87,7 +90,6 @@ func __explore_parents():
 			priority_dict[str(parent_tag.tag_priority)] = []
 		
 		if not _implied_tags.has(_tag_name) and not priority_dict[str(parent_tag.tag_priority)].has(_tag_name):
-#			_implied_tags.append(_tag_name)
 			priority_dict[str(parent_tag.tag_priority)].append(_tag_name)
 		
 		for new_parent in parent_tag.parents:
@@ -97,7 +99,7 @@ func __explore_parents():
 					continue
 				_unexplored_parents.append(_new_parent_to_look)
 			else:
-				if not _implied_tags.has(new_parent):# and not _user_tags.has(new_parent):
+				if not _implied_tags.has(new_parent):
 					_implied_tags.append(new_parent)
 		
 		if not _unexplored_parents.is_empty():
@@ -123,18 +125,15 @@ func get_tag_list() -> String:
 	full_tags.append_array(_gen_tags)
 	
 	var _tag_string: String = ""
-	
-#	full_tags.append_array(_user_tags)
 	full_tags.append_array(_implied_tags)
 	
 	for tag in full_tags:
 		_tag_string += tag
-#		_tag_string += tag.replace(" ", Tagger.site_settings.whitespace_char)
 		_tag_string += Tagger.site_settings.tag_separator
 	
-	_tag_string = _tag_string.left(-1)
+	_tag_string = _tag_string.left(-Tagger.site_settings.tag_separator.length())
 	
-	for tag in Tagger.settings.constant_blacklist:
+	for tag in Tagger.settings_lists.constant_tags:
 		var _formatted_tag: String = tag.replace(" ", Tagger.site_settings.whitespace_char)
 		if not full_tags.has(_formatted_tag):
 			_tag_string += Tagger.site_settings.tag_separator
