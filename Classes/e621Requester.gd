@@ -33,6 +33,9 @@ enum Category {
 @export var match_category: Category = Category.ANY
 @export_enum("date", "count", "name") var order: String = "date"
 
+@export_subgroup("Post Specific")
+@export var get_sample_if_available: bool = true
+
 @onready var main_e621: e621Request = $main_E621
 
 var response_array: Array = []
@@ -44,6 +47,8 @@ var downloaded_pictures: Dictionary = {}
 
 var http_requester_references: Array[e621Request] = []
 var active_requesters: int = 0
+
+var download_on_finish: bool = false
 
 
 func _ready():
@@ -77,11 +82,11 @@ func get_posts() -> void:
 		for tag in match_name:
 			_url += tag.strip_edges().replace(" ", "_") + "+"
 		_url = _url.left(-1)
-	
+
 	if _url.ends_with("&"):
 		_url = _url.left(-1)
 	
-	main_e621.request(_url, Tagger.e6_headers)
+	main_e621.request(_url, Tagger.get_headers())
 
 
 func get_tags() -> void:
@@ -107,7 +112,7 @@ func get_tags() -> void:
 	
 	if _url.ends_with("&"):
 		_url = _url.left(-1)
-	main_e621.request(_url, Tagger.e6_headers)
+	main_e621.request(_url, Tagger.get_headers())
 
 
 func _get_finished(requester: e621Request) -> void:
@@ -115,15 +120,31 @@ func _get_finished(requester: e621Request) -> void:
 	response_array_unflipped = response_array.duplicate()
 	response_array.reverse()
 	get_finished.emit()
+	
+	if download_on_finish:
+		download_pictures()
+		download_on_finish = false
 
 
 func cancel_main_request() -> void:
 	main_e621.cancel_request()
 
 
+func cancel_side_requests() -> void:
+	for http_requester in http_requester_references:
+		http_requester.cancel_request()
+
+
+func get_posts_and_download() -> void:
+	download_on_finish = true
+	get_posts()
+
+
 # ------------------- Pic download functions -----------------
 ## Gets the pictures if there are any in the response array
 func download_pictures():
+	downloaded_pictures.clear()
+	
 	for machine in http_requester_references:
 		machine.request_completed.connect(_create_image.bind(machine))
 	
@@ -141,17 +162,23 @@ func download_pictures():
 	
 	for requester in http_requester_references:
 		if not queue_pictures.is_empty():
-			var _request_data: e621Post = queue_pictures.pop_back()
-			
-			requester.job_index = current_queue_index
-			if _request_data.sample.has_sample:
-				requester.image_format = "jpg"
-				requester.request(_request_data.sample.url, Tagger.e6_headers)
-			else:
-				requester.image_format = _request_data.file.extension
-				requester.request(_request_data.file.url, Tagger.e6_headers)
+			_next_in_queue(requester)
 			active_requesters += 1
 			current_queue_index += 1
+#			var _request_data: e621Post = queue_pictures.pop_back()
+#
+#			requester.job_index = current_queue_index
+#
+#			if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
+#				if _request_data.sample.url.is_empty():
+#					continue
+#				requester.image_format = "jpg"
+#				requester.request(_request_data.sample.url, Tagger.get_headers())
+#			elif not _request_data.file.url.is_empty():
+#				requester.image_format = _request_data.file.extension
+#				requester.request(_request_data.file.url, Tagger.get_headers())
+#			else:
+#				pass
 
 
 func disable_bar():
@@ -188,21 +215,24 @@ func _next_in_queue(requester: e621Request) -> void:
 	if queue_pictures.is_empty():
 		active_requesters -= 1
 		requester.request_completed.disconnect(_create_image)
-		
 		if active_requesters == 0:
 			downloads_finished.emit()
-		
 		return
 	
 	var _request_data: e621Post = queue_pictures.pop_back()
 	current_queue_index += 1
 	requester.job_index = current_queue_index
-	if _request_data.sample.has_sample:
+	
+	
+	if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
 		requester.image_format = "jpg"
-		requester.request(_request_data.sample.url, Tagger.e6_headers)
-	else:
+		requester.request(_request_data.sample.url, Tagger.get_headers())
+	elif not _request_data.file.url.is_empty():
 		requester.image_format = _request_data.file.extension
-		requester.request(_request_data.file.url, Tagger.e6_headers)
+		requester.request(_request_data.file.url, Tagger.get_headers())
+	else:
+		progress_bar.value += 1
+		_next_in_queue(requester)
 	
 	
 func _create_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
