@@ -72,6 +72,7 @@ func quit_app() -> void:
 	Tagger.settings.save()
 	Tagger.site_settings.save()
 	Tagger.settings_lists.save()
+	Tagger.alias_database.save()
 	get_tree().quit()
 
 

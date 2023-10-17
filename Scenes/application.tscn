@@ -792,7 +792,7 @@ func add_alias() -> void:
 		aliases_tree.create_item_and_subitem(_new_string, aliases_tree.get_root(), _old_string)
 	
 	Tagger.alias_database.add_alias(_old_string, _new_string)
-	Tagger.alias_database.save()
+#	Tagger.alias_database.save()
 	old_alias.clear()
 	new_alias.clear()
 
@@ -827,6 +827,7 @@ func remove_alias() -> void:
 			_level = _level.get_next()
 	
 	Tagger.alias_database.remove_alias(_old_string)
+#	Tagger.alias_database.save()
 	old_alias.clear()
 
 "
@@ -1611,6 +1612,7 @@ button_pressed = true
 text = "Has Images"
 
 [node name="TagReviewer" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_left = 1.0
 offset_top = 40.0
@@ -1874,7 +1876,6 @@ anchors_preset = -1
 anchor_top = -0.0588235
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
