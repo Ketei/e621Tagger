@@ -2,11 +2,11 @@
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
-[ext_resource type="Script" path="res://Scenes/tagger_controls.gd" id="2_o722f"]
+[ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="2_ika2k"]
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
 [ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="4_83kdk"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
-[ext_resource type="Script" path="res://Scenes/platform_option_button.gd" id="5_03qrr"]
+[ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="5_hkklg"]
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
@@ -1116,7 +1116,7 @@ anchor_bottom = 1.0
 offset_top = 48.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_o722f")
+script = ExtResource("2_ika2k")
 
 [node name="TaggerMenuBar" type="MenuBar" parent="Tagger"]
 layout_mode = 0
@@ -1387,7 +1387,7 @@ popup/item_1/text = "Postybirb"
 popup/item_1/id = 1
 popup/item_2/text = "Hydrus"
 popup/item_2/id = 2
-script = ExtResource("5_03qrr")
+script = ExtResource("5_hkklg")
 
 [node name="Label" type="Label" parent="Tagger/TargetPlatformButton"]
 layout_mode = 0
