@@ -3,6 +3,8 @@ extends Node
 
 signal get_finished()
 signal downloads_finished()
+signal image_created(image_file)
+signal image_skipped
 	
 enum Category {
 	ANY = -1,
@@ -50,6 +52,7 @@ var active_requesters: int = 0
 
 var download_on_finish: bool = false
 
+var main_active: bool = false
 
 func _ready():
 	main_e621.job_finished.connect(_get_finished)
@@ -86,6 +89,8 @@ func get_posts() -> void:
 	if _url.ends_with("&"):
 		_url = _url.left(-1)
 	
+	main_active = true
+	
 	main_e621.request(_url, Tagger.get_headers())
 
 
@@ -112,6 +117,9 @@ func get_tags() -> void:
 	
 	if _url.ends_with("&"):
 		_url = _url.left(-1)
+	
+	main_active = true
+	
 	main_e621.request(_url, Tagger.get_headers())
 
 
@@ -124,15 +132,25 @@ func _get_finished(requester: e621Request) -> void:
 	if download_on_finish:
 		download_pictures()
 		download_on_finish = false
+	
+	main_active = false
 
 
 func cancel_main_request() -> void:
 	main_e621.cancel_request()
+	main_active = false
 
 
 func cancel_side_requests() -> void:
+	if 0 == active_requesters:
+		return
+	
 	for http_requester in http_requester_references:
 		http_requester.cancel_request()
+		if http_requester.request_completed.is_connected(_create_image):
+			http_requester.request_completed.disconnect(_create_image)
+	
+	active_requesters = 0
 
 
 func get_posts_and_download() -> void:
@@ -146,7 +164,8 @@ func download_pictures():
 	downloaded_pictures.clear()
 	
 	for machine in http_requester_references:
-		machine.request_completed.connect(_create_image.bind(machine))
+		if not machine.request_completed.is_connected(_create_image):
+			machine.request_completed.connect(_create_image.bind(machine))
 	
 	active_requesters = 0
 	current_queue_index = 0
@@ -156,9 +175,9 @@ func download_pictures():
 		if post_object is e621Post:
 			queue_pictures.append(post_object)
 	
-	if progress_bar:
-		progress_bar.max_value = queue_pictures.size()
-		progress_bar.visible = true
+#	if progress_bar:
+#		progress_bar.max_value = queue_pictures.size()
+#		progress_bar.visible = true
 	
 	for requester in http_requester_references:
 		if not queue_pictures.is_empty():
@@ -195,10 +214,10 @@ func create_textures() -> Array[ImageTexture]:
 	else:
 		item_count = downloaded_pictures.keys()
 	
-	if progress_bar:
-		var _tween :Tween = create_tween()
-		_tween.tween_property(progress_bar, "self_modulate", Color.TRANSPARENT, 2.0)
-		_tween.finished.connect(disable_bar)
+#	if progress_bar:
+#		var _tween :Tween = create_tween()
+#		_tween.tween_property(progress_bar, "self_modulate", Color.TRANSPARENT, 2.0)
+#		_tween.finished.connect(disable_bar)
 		
 	var _return_array: Array[ImageTexture] = []
 	
@@ -231,7 +250,8 @@ func _next_in_queue(requester: e621Request) -> void:
 		requester.image_format = _request_data.file.extension
 		requester.request(_request_data.file.url, Tagger.get_headers())
 	else:
-		progress_bar.value += 1
+#		progress_bar.value += 1
+		image_skipped.emit()
 		_next_in_queue(requester)
 	
 	
@@ -247,10 +267,13 @@ func _create_image(result: int, _response_code: int, _headers: PackedStringArray
 	if requester.image_format == "jpg":
 		_new_image.load_jpg_from_buffer(body)
 		downloaded_pictures[str(requester.job_index)] = _new_image
+		image_created.emit(_new_image)
 	elif requester.image_format == "png":
 		_new_image.load_png_from_buffer(body)
 		downloaded_pictures[str(requester.job_index)] = _new_image
+		image_created.emit(_new_image)
 	else:
+		image_skipped.emit()
 		print_debug("Unsupporded format. Skipping")
 	
 	_next_in_queue(requester)
