@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=23 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
 [ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="4_83kdk"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
+[ext_resource type="Script" path="res://Scenes/platform_option_button.gd" id="5_03qrr"]
+[ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
 script/source = "extends Control
@@ -30,11 +32,17 @@ var is_tagger_requesting: float = false
 
 
 func _ready():
+	some_fix_option.item_selected.connect(save_search_select)
+	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
 	request_cooldown_timer.timeout.connect(timer_timeout)
 	e6_requester_quick_search.get_finished.connect(add_online_to_list)
 	auto_com_line_edit.text_submitted.connect(search_for_tag)
 	cancel_auto_button.pressed.connect(close_add)
 	add_selected_button.pressed.connect(add_selected_to_list)
+
+
+func save_search_select(item_index: int) -> void:
+	Tagger.settings.tag_search_setting = some_fix_option.get_item_id(item_index)
 
 
 func add_selected_to_list() -> void:
@@ -155,6 +163,7 @@ script/source = "extends Control
 @onready var tag_prio_box: SpinBox = $TagPrioBox
 @onready var suggestion_item_list: ItemList = $SuggestionItemList
 @onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
+@onready var has_images_check_box: CheckBox = $HasImagesCheckBox
 
 
 var parent_tags: Array = []
@@ -225,7 +234,7 @@ func create_tag() -> void:
 		clear_menu_items(\"Tag already exists!!!\")
 		return
 
-	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value), tag_suggestion_array)
+	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value), tag_suggestion_array, has_images_check_box.button_pressed)
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
@@ -266,7 +275,6 @@ script/source = "extends Control
 @onready var categories_menu: OptionButton = $CategoriesMenu
 @onready var wiki_edit = $WikiEdit
 @onready var tag_update_button = $TagUpdate
-@onready var tag_delete_button = $TagDelete
 
 @onready var parents_item_list: ItemList = $ParentsItemList
 @onready var add_parent_line_edit: LineEdit = $AddParentLineEdit
@@ -276,13 +284,33 @@ script/source = "extends Control
 @onready var tag_suggestion_list: ItemList = $TagSuggestionList
 @onready var tag_suggestion_line_edit: LineEdit = $TagSuggestionLineEdit
 
+@onready var lewd_pic_container = $Imeges/ScrollContainer/LewdPicsContainer
+@onready var preview_progress_load = $Imeges/PreviewProgressLoad
+
+@onready var tag_reviewer_requester = $TagReviewerRequester
+
+@onready var review_menu: PopupMenu = $ReviewerMenuBar/Review
+@onready var has_images_check_box = $HasImagesCheckBox
+
+@onready var full_screen_display = $FullScreenDisplay
+@onready var open_pic_folder_button: Button = $OpenPicFolder
+
+
+var lewd_display = preload(\"res://Scenes/lewd_pic_display.tscn\")
 
 var parents: Array = []
 var suggestions_array: Array[String] = []
 var text_change_timer: Timer
 
+var images_to_display: Array[ImageTexture] = []
+
 
 func _ready():
+	open_pic_folder_button.pressed.connect(open_pics_folder)
+	tag_reviewer_requester.downloads_finished.connect(create_download_textures)
+	tag_reviewer_requester.post_limit = Tagger.settings.e621_review_amount
+	has_images_check_box.toggled.connect(image_checkbox_toggle)
+
 	tag_suggestion_line_edit.text_submitted.connect(add_suggested)
 	tag_suggestion_list.item_activated.connect(remove_suggested)
 	text_change_timer = Timer.new()
@@ -296,7 +324,7 @@ func _ready():
 	tag_search_button.pressed.connect(button_search_pressed)
 	tag_update_button.pressed.connect(update_tag)
 	
-	tag_delete_button.pressed.connect(delete_tag)
+	review_menu.id_pressed.connect(delete_tag)
 	
 	parents_item_list.item_activated.connect(remove_parent)
 	add_parent_line_edit.text_submitted.connect(add_parent)
@@ -310,15 +338,36 @@ func update_tag() -> void:
 	_tag.wiki_entry = wiki_edit.text
 	_tag.tag_priority = int(tag_prio_box.value)
 	_tag.suggestions = suggestions_array.duplicate()
+	_tag.has_pictures = has_images_check_box.button_pressed
 	_tag.save()
 	
 	tag_update_button.text = \"Updated!\"
 	text_change_timer.start()
 
 
-func delete_tag() -> void:
+func open_pics_folder() -> void:
+	var current_tag_filename: Tag = Tagger.tag_manager.get_tag(name_line.text)
+	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + current_tag_filename.file_name.get_basename()):
+		DirAccess.make_dir_absolute(Tagger.tag_images_path + current_tag_filename.file_name.get_basename())
+	
+	OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + current_tag_filename.file_name.get_basename()))
+
+
+func image_checkbox_toggle(new_toggle: bool) -> void:
+	
+	if new_toggle:
+		open_pic_folder_button.disabled = false
+	else:
+		open_pic_folder_button.disabled = true
+
+
+func delete_tag(id_button: int) -> void:
+	if id_button != 1:
+		return
+	
 	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
-	var _tag_path = \"user://database/tags/\" + _tag.file_name
+	var _tag_path = Tagger.tags_path + _tag.file_name
+	
 	if ResourceLoader.exists(_tag_path):
 		OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
 	
@@ -328,12 +377,13 @@ func delete_tag() -> void:
 	Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
 
 	_implication_replace.save()
-	tag_delete_button.text = \"Deleted!\"
-	text_change_timer.start()
 	clear_and_disable()
 
 
 func clear_and_disable() -> void:
+	open_pic_folder_button.disabled = true
+	has_images_check_box.button_pressed = false
+	has_images_check_box.disabled = true
 	tag_suggestion_list.clear()
 	tag_suggestion_line_edit.clear()
 	tag_suggestion_line_edit.editable = false
@@ -348,7 +398,7 @@ func clear_and_disable() -> void:
 	add_parent_line_edit.editable = false
 	wiki_edit.clear()
 	wiki_edit.editable = false
-	tag_delete_button.disabled = true
+	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	tag_update_button.disabled = true
 
 
@@ -357,6 +407,15 @@ func button_search_pressed() -> void:
 
 
 func search_for_tag(new_text: String) -> void:
+	preview_progress_load.value = 0
+	
+	images_to_display.clear()
+	tag_reviewer_requester.cancel_side_requests()
+	
+	for child in lewd_pic_container.get_children():
+		child.lewd_pic_pressed.disconnect(display_big_pic)
+		child.queue_free()
+
 	new_text = new_text.to_lower().strip_edges()
 	
 	new_text = Tagger.alias_database.get_alias(new_text)
@@ -393,14 +452,31 @@ func search_for_tag(new_text: String) -> void:
 	wiki_edit.text = _tag.wiki_entry
 	tag_prio_box.set_value_no_signal(_tag.tag_priority)
 	
+	has_images_check_box.button_pressed = _tag.has_pictures
+	
+	if has_images_check_box.button_pressed:
+		open_pic_folder_button.disabled = false
+	
+	has_images_check_box.disabled = false
 	tag_suggestion_line_edit.editable = true
 	tag_prio_box.editable = true
 	add_parent_line_edit.editable = true
 	categories_menu.disabled = false
 	wiki_edit.editable = true
 	tag_update_button.disabled = false
-	tag_delete_button.disabled = false
+	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	tag_searcher.clear()
+	
+	
+	if _tag.has_pictures and Tagger.settings.can_load_from_local():
+		get_local_images(_tag.file_name.get_basename())
+	else:
+		preview_progress_load.value += 1
+	
+	if _tag.has_pictures and Tagger.settings.can_load_from_e6():
+		search_web_images(_tag.tag)
+	else:
+		preview_progress_load.value += 4
 
 
 func add_parent(parent_text: String) -> void:
@@ -433,34 +509,84 @@ func remove_suggested(sug_id: int) -> void:
 
 func _on_timer_timeout() -> void:
 	tag_update_button.text = \"Update Tag\"
-	tag_delete_button.text = \"Delete Tag\"
 
+
+func get_local_images(folder_name: String) -> void:
+	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + folder_name):
+		preview_progress_load.value += 1
+		return
+	
+	var file_load_count: int = 0
+
+	for file_name in DirAccess.get_files_at(Tagger.tag_images_path + folder_name):
+		if Tagger.settings.local_review_amount <= file_load_count:
+			break
+		
+		var tempstring: String = file_name
+		
+		var file_extension = tempstring.get_extension()
+		
+		if file_extension != \"png\" and file_extension != \"jpg\":
+			continue
+		
+		var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
+#		_new_image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
+		var _new_texture := ImageTexture.create_from_image(_new_image)
+#		_new_texture.create_from_image(_new_image)
+		
+		var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
+		new_child_thumb.texture = _new_texture
+		lewd_pic_container.add_child(new_child_thumb)
+		new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
+		file_load_count += 1
+	
+	preview_progress_load.value += 1
+
+
+func search_web_images(tag_names: String) -> void:
+	tag_reviewer_requester.post_limit = Tagger.settings.e621_review_amount
+	if tag_names.is_empty():
+		tag_names = \"vaporeon -female -ambiguous_gender rating:explicit\"
+	tag_reviewer_requester.match_name = [\"~type:jpg\", \"~type:png\", \"order:score\"] as Array[String]
+	tag_reviewer_requester.match_name.append(tag_names)
+	tag_reviewer_requester.get_posts_and_download()
+
+
+func create_download_textures() -> void:
+	for index in tag_reviewer_requester.downloaded_pictures.keys():
+		var _new_texture := ImageTexture.create_from_image(tag_reviewer_requester.downloaded_pictures[index])
+		var new_lewd_child: LewdTextureRect = lewd_display.instantiate()
+		new_lewd_child.texture = _new_texture
+		new_lewd_child.lewd_pic_pressed.connect(display_big_pic)
+		lewd_pic_container.add_child(new_lewd_child)
+
+
+func display_big_pic(texture_to_load: ImageTexture) -> void:
+	full_screen_display.set_picture(texture_to_load)
+	full_screen_display.visible = true
 "
 
 [sub_resource type="GDScript" id="GDScript_chh5e"]
 resource_name = "settings_set_up"
 script/source = "extends Control
 
-@onready var option_button = %OptionButton
 @onready var h_slider = %HSlider
 @onready var black_list: ItemList = %BlackList
 @onready var recreate_database_btn = %RecreateDatabaseBtn
 @onready var line_edit = %LineEdit
 
-@onready var constants_item_list = $Constants/TagList/ConstantsItemList
-@onready var constants_line_edit = $Constants/ConstantsLineEdit
-
 @onready var open_tags_button = $OpenTagsButton
+@onready var settings_bar: PopupMenu = $SettingsBar/Settings
 
-var constant_tags: Array = []
+@onready var api_loader = $APILoader
 
 var timer: Timer
 
+
 func _ready():
+	settings_bar.id_pressed.connect(settings_menu_press)
+	
 	open_tags_button.pressed.connect(open_tags_folder)
-	constants_item_list.item_activated.connect(remove_constant)
-	constants_line_edit.text_submitted.connect(add_constant)
-	option_button.selected = Tagger.site_settings.target_site
 	h_slider.value = Tagger.settings.suggestion_strength
 	line_edit.text = str(Tagger.settings.suggestion_strength)
 	recreate_database_btn.pressed.connect(__recreate_database)
@@ -471,38 +597,19 @@ func _ready():
 	timer.one_shot = true	
 	timer.timeout.connect(on_timer_timeout)
 	add_child(timer)
-	
-	for item in Tagger.settings.suggestion_blacklist:
-		black_list.add_item(item)
-	
-	for constant in Tagger.settings.constant_blacklist:
-		constants_item_list.add_item(constant)
-		constant_tags.append(constant)
+
+
+func settings_menu_press(button_id: int) -> void:
+	if button_id == 0:
+		api_loader.show()
+
+
+func open_api_screen() -> void:
+	api_loader.visible = true
 
 
 func open_tags_folder() -> void:
 	OS.shell_open(ProjectSettings.globalize_path(Tagger.tags_path))
-
-
-func add_constant(new_constant: String) -> void:
-	new_constant = new_constant.to_lower().strip_edges()
-	if constant_tags.has(new_constant):
-		constants_line_edit.clear()
-		return
-	
-	constants_item_list.add_item(new_constant)
-	constant_tags.append(new_constant)
-	Tagger.settings.constant_blacklist.append(new_constant)
-	constants_line_edit.clear()
-	#Tagger.settings.save()
-
-
-func remove_constant(constant_id: int) -> void:
-	var constant_name: String = constant_tags[constant_id]
-	constant_tags.remove_at(constant_id)
-	constants_item_list.remove_item(constant_id)
-	Tagger.settings.constant_blacklist.erase(constant_name)
-	#Tagger.settings.save()
 
 
 func __recreate_database() -> void:
@@ -513,21 +620,6 @@ func __recreate_database() -> void:
 
 func on_timer_timeout() -> void:
 	recreate_database_btn.text = \"Recreate tag database\"
-"
-
-[sub_resource type="GDScript" id="GDScript_p8ss3"]
-resource_name = "target_site_script"
-script/source = "extends Control
-
-@onready var option_button: OptionButton = $OptionButton
-
-func _ready():
-	option_button.item_selected.connect(_update_site)
-
-
-func _update_site(new_index) -> void:
-	Tagger.site_settings.target_site = new_index
-	#Tagger.site_settings.save()
 "
 
 [sub_resource type="GDScript" id="GDScript_y3wef"]
@@ -560,6 +652,65 @@ func _display_update(value) -> void:
 	if str(value) != line_edit.text:
 		line_edit.text = str(value)
 
+"
+
+[sub_resource type="GDScript" id="GDScript_lqhue"]
+resource_name = "review_img_button_script"
+script/source = "extends CheckButton
+
+@onready var e621_load_button: CheckButton = $VBoxContainer/ToggleButtons/e621LoadButton
+@onready var local_load_button: CheckButton = $VBoxContainer/ToggleButtons/LocalLoadButton
+@onready var e_621_spin_box: SpinBox = $VBoxContainer/AmountToLoad/e621SpinBox
+@onready var local_spin_box: SpinBox = $VBoxContainer/AmountToLoad/LocalSpinBox
+
+func _ready():
+
+	e621_load_button.toggled.connect(toggle_e6_load)
+	e_621_spin_box.value_changed.connect(e6_spinbox_value_changed)
+	
+	local_load_button.toggled.connect(toggle_local_load)
+	local_spin_box.value_changed.connect(local_spinbox_value_changed)
+	
+	button_pressed = Tagger.settings.load_review_images
+	
+	e621_load_button.disabled = not button_pressed
+	local_load_button.disabled = not button_pressed
+	e_621_spin_box.editable = button_pressed
+	local_spin_box.editable = button_pressed
+
+	e621_load_button.button_pressed = Tagger.settings.load_review_e621
+	e_621_spin_box.set_value_no_signal(Tagger.settings.e621_review_amount)
+	
+	local_load_button.button_pressed = Tagger.settings.load_review_local
+	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
+
+	self.toggled.connect(toggle_sub_buttons)
+
+
+func local_spinbox_value_changed(new_value: float) -> void:
+	var _value: int = int(new_value)
+	Tagger.settings.local_review_amount = _value
+	
+
+func e6_spinbox_value_changed(new_value: float) -> void:
+	var _value: int = int(new_value)
+	Tagger.settings.e621_review_amount = _value
+
+
+func toggle_sub_buttons(toggle_state: bool) -> void:
+	Tagger.settings.load_review_images = toggle_state
+	e621_load_button.disabled = not toggle_state
+	local_load_button.disabled = not toggle_state
+	e_621_spin_box.editable = toggle_state
+	local_spin_box.editable = toggle_state
+
+
+func toggle_e6_load(toggle_state: bool) -> void:
+	Tagger.settings.load_review_e621 = toggle_state
+
+
+func toggle_local_load(toggle_state: bool) -> void:
+	Tagger.settings.load_review_local = toggle_state
 "
 
 [sub_resource type="GDScript" id="GDScript_jmlhj"]
@@ -617,8 +768,8 @@ func add_alias() -> void:
 	var _old_string: String = old_alias.text
 	var _new_string: String = new_alias.text
 	
-	_old_string = _old_string.strip_edges().to_lower()
-	_new_string = _new_string.strip_edges().to_lower()
+	_old_string = _old_string.strip_edges().to_lower().replace(\"_\", \" \")
+	_new_string = _new_string.strip_edges().to_lower().replace(\"_\", \" \")
 	
 	if Tagger.alias_database.alias_exitst(_old_string, _new_string):
 		old_alias.clear()
@@ -676,7 +827,6 @@ func remove_alias() -> void:
 			_level = _level.get_next()
 	
 	Tagger.alias_database.remove_alias(_old_string)
-#	Tagger.alias_database.save()
 	old_alias.clear()
 
 "
@@ -721,25 +871,70 @@ script/source = "extends Control
 @onready var black_list = %BlackList
 @onready var add_to_black = %AddToBlack
 
+
 func _ready():
 	add_to_black.text_submitted.connect(add_to_blacklist)
 	black_list.item_activated.connect(remove_from_blacklist)
+	
+	for item in Tagger.settings_lists.suggestion_blacklist:
+		black_list.add_item(item)
 
 
 func add_to_blacklist(new_item: String) -> void:
-	new_item = new_item.to_lower().strip_edges()
-	if Tagger.settings.suggestion_blacklist.has(new_item):
+	new_item = new_item.to_lower().strip_edges().replace(\"_\", \" \")
+	
+	if Tagger.settings_lists.suggestion_blacklist.has(new_item):
 		return
 	
 	black_list.add_item(new_item)
-	Tagger.settings.add_to_blacklist(new_item)
+	Tagger.settings_lists.add_to_blacklist(new_item)
 	add_to_black.clear()
 
 
 func remove_from_blacklist(index_id) -> void:
 	var _target = black_list.get_item_text(index_id)
 	black_list.remove_item(index_id)
-	Tagger.settings.remove_from_blacklist(_target)
+	Tagger.settings_lists.remove_from_blacklist(_target)
+
+"
+
+[sub_resource type="GDScript" id="GDScript_dvmq4"]
+resource_name = "constants_tags_script"
+script/source = "extends Control
+
+
+var constant_tags: Array[String] = []
+
+@onready var constants_line_edit = $ConstantsLineEdit
+@onready var constants_item_list = $TagList/ConstantsItemList
+
+
+func _ready():
+	for item in Tagger.settings_lists.constant_tags:
+		constants_item_list.add_item(item)
+		constant_tags.append(item)
+	
+	constants_item_list.item_activated.connect(remove_constant)
+	constants_line_edit.text_submitted.connect(add_constant)
+
+
+func add_constant(new_constant: String) -> void:
+	new_constant = new_constant.to_lower().strip_edges().replace(\"_\", \" \")
+	if constant_tags.has(new_constant):
+		constants_line_edit.clear()
+		return
+	
+	constants_item_list.add_item(new_constant)
+	constant_tags.append(new_constant)
+	Tagger.settings_lists.constant_tags.append(new_constant)
+	constants_line_edit.clear()
+
+
+func remove_constant(constant_id: int) -> void:
+	var constant_name: String = constants_item_list.get_item_text(constant_id)
+	constant_tags.remove_at(constant_id)
+	constants_item_list.remove_item(constant_id)
+	Tagger.settings_lists.remove_from_constant_tags(constant_name)
 
 "
 
@@ -751,7 +946,7 @@ script/source = "extends Control
 
 
 func _ready() -> void:
-	for invalid_tag in Tagger.settings.invalid_tags:
+	for invalid_tag in Tagger.settings_lists.invalid_tags:
 		invalid_tag_list.add_item(invalid_tag)
 	
 	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
@@ -759,15 +954,114 @@ func _ready() -> void:
 	
 
 func add_to_invalid_tags(tag_to_add: String) -> void:
-	if not Tagger.settings.invalid_tags.has(tag_to_add):
+	if not Tagger.settings_lists.invalid_tags.has(tag_to_add):
 		invalid_tag_list.add_item(tag_to_add)
-		Tagger.settings.invalid_tags.append(tag_to_add)
+		Tagger.settings_lists.invalid_tags.append(tag_to_add)
 	invalid_tags_line_edit.clear()
+
 
 func remove_from_invalids(tag_id: int) -> void:
 	var tag_text: String = invalid_tag_list.get_item_text(tag_id)
 	invalid_tag_list.remove_item(tag_id)
-	Tagger.settings.remove_from_invalids(tag_text)
+	Tagger.settings_lists.remove_from_invalids(tag_text)
+"
+
+[sub_resource type="GDScript" id="GDScript_7dq25"]
+resource_name = "api_loader_script"
+script/source = "extends Control
+
+@onready var close_button: Button = $AllItems/CloseButton
+
+
+func _ready():
+	self.hide()
+	close_button.pressed.connect(hide_api_loader)
+
+
+func hide_api_loader() -> void:
+	self.visible = false
+"
+
+[sub_resource type="GDScript" id="GDScript_ert6n"]
+resource_name = "load_api_key"
+script/source = "extends Control
+
+@onready var api_key: LineEdit = $APIKey
+@onready var reveal_pass_button: CheckButton = $APIKey/RevealPassButton
+@onready var load_button: Button = $LoadButton
+@onready var button_text_timer: Timer = $ButtonTextTimer
+
+
+func _ready():
+	reveal_pass_button.toggled.connect(reveal_pass)
+	button_text_timer.timeout.connect(restore_button_text)
+	load_button.pressed.connect(load_api_key)
+
+
+func load_api_key() -> void:
+	if not FileAccess.file_exists(Tagger.api_file_path):
+		api_key.clear()
+		load_button.text = \"Missing File\"
+		button_text_timer.start()
+		return
+	
+	var config_file := ConfigFile.new()
+	
+	if config_file.load_encrypted_pass(Tagger.api_file_path, api_key.text) != OK:
+		api_key.clear()
+		load_button.text = \"Wrong Password\"
+		button_text_timer.start()
+		return
+	
+	Tagger.e6_headers_data[\"Authorization\"] = config_file.get_value(\"API_Key\", \"Authorization\")
+	load_button.text = \"Success!\"
+	api_key.clear()
+	button_text_timer.start()
+
+
+func restore_button_text() -> void:
+	load_button.text = \"Load Key\"
+
+
+func reveal_pass(is_enabled: bool) -> void:
+	api_key.secret = not is_enabled
+"
+
+[sub_resource type="GDScript" id="GDScript_gagfo"]
+resource_name = "login_api"
+script/source = "extends Control
+
+@onready var user_line_edit: LineEdit = $UserLineEdit
+@onready var key_line_edit: LineEdit = $KeyLineEdit
+@onready var remember_check: CheckBox = $RememberCheck
+@onready var encrypt_key_line_edit: LineEdit = $RememberCheck/EncryptKeyLineEdit
+@onready var reveal_encrypt: CheckButton = $RememberCheck/EncryptKeyLineEdit/RevealEncrypt
+@onready var save_btn: Button = $SaveBTN
+
+
+func _ready():
+	reveal_encrypt.toggled.connect(toggle_secret)
+	save_btn.pressed.connect(save_key)
+
+
+func toggle_secret(is_hidden: bool) -> void:
+	encrypt_key_line_edit.secret = not is_hidden
+
+
+func save_key() -> void:
+	Tagger.e6_headers_data[\"Authorization\"] = str(Marshalls.utf8_to_base64(user_line_edit.text + \":\" + key_line_edit.text))
+	
+	if remember_check.button_pressed:
+		var save_config_file := ConfigFile.new()
+		save_config_file.set_value(\"API_Key\", \"Authorization\", Tagger.e6_headers_data[\"Authorization\"])
+		save_config_file.save_encrypted_pass(Tagger.api_file_path, encrypt_key_line_edit.text)
+		encrypt_key_line_edit.clear()
+	
+	user_line_edit.clear()
+	key_line_edit.clear()
+	
+	print(Tagger.e6_headers_data[\"Authorization\"])
+	
 "
 
 [node name="MainApplication" type="Control"]
@@ -814,11 +1108,12 @@ item_5/text = "Exit"
 item_5/id = 1
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 32.0
+offset_top = 48.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_o722f")
@@ -826,9 +1121,8 @@ script = ExtResource("2_o722f")
 [node name="TaggerMenuBar" type="MenuBar" parent="Tagger"]
 layout_mode = 0
 offset_left = 64.0
-offset_top = -24.0
-offset_right = 104.0
-offset_bottom = 16.0
+offset_top = -40.0
+offset_right = 125.0
 
 [node name="Tagger" type="PopupMenu" parent="Tagger/TaggerMenuBar"]
 size = Vector2i(250, 170)
@@ -858,9 +1152,8 @@ item_5/id = 3
 [node name="CurrentTags" type="Control" parent="Tagger"]
 anchors_preset = 0
 offset_left = 16.0
-offset_top = 16.0
 offset_right = 448.0
-offset_bottom = 632.0
+offset_bottom = 616.0
 
 [node name="ItemList" type="ItemList" parent="Tagger/CurrentTags"]
 layout_mode = 1
@@ -878,17 +1171,17 @@ fixed_icon_size = Vector2i(10, 10)
 [node name="LineEdit" type="LineEdit" parent="Tagger"]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 640.0
+offset_top = 624.0
 offset_right = 400.0
-offset_bottom = 671.0
+offset_bottom = 655.0
 placeholder_text = "Add Tag"
 
 [node name="OpenAutoCompleteBTN" type="Button" parent="Tagger"]
 layout_mode = 0
 offset_left = 408.0
-offset_top = 640.0
+offset_top = 624.0
 offset_right = 448.0
-offset_bottom = 672.0
+offset_bottom = 656.0
 tooltip_text = "Search for tags"
 icon = ExtResource("4_83kdk")
 icon_alignment = 1
@@ -897,17 +1190,15 @@ expand_icon = true
 [node name="Label" type="Label" parent="Tagger"]
 layout_mode = 0
 offset_left = 464.0
-offset_top = -16.0
+offset_top = -32.0
 offset_right = 587.0
-offset_bottom = 16.0
 text = "Suggested Tags:"
 
 [node name="Suggested" type="Control" parent="Tagger"]
 anchors_preset = 0
 offset_left = 464.0
-offset_top = 16.0
 offset_right = 656.0
-offset_bottom = 632.0
+offset_bottom = 616.0
 metadata/_edit_group_ = true
 
 [node name="SuggestedList" type="ItemList" parent="Tagger/Suggested"]
@@ -923,9 +1214,8 @@ same_column_width = true
 [node name="Implied Tags" type="Control" parent="Tagger"]
 anchors_preset = 0
 offset_left = 672.0
-offset_top = 16.0
 offset_right = 864.0
-offset_bottom = 632.0
+offset_bottom = 616.0
 
 [node name="ImpliedList" type="ItemList" parent="Tagger/Implied Tags"]
 layout_mode = 1
@@ -945,9 +1235,9 @@ text = "Implied tags:"
 [node name="CleanSuggestionsButton" type="Button" parent="Tagger"]
 layout_mode = 0
 offset_left = 464.0
-offset_top = 640.0
+offset_top = 624.0
 offset_right = 864.0
-offset_bottom = 671.0
+offset_bottom = 655.0
 tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
 text = "Clean Suggestions"
 
@@ -955,32 +1245,33 @@ text = "Clean Suggestions"
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 880.0
-offset_top = 640.0
+offset_top = 624.0
 offset_right = 1088.0
-offset_bottom = 671.0
+offset_bottom = 655.0
 text = "Generate List"
 
 [node name="CopyToClipboard" type="Button" parent="Tagger"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 1104.0
-offset_top = 640.0
+offset_top = 624.0
 offset_right = 1264.0
-offset_bottom = 671.0
+offset_bottom = 655.0
 text = "Copy to Clipboard"
 
 [node name="FinalTagList" type="TextEdit" parent="Tagger"]
 layout_mode = 0
 offset_left = 880.0
-offset_top = 16.0
+offset_top = 40.0
 offset_right = 1264.0
-offset_bottom = 632.0
+offset_bottom = 616.0
 placeholder_text = "Final tags"
 editable = false
 wrap_mode = 1
 scroll_smooth = true
 
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
+visible = false
 anchors_preset = 0
 offset_top = -32.0
 offset_right = 1280.0
@@ -1082,6 +1373,31 @@ text = "Add"
 [node name="RequestCooldownTimer" type="Timer" parent="Tagger/AddAutoComplete"]
 one_shot = true
 
+[node name="TargetPlatformButton" type="OptionButton" parent="Tagger"]
+layout_mode = 0
+offset_left = 1016.0
+offset_right = 1264.0
+offset_bottom = 31.0
+alignment = 1
+item_count = 3
+selected = 0
+popup/item_0/text = "e621/Itaku"
+popup/item_0/id = 0
+popup/item_1/text = "Postybirb"
+popup/item_1/id = 1
+popup/item_2/text = "Hydrus"
+popup/item_2/id = 2
+script = ExtResource("5_03qrr")
+
+[node name="Label" type="Label" parent="Tagger/TargetPlatformButton"]
+layout_mode = 0
+offset_left = -144.0
+offset_right = -8.0
+offset_bottom = 32.0
+text = "Target platform:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
 [node name="ListLoader" type="Control" parent="."]
 visible = false
 layout_mode = 1
@@ -1176,7 +1492,7 @@ script = SubResource("GDScript_w31il")
 [node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
 offset_left = 32.0
-offset_right = 496.0
+offset_right = 368.0
 offset_bottom = 31.0
 placeholder_text = "Tag to add"
 
@@ -1247,7 +1563,7 @@ placeholder_text = "Add new parent tag"
 [node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
 layout_mode = 0
 offset_left = 272.0
-offset_top = 96.0
+offset_top = 104.0
 offset_right = 496.0
 offset_bottom = 528.0
 
@@ -1281,24 +1597,52 @@ text = "Create Tag"
 [node name="ParentItemList" type="ItemList" parent="TagCreator"]
 layout_mode = 0
 offset_left = 24.0
-offset_top = 96.0
+offset_top = 104.0
 offset_right = 256.0
 offset_bottom = 528.0
 
+[node name="HasImagesCheckBox" type="CheckBox" parent="TagCreator"]
+layout_mode = 0
+offset_left = 376.0
+offset_right = 493.0
+offset_bottom = 31.0
+tooltip_text = "If the tag has images associated to it. When reviewing it'll try to load images."
+button_pressed = true
+text = "Has Images"
+
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_left = 1.0
-offset_top = 64.0
+offset_top = 40.0
 offset_right = 1281.0
 offset_bottom = 720.0
+mouse_filter = 1
 script = SubResource("GDScript_lfssu")
+
+[node name="ReviewerMenuBar" type="MenuBar" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 71.0
+offset_top = -32.0
+offset_right = 134.0
+offset_bottom = 8.0
+
+[node name="Review" type="PopupMenu" parent="TagReviewer/ReviewerMenuBar"]
+size = Vector2i(172, 143)
+hide_on_checkable_item_selection = false
+item_count = 2
+item_0/text = "Tags"
+item_0/id = 0
+item_0/separator = true
+item_1/text = "Delete Tag"
+item_1/id = 1
+item_1/disabled = true
 
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 16.0
-offset_right = 295.0
-offset_bottom = 31.0
+offset_left = 7.0
+offset_top = 24.0
+offset_right = 286.0
+offset_bottom = 55.0
 
 [node name="TagSearchButton" type="Button" parent="TagReviewer/TagSearcher"]
 layout_mode = 0
@@ -1309,10 +1653,10 @@ text = "Search"
 
 [node name="NameLine" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 112.0
-offset_top = 48.0
-offset_right = 415.0
-offset_bottom = 79.0
+offset_left = 103.0
+offset_top = 72.0
+offset_right = 278.0
+offset_bottom = 103.0
 alignment = 1
 editable = false
 
@@ -1324,12 +1668,21 @@ offset_bottom = 32.0
 text = "Tag Name:"
 vertical_alignment = 1
 
+[node name="HasImagesCheckBox" type="CheckBox" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 286.0
+offset_top = 72.0
+offset_right = 406.0
+offset_bottom = 103.0
+disabled = true
+text = "Has images"
+
 [node name="CategoriesMenu" type="OptionButton" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 136.0
-offset_top = 88.0
-offset_right = 415.0
-offset_bottom = 120.0
+offset_left = 127.0
+offset_top = 112.0
+offset_right = 407.0
+offset_bottom = 144.0
 disabled = true
 alignment = 1
 item_count = 11
@@ -1367,10 +1720,10 @@ vertical_alignment = 1
 
 [node name="TagPrioBox" type="SpinBox" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 88.0
-offset_top = 136.0
-offset_right = 415.0
-offset_bottom = 167.0
+offset_left = 79.0
+offset_top = 160.0
+offset_right = 223.0
+offset_bottom = 191.0
 tooltip_text = "Refers to what tags will come first when GENERATING the tag list. The items added first are the ones of highest priority."
 allow_greater = true
 allow_lesser = true
@@ -1385,61 +1738,71 @@ offset_bottom = 32.0
 text = "Priority:"
 vertical_alignment = 1
 
+[node name="OpenPicFolder" type="Button" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 239.0
+offset_top = 160.0
+offset_right = 407.0
+offset_bottom = 191.0
+disabled = true
+text = "Open picture folder"
+
 [node name="ParentsLabel" type="Label" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 184.0
-offset_right = 128.0
-offset_bottom = 216.0
+offset_left = 7.0
+offset_top = 208.0
+offset_right = 119.0
+offset_bottom = 240.0
 text = "Parent Tags:"
 vertical_alignment = 1
 
 [node name="ParentsItemList" type="ItemList" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 216.0
-offset_right = 207.0
-offset_bottom = 528.0
+offset_left = 7.0
+offset_top = 240.0
+offset_right = 198.0
+offset_bottom = 552.0
 
 [node name="AddParentLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 536.0
-offset_right = 207.0
-offset_bottom = 575.0
+offset_left = 7.0
+offset_top = 560.0
+offset_right = 198.0
+offset_bottom = 599.0
 placeholder_text = "Add new parent"
 editable = false
 
 [node name="TagSuggestionLabel" type="Label" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 223.0
-offset_top = 184.0
-offset_right = 343.0
-offset_bottom = 216.0
+offset_left = 214.0
+offset_top = 208.0
+offset_right = 334.0
+offset_bottom = 240.0
 text = "Suggestions:"
 vertical_alignment = 1
 
 [node name="TagSuggestionList" type="ItemList" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 223.0
-offset_top = 216.0
-offset_right = 415.0
-offset_bottom = 528.0
+offset_left = 214.0
+offset_top = 240.0
+offset_right = 406.0
+offset_bottom = 552.0
 
 [node name="TagSuggestionLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 223.0
-offset_top = 536.0
-offset_right = 415.0
-offset_bottom = 576.0
+offset_left = 214.0
+offset_top = 560.0
+offset_right = 406.0
+offset_bottom = 600.0
 placeholder_text = "Add new suggestion"
 editable = false
 
 [node name="WikiEdit" type="TextEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 431.0
-offset_right = 1256.0
-offset_bottom = 576.0
+offset_left = 422.0
+offset_top = 24.0
+offset_right = 950.0
+offset_bottom = 664.0
 placeholder_text = "Wiki Info"
 editable = false
 wrap_mode = 1
@@ -1453,21 +1816,62 @@ vertical_alignment = 1
 
 [node name="TagUpdate" type="Button" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 592.0
-offset_right = 415.0
-offset_bottom = 640.0
+offset_left = 7.0
+offset_top = 616.0
+offset_right = 406.0
+offset_bottom = 664.0
 disabled = true
 text = "Update Tag"
 
-[node name="TagDelete" type="Button" parent="TagReviewer"]
+[node name="Imeges" type="Control" parent="TagReviewer"]
+anchors_preset = 0
+offset_left = 958.0
+offset_top = 24.0
+offset_right = 1271.0
+offset_bottom = 664.0
+
+[node name="PreviewProgressLoad" type="ProgressBar" parent="TagReviewer/Imeges"]
 layout_mode = 0
-offset_left = 1128.0
-offset_top = 592.0
-offset_right = 1256.0
-offset_bottom = 640.0
-disabled = true
-text = "Delete Tag"
+offset_top = -8.0
+offset_right = 313.0
+max_value = 5.0
+step = 1.0
+show_percentage = false
+
+[node name="ColorRect" type="ColorRect" parent="TagReviewer/Imeges"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.321569, 0.356863, 0.427451, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="TagReviewer/Imeges"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LewdPicsContainer" type="VBoxContainer" parent="TagReviewer/Imeges/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TagReviewerRequester" parent="TagReviewer" node_paths=PackedStringArray("progress_bar") instance=ExtResource("2_4gepn")]
+max_parallel_requests = 1
+progress_bar = NodePath("../Imeges/PreviewProgressLoad")
+timeout_time = 20.0
+post_limit = 4
+get_sample_if_available = false
+
+[node name="FullScreenDisplay" parent="TagReviewer" instance=ExtResource("7_bjv2t")]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -0.0588235
 
 [node name="Settings" type="Control" parent="."]
 visible = false
@@ -1477,52 +1881,19 @@ offset_right = 1280.0
 offset_bottom = 720.0
 script = SubResource("GDScript_chh5e")
 
-[node name="Target Site" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 64.0
-offset_top = 8.0
-offset_right = 432.0
-offset_bottom = 48.0
-script = SubResource("GDScript_p8ss3")
-
-[node name="OptionButton" type="OptionButton" parent="Settings/Target Site"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 136.0
-offset_top = 8.0
-offset_right = 360.0
-offset_bottom = 39.0
-item_count = 3
-selected = 0
-popup/item_0/text = "E621 / Itaku"
-popup/item_0/id = 0
-popup/item_1/text = "Postybirb"
-popup/item_1/id = 1
-popup/item_2/text = "Hydrus"
-popup/item_2/id = 2
-
-[node name="Label" type="Label" parent="Settings/Target Site"]
-layout_mode = 0
-offset_top = 8.0
-offset_right = 126.0
-offset_bottom = 40.0
-text = "Target Platform:"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="Strength" type="Control" parent="Settings"]
 anchors_preset = 0
 offset_left = 32.0
-offset_top = 80.0
+offset_top = 32.0
 offset_right = 552.0
-offset_bottom = 112.0
+offset_bottom = 64.0
 script = SubResource("GDScript_y3wef")
 
 [node name="HSlider" type="HSlider" parent="Settings/Strength"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 168.0
-offset_right = 416.0
+offset_right = 384.0
 offset_bottom = 32.0
 
 [node name="Label" type="Label" parent="Settings/Strength/HSlider"]
@@ -1537,8 +1908,8 @@ vertical_alignment = 1
 [node name="LineEdit" type="LineEdit" parent="Settings/Strength"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 424.0
-offset_right = 491.063
+offset_left = 408.0
+offset_right = 475.063
 offset_bottom = 31.0
 placeholder_text = "100"
 alignment = 1
@@ -1556,21 +1927,75 @@ text = "%"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="LoadImagesButton" type="CheckButton" parent="Settings"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 72.0
+offset_right = 233.0
+offset_bottom = 103.0
+text = "Load review images"
+script = SubResource("GDScript_lqhue")
+
+[node name="ColorRect" type="ColorRect" parent="Settings/LoadImagesButton"]
+layout_mode = 0
+offset_left = 208.0
+offset_right = 480.0
+offset_bottom = 88.0
+color = Color(0.188235, 0.215686, 0.258824, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/LoadImagesButton"]
+layout_mode = 0
+offset_left = 208.0
+offset_right = 480.0
+offset_bottom = 88.0
+
+[node name="ToggleButtons" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="e621LoadButton" type="CheckButton" parent="Settings/LoadImagesButton/VBoxContainer/ToggleButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "e621"
+
+[node name="LocalLoadButton" type="CheckButton" parent="Settings/LoadImagesButton/VBoxContainer/ToggleButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Local"
+
+[node name="AmountToLoad" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="e621SpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 10.0
+editable = false
+
+[node name="LocalSpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 10.0
+editable = false
+
 [node name="OpenTagsButton" type="Button" parent="Settings"]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 136.0
+offset_left = 32.0
+offset_top = 168.0
 offset_right = 208.0
-offset_bottom = 184.0
+offset_bottom = 216.0
 text = "Open tags folder"
 
 [node name="RecreateDatabaseBtn" type="Button" parent="Settings"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 216.0
-offset_top = 136.0
+offset_top = 168.0
 offset_right = 512.0
-offset_bottom = 184.0
+offset_bottom = 216.0
 tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
 text = "Recreate tag impliactions"
 
@@ -1587,40 +2012,43 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -64.0
-offset_bottom = -64.0
+offset_left = -32.0
+offset_top = -24.0
+offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 script = SubResource("GDScript_hr4cx")
 
 [node name="OldAlias" type="LineEdit" parent="Settings/Aliases"]
 layout_mode = 0
-offset_top = 272.0
-offset_right = 208.0
-offset_bottom = 312.0
+offset_left = -32.0
+offset_top = 288.0
+offset_right = 200.0
+offset_bottom = 328.0
 placeholder_text = "Old name"
 alignment = 1
 
 [node name="NewAlias" type="LineEdit" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = 240.0
-offset_top = 272.0
+offset_left = 216.0
+offset_top = 288.0
 offset_right = 448.0
-offset_bottom = 312.0
+offset_bottom = 328.0
 placeholder_text = "New name"
 alignment = 1
 
 [node name="RemoveAliasButton" type="Button" parent="Settings/Aliases"]
 layout_mode = 0
+offset_left = -32.0
 offset_top = 344.0
-offset_right = 208.0
+offset_right = 200.0
 offset_bottom = 384.0
 disabled = true
 text = "Remove Alias"
 
 [node name="AddAliasButton" type="Button" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = 240.0
+offset_left = 216.0
 offset_top = 344.0
 offset_right = 448.0
 offset_bottom = 384.0
@@ -1669,6 +2097,7 @@ same_column_width = true
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
+script = SubResource("GDScript_dvmq4")
 
 [node name="ConstantsLineEdit" type="LineEdit" parent="Settings/Constants"]
 layout_mode = 0
@@ -1729,6 +2158,204 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 max_columns = 2
+
+[node name="SettingsBar" type="MenuBar" parent="Settings"]
+layout_mode = 0
+offset_left = 72.0
+offset_top = -48.0
+offset_right = 142.0
+offset_bottom = -8.0
+
+[node name="Settings" type="PopupMenu" parent="Settings/SettingsBar"]
+item_count = 1
+item_0/text = "API key"
+item_0/id = 0
+
+[node name="APILoader" type="Control" parent="Settings"]
+visible = false
+layout_mode = 1
+anchor_top = -0.0843373
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_7dq25")
+metadata/_edit_use_anchors_ = true
+
+[node name="ColorRect" type="ColorRect" parent="Settings/APILoader"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.145098, 0.168627, 0.203922, 0.588235)
+
+[node name="AllItems" type="Control" parent="Settings/APILoader"]
+layout_mode = 1
+anchor_left = 0.15
+anchor_top = 0.267
+anchor_right = 0.85
+anchor_bottom = 0.8
+offset_top = -40.24
+
+[node name="AppBG" type="ColorRect" parent="Settings/APILoader/AllItems"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.435294, 0.47451, 0.556863, 1)
+
+[node name="Load" type="Control" parent="Settings/APILoader/AllItems"]
+anchors_preset = 0
+offset_left = 464.0
+offset_top = 48.0
+offset_right = 888.0
+offset_bottom = 416.0
+script = SubResource("GDScript_ert6n")
+
+[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/Load"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="Label3" type="Label" parent="Settings/APILoader/AllItems/Load"]
+layout_mode = 0
+offset_left = -8.0
+offset_top = 8.0
+offset_right = 400.0
+offset_bottom = 40.0
+text = "Load key"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="APIKey" type="LineEdit" parent="Settings/APILoader/AllItems/Load"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 152.0
+offset_right = 352.0
+offset_bottom = 183.0
+placeholder_text = "Encryption Key"
+alignment = 1
+secret = true
+
+[node name="RevealPassButton" type="CheckButton" parent="Settings/APILoader/AllItems/Load/APIKey"]
+layout_mode = 0
+offset_left = 320.0
+offset_right = 368.0
+offset_bottom = 32.0
+
+[node name="LoadButton" type="Button" parent="Settings/APILoader/AllItems/Load"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 192.0
+offset_right = 288.0
+offset_bottom = 223.0
+text = "Load Key"
+
+[node name="ButtonTextTimer" type="Timer" parent="Settings/APILoader/AllItems/Load"]
+one_shot = true
+
+[node name="LogIn" type="Control" parent="Settings/APILoader/AllItems"]
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 48.0
+offset_right = 432.0
+offset_bottom = 416.0
+script = SubResource("GDScript_gagfo")
+
+[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="Label2" type="Label" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 416.0
+offset_bottom = 40.0
+text = "Log-in to e621"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="UserLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 56.0
+offset_right = 344.0
+offset_bottom = 87.0
+placeholder_text = "Username"
+alignment = 1
+
+[node name="KeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 96.0
+offset_right = 344.0
+offset_bottom = 127.0
+placeholder_text = "API Key"
+alignment = 1
+secret = true
+
+[node name="Label" type="Label" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 256.0
+offset_right = 424.0
+offset_bottom = 360.0
+text = "\"Remember key\" will save your info to a plain text file and encrypt it with a key you set. It is not reccomended to save your API key using this software."
+autowrap_mode = 2
+
+[node name="RememberCheck" type="CheckBox" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 0
+offset_left = 144.0
+offset_top = 192.0
+offset_right = 289.0
+offset_bottom = 223.0
+text = "Remember key"
+
+[node name="EncryptKeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn/RememberCheck"]
+layout_mode = 0
+offset_left = -56.0
+offset_top = 32.0
+offset_right = 200.0
+offset_bottom = 63.0
+placeholder_text = "Encryption Key"
+alignment = 1
+secret = true
+
+[node name="RevealEncrypt" type="CheckButton" parent="Settings/APILoader/AllItems/LogIn/RememberCheck/EncryptKeyLineEdit"]
+layout_mode = 0
+offset_left = 256.0
+offset_right = 304.0
+offset_bottom = 32.0
+
+[node name="SaveBTN" type="Button" parent="Settings/APILoader/AllItems/LogIn"]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 144.0
+offset_right = 320.0
+offset_bottom = 184.0
+text = "Save"
+
+[node name="CloseButton" type="Button" parent="Settings/APILoader/AllItems"]
+layout_mode = 0
+offset_left = 840.0
+offset_top = 8.0
+offset_right = 888.0
+offset_bottom = 40.0
+text = "X"
 
 [node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
 unique_name_in_owner = true
