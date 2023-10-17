@@ -75,7 +75,7 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 			_e6_post.sources.append_array(response_json["posts"][post_index]["sources"])
 			_e6_post.pools.append_array(response_json["posts"][post_index]["pools"])
 			
-			_e6_post.relationships.parent_id = response_json["posts"][post_index]["relationships"]["parent_id"] if response_json["posts"][0]["relationships"]["parent_id"] != null else -1
+			_e6_post.relationships.parent_id = response_json["posts"][post_index]["relationships"]["parent_id"] if response_json["posts"][post_index]["relationships"]["parent_id"] else -1
 			_e6_post.relationships.has_children = response_json["posts"][post_index]["relationships"]["has_children"]
 			_e6_post.relationships.has_active_children = response_json["posts"][post_index]["relationships"]["has_active_children"]
 			_e6_post.relationships.children = response_json["posts"][post_index]["relationships"]["children"]
