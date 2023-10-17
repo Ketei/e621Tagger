@@ -1,31 +1,7 @@
 class_name TagMaker
 extends Node
 
-
-#@export var override_char: String = ""
-#@export var override_file: String = ""
-
-
-#func _ready() -> void:
-#	var _indexes: Dictionary = {}
-#
-#	for file in DirAccess.get_files_at("res://Database/tags/"):
-#		var _tag_load: Tag = ResourceLoader.load("res://Database/tags/" + file)
-#
-#		if not _indexes.has(file.left(1)):
-#			_indexes[file.left(1)] = {}
-#
-#		_indexes[file.left(1)][_tag_load.tag] = "res://Database/tags/" + file
-#
-#	if override_char == "":
-#		print("building all")
-#		build_all_implications(_indexes)
-#	else:
-#		print("building single")
-#		build_specific_implications(_indexes, override_char, override_file)
-	
-	
-static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = []) -> String:
+static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = [], has_images: bool = true) -> String:
 	var _tag_dict: Dictionary = {}
 	
 	var _tag := Tag.new()
@@ -35,7 +11,12 @@ static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.
 	_tag.wiki_entry = tag_wiki_info
 	_tag.tag_priority = tag_prio
 	_tag.suggestions = tag_suggestions.duplicate()
+	_tag.has_pictures = has_images
 	var tag_path: String = _tag.save()
+	
+	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_path.left(-5)):
+		DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_path.left(-5))
+	
 	
 	var _implication : ImplicationDictionary
 	
