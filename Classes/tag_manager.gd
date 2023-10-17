@@ -29,6 +29,24 @@ static func load_database() -> TagManager:
 	return _relation_return
 
 
+func get_all_tags() -> Array:
+	var return_array: Array = []
+	
+	for index_char in relation_database:
+		return_array.append_array(relation_database[index_char].keys())
+	
+	return return_array
+
+
+func get_all_tags_with_paths() -> Dictionary:
+	var dict_to_return: Dictionary = {}
+	
+	for index_char in relation_database:
+		dict_to_return.merge(relation_database[index_char])
+	
+	return dict_to_return
+	
+
 func has_tag(tag_implication: String) -> bool:
 	return relation_database.has(tag_implication.left(1)) and relation_database[tag_implication.left(1)].has(tag_implication)
 

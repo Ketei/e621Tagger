@@ -29,6 +29,8 @@ func _ready():
 
 
 func generate_preview() -> void:
+	preview_list.clear()
+	
 	var array_string: String = input_tags.text
 	array_string = array_string.replace("\n", " ")
 	array_string = array_string.strip_escapes()

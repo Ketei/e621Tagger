@@ -1,19 +1,20 @@
 class_name Tag
 extends Resource
 
+
 @export var tag: String = "":
 	set(new_name):
 		tag = new_name.to_lower()
-@export var variants: Dictionary = {}
+@export var file_name: String = ""
+@export var tag_priority: int = 0
 @export var category: Tagger.Categories = Tagger.Categories.GENERAL
 @export var parents: Array = []
 @export var suggestions: Array[String] = []
+@export var has_pictures: bool = true
+@export var variants: Dictionary = {}
+
 @export var wiki_entry: String = ""
 
-@export var file_name: String = ""
-@export var tag_priority: int = 0
-
-@export var has_pictures: bool = true
 
 func save() -> String:
 	if file_name.is_empty():

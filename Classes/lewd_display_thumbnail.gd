@@ -10,5 +10,4 @@ func _ready():
 
 
 func button_pressed() -> void:
-	print("Button Pressed!!!")
 	lewd_pic_pressed.emit(self.texture)

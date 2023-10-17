@@ -14,8 +14,8 @@ static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.
 	_tag.has_pictures = has_images
 	var tag_path: String = _tag.save()
 	
-	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_path.left(-5)):
-		DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_path.left(-5))
+	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_path.get_basename()):
+		DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_path.get_basename())
 	
 	
 	var _implication : ImplicationDictionary
