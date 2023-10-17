@@ -43,15 +43,15 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 			_e6_post.file.extension = response_json["posts"][post_index]["file"]["ext"]
 			_e6_post.file.size = response_json["posts"][post_index]["file"]["size"]
 			_e6_post.file.md5 = response_json["posts"][post_index]["file"]["md5"]
-			_e6_post.file.url = response_json["posts"][post_index]["file"]["url"]
+			_e6_post.file.url = response_json["posts"][post_index]["file"]["url"] if response_json["posts"][post_index]["file"]["url"] else ""
 			
 			_e6_post.preview.width = response_json["posts"][post_index]["preview"]["width"]
 			_e6_post.preview.height = response_json["posts"][post_index]["preview"]["height"]
-			_e6_post.preview.url = response_json["posts"][post_index]["preview"]["url"]
+			_e6_post.preview.url = response_json["posts"][post_index]["preview"]["url"] if response_json["posts"][post_index]["preview"]["url"] else ""
 			
 			
 			_e6_post.sample.has_sample = response_json["posts"][post_index]["sample"]["has"]
-			_e6_post.sample.url = response_json["posts"][post_index]["sample"]["url"]
+			_e6_post.sample.url = response_json["posts"][post_index]["sample"]["url"] if response_json["posts"][post_index]["sample"]["url"] else ""
 			_e6_post.sample.height = response_json["posts"][post_index]["sample"]["height"]
 			_e6_post.sample.width = response_json["posts"][post_index]["sample"]["width"]
 			_e6_post.sample.alternates = response_json["posts"][post_index]["sample"]["alternates"]
