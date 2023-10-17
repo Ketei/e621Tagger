@@ -13,6 +13,8 @@ extends Resource
 @export var file_name: String = ""
 @export var tag_priority: int = 0
 
+@export var has_pictures: bool = true
+
 func save() -> String:
 	if file_name.is_empty():
 		file_name = tag + ".tres"
