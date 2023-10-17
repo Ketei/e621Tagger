@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=26 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -154,6 +154,8 @@ func timer_timeout() -> void:
 [sub_resource type="GDScript" id="GDScript_w31il"]
 script/source = "extends Control
 
+signal tag_created(tag_name)
+
 @onready var tag_to_add_line_edit = $TagToAddLineEdit
 @onready var categories_menu = $CategoriesMenu
 @onready var create_tags_button = $CreateTagsButton
@@ -164,6 +166,7 @@ script/source = "extends Control
 @onready var suggestion_item_list: ItemList = $SuggestionItemList
 @onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
 @onready var has_images_check_box: CheckBox = $HasImagesCheckBox
+@onready var tag_creator_menu = $\"TagCreator/Tag Creator\"
 
 
 var parent_tags: Array = []
@@ -175,6 +178,9 @@ var tag_suggestion_array: Array[String] = []
 
 
 func _ready():
+	tag_creator_menu.set_item_checked(tag_creator_menu.get_item_index(1), Tagger.settings.open_tag_folder_on_creation)
+	
+	tag_creator_menu.id_pressed.connect(tag_creator_menu_changed)
 	suggestion_line_edit.text_submitted.connect(add_suggestion)
 	suggestion_item_list.item_activated.connect(remove_suggestion)
 
@@ -189,6 +195,13 @@ func _ready():
 	text_timer.one_shot = true
 	text_timer.timeout.connect(on_timer_timeout)
 	add_child(text_timer)
+
+
+func tag_creator_menu_changed(id_selected: int) -> void:
+	if id_selected == 1:
+		var tag_index: int = tag_creator_menu.get_item_index(1)
+		tag_creator_menu.set_item_checked(tag_index, not tag_creator_menu.is_item_checked(tag_index))
+		Tagger.settings.open_tag_folder_on_creation = tag_creator_menu.is_item_checked(tag_index)
 
 
 func add_suggestion(new_suggestion: String) -> void:
@@ -240,8 +253,13 @@ func create_tag() -> void:
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
 	
 	Tagger.tag_manager.relation_database[target_tag.left(1)][target_tag] = _tag_path
-
+	
+	if has_images_check_box.button_pressed and tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)):
+		OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
+	
 	clear_menu_items(\"Done!\")
+	
+	tag_created.emit(target_tag)
 
 
 func clear_menu_items(btn_message: String) -> void:
@@ -268,6 +286,7 @@ func on_timer_timeout() -> void:
 resource_name = "tag_reviewer_script"
 script/source = "extends Control
 
+signal _finished_loading_local()
 
 @onready var tag_searcher = $TagSearcher
 @onready var tag_search_button = $TagSearcher/TagSearchButton
@@ -304,10 +323,17 @@ var text_change_timer: Timer
 
 var images_to_display: Array[ImageTexture] = []
 
+var thread: Thread
+
+var thread_interrupt: bool = false
+
 
 func _ready():
+	
+	tag_reviewer_requester.image_created.connect(create_and_display_image)
+	tag_reviewer_requester.image_skipped.connect(increase_progress)
 	open_pic_folder_button.pressed.connect(open_pics_folder)
-	tag_reviewer_requester.downloads_finished.connect(create_download_textures)
+#	tag_reviewer_requester.downloads_finished.connect(create_download_textures)
 	tag_reviewer_requester.post_limit = Tagger.settings.e621_review_amount
 	has_images_check_box.toggled.connect(image_checkbox_toggle)
 
@@ -377,10 +403,20 @@ func delete_tag(id_button: int) -> void:
 	Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
 
 	_implication_replace.save()
+	
+	for child in lewd_pic_container.get_children():
+		child.lewd_pic_pressed.disconnect(display_big_pic)
+		child.queue_free()
+	
+	if is_instance_valid(thread) and thread.is_started():
+		thread_interrupt = true
+		thread.wait_to_finish()
+		
 	clear_and_disable()
 
 
 func clear_and_disable() -> void:
+	images_to_display.clear()
 	open_pic_folder_button.disabled = true
 	has_images_check_box.button_pressed = false
 	has_images_check_box.disabled = true
@@ -407,8 +443,6 @@ func button_search_pressed() -> void:
 
 
 func search_for_tag(new_text: String) -> void:
-	preview_progress_load.value = 0
-	
 	images_to_display.clear()
 	tag_reviewer_requester.cancel_side_requests()
 	
@@ -467,18 +501,35 @@ func search_for_tag(new_text: String) -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	tag_searcher.clear()
 	
+	preview_progress_load.max_value = 0
+	preview_progress_load.value = 0
 	
+	var file_names: Array = DirAccess.get_files_at(Tagger.tag_images_path + _tag.file_name.get_basename())
+	var final_file_names: Array = []
+	
+
 	if _tag.has_pictures and Tagger.settings.can_load_from_local():
-		get_local_images(_tag.file_name.get_basename())
-	else:
-		preview_progress_load.value += 1
-	
+		if DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
+			
+			if Tagger.settings.local_review_amount < file_names.size():
+				for ignored in range(Tagger.settings.local_review_amount):
+					var tag_to_transfer = file_names.pick_random()
+					final_file_names.append(tag_to_transfer)
+					file_names.erase(tag_to_transfer)
+			else:
+				final_file_names = file_names
+			
+			preview_progress_load.max_value += final_file_names.size()
+			
+			if _tag.has_pictures and Tagger.settings.can_load_from_e6():
+				preview_progress_load.max_value += Tagger.settings.e621_review_amount
+			
+			get_local_images(_tag.file_name.get_basename(), final_file_names)
+
 	if _tag.has_pictures and Tagger.settings.can_load_from_e6():
 		search_web_images(_tag.tag)
-	else:
-		preview_progress_load.value += 4
 
-
+	
 func add_parent(parent_text: String) -> void:
 	parent_text = parent_text.to_lower()
 	
@@ -511,15 +562,9 @@ func _on_timer_timeout() -> void:
 	tag_update_button.text = \"Update Tag\"
 
 
-func get_local_images(folder_name: String) -> void:
-	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + folder_name):
-		preview_progress_load.value += 1
-		return
-	
-	var file_load_count: int = 0
-
-	for file_name in DirAccess.get_files_at(Tagger.tag_images_path + folder_name):
-		if Tagger.settings.local_review_amount <= file_load_count:
+func load_local_images(final_file_names: Array, folder_name) -> void:
+	for file_name in final_file_names:
+		if thread_interrupt:
 			break
 		
 		var tempstring: String = file_name
@@ -527,28 +572,67 @@ func get_local_images(folder_name: String) -> void:
 		var file_extension = tempstring.get_extension()
 		
 		if file_extension != \"png\" and file_extension != \"jpg\":
+			preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
 			continue
 		
 		var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
-#		_new_image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
 		var _new_texture := ImageTexture.create_from_image(_new_image)
-#		_new_texture.create_from_image(_new_image)
+#		images_to_display.append(_new_texture)
+#		preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
+		display_image.call_deferred(_new_texture)
 		
-		var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
-		new_child_thumb.texture = _new_texture
-		lewd_pic_container.add_child(new_child_thumb)
-		new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
-		file_load_count += 1
+	display_images.call_deferred()
+
+
+func get_local_images(folder_name: String, file_name_array: Array) -> void:
+	if is_instance_valid(thread) and thread.is_started():
+		thread_interrupt = true
+		thread.wait_to_finish()
 	
+	if thread_interrupt:
+		thread_interrupt = false
+	
+	thread = Thread.new()
+	thread.start(load_local_images.bind(file_name_array, folder_name))
+
+
+func increase_progress() -> void:
 	preview_progress_load.value += 1
+
+
+func create_and_display_image(image_file: Image) -> void:
+	var _new_texture := ImageTexture.create_from_image(image_file)
+	display_image(_new_texture)
+
+
+func display_image(image_texture: ImageTexture):
+	preview_progress_load.value += 1
+	var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
+	new_child_thumb.texture = image_texture
+	lewd_pic_container.add_child(new_child_thumb)
+	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
+
+
+func display_images():
+	thread.wait_to_finish()
+	thread = null
 
 
 func search_web_images(tag_names: String) -> void:
 	tag_reviewer_requester.post_limit = Tagger.settings.e621_review_amount
 	if tag_names.is_empty():
 		tag_names = \"vaporeon -female -ambiguous_gender rating:explicit\"
-	tag_reviewer_requester.match_name = [\"~type:jpg\", \"~type:png\", \"order:score\"] as Array[String]
-	tag_reviewer_requester.match_name.append(tag_names)
+	
+	var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+	
+	search_tags.append(tag_names)
+	
+	for blacklist_tag in Tagger.settings_lists.suggestion_review_blacklist:
+		if search_tags.has(blacklist_tag):
+			continue
+		search_tags.append(\"-\" + blacklist_tag)
+	
+	tag_reviewer_requester.match_name = search_tags.duplicate()
 	tag_reviewer_requester.get_posts_and_download()
 
 
@@ -564,6 +648,148 @@ func create_download_textures() -> void:
 func display_big_pic(texture_to_load: ImageTexture) -> void:
 	full_screen_display.set_picture(texture_to_load)
 	full_screen_display.visible = true
+
+
+func _exit_tree():
+	if is_instance_valid(thread) and thread.is_started():
+		thread.wait_to_finish()
+		thread = null
+"
+
+[sub_resource type="GDScript" id="GDScript_5wvn0"]
+resource_name = "show_hide_progress_bar"
+script/source = "extends ProgressBar
+
+#func _ready():
+#	hide()
+#	value_changed.connect(new_value_changed)
+
+
+func new_value_changed(new_value: float) -> void:
+	if new_value == max_value:
+		var _tween :Tween = create_tween()
+		_tween.tween_property(self, \"self_modulate\", Color.TRANSPARENT, 1.0)
+		_tween.finished.connect(hide)
+	elif visible == false:
+		visible = true
+		var _tween :Tween = create_tween()
+		_tween.tween_property(self, \"self_modulate\", Color.CORNFLOWER_BLUE, 1.0)
+
+
+func hide_and_restore() -> void:
+	hide()
+	self.self_modulate = Color.CORNFLOWER_BLUE
+"
+
+[sub_resource type="GDScript" id="GDScript_yvw35"]
+resource_name = "category_searcher"
+script/source = "extends Control
+
+@onready var priority_spin_box: SpinBox = $PrioritySpinBox
+@onready var search_with_prio_button: Button = $PrioritySpinBox/SearchWithPrioButton
+@onready var category_opt_button: OptionButton = $CategoryOptButton
+@onready var search_with_cat_button: Button = $CategoryOptButton/SearchWithCatButton
+@onready var new_cat_opt_button: OptionButton = $Control/NewCatOptButton
+@onready var replace_cat_checkbox: CheckButton = $Control/NewCatOptButton/ReplaceCatCheckbox
+@onready var new_prio_button: SpinBox = $Control/NewPrioButton
+@onready var replace_prio_checkbox: CheckButton = $Control/NewPrioButton/ReplacePrioCheckbox
+@onready var mass_update_button: Button = $Control/MassUpdateButton
+@onready var results_item_list: ItemList = $ResultsItemList
+@onready var has_image_checkbox: CheckBox = $Control/HasImageCheckbox
+@onready var replace_has_img_checkbox: CheckButton = $Control/HasImageCheckbox/ReplaceHasImgCheckbox
+@onready var select_all_button: Button = $SelectAllButton
+@onready var deselect_all_button: Button = $DeselectAllButton
+
+@onready var tag_reviewer = $\"../TagReviewer\"
+
+@onready var main_application = $\"..\"
+
+
+func _ready():
+	hide()
+	
+	search_with_prio_button.pressed.connect(search_with_priority)
+	search_with_cat_button.pressed.connect(search_with_category)
+	replace_cat_checkbox.toggled.connect(replace_category_toggled)
+	replace_prio_checkbox.toggled.connect(replace_priority_toggled)
+	replace_has_img_checkbox.toggled.connect(replace_has_pic_toggled)
+	mass_update_button.pressed.connect(mass_edit_selected)
+	results_item_list.item_activated.connect(edit_item)
+	deselect_all_button.pressed.connect(deselect_all_items)
+	select_all_button.pressed.connect(select_all_items)
+
+
+func search_with_category() -> void:
+	results_item_list.clear()
+	
+	var all_tags: Array = Tagger.tag_manager.get_all_tags()
+
+	for tag_string in all_tags:
+		if Tagger.tag_manager.get_tag(tag_string).category == category_opt_button.selected:
+			results_item_list.add_item(tag_string)
+
+
+func search_with_priority() -> void:
+	results_item_list.clear()
+	
+	for tag_string in Tagger.tag_manager.get_all_tags():
+		if Tagger.tag_manager.get_tag(tag_string).tag_priority == priority_spin_box.value:
+			results_item_list.add_item(tag_string)
+
+
+func edit_item(item_index: int) -> void:
+	var tag_to_edit: String = results_item_list.get_item_text(item_index)
+	tag_reviewer.search_for_tag(tag_to_edit)
+	
+	main_application.trigger_options(5)
+
+
+func mass_edit_selected() -> void:
+	if not results_item_list.is_anything_selected():
+		return
+	
+	var selected_indexes: Array = results_item_list.get_selected_items()
+	
+	for index in selected_indexes:
+		var _tag_to_update: Tag = Tagger.tag_manager.get_tag(results_item_list.get_item_text(index))
+		
+		if replace_has_img_checkbox.button_pressed:
+			_tag_to_update.has_pictures = has_image_checkbox.button_pressed
+		
+		if replace_prio_checkbox.button_pressed:
+			_tag_to_update.tag_priority = int(new_prio_button.value)
+		
+		if replace_cat_checkbox.button_pressed:
+			_tag_to_update.category = new_cat_opt_button.selected as Tagger.Categories
+		
+		_tag_to_update.save()
+		
+		mass_update_button.text = \"Success\"
+		await  get_tree().create_timer(2.0).timeout
+		mass_update_button.text = \"Update Selected\"
+	
+
+func replace_category_toggled(new_toggle: bool) -> void:
+	new_cat_opt_button.disabled = not new_toggle
+
+
+func replace_priority_toggled(new_toggle: bool) -> void:
+	new_prio_button.editable = new_toggle
+
+
+func replace_has_pic_toggled(new_toggle: bool) -> void:
+	has_image_checkbox.disabled = not new_toggle
+
+
+func select_all_items() -> void:
+	for index in range(results_item_list.item_count):
+		results_item_list.select(index, false)
+
+
+func deselect_all_items() -> void:
+	if results_item_list.is_anything_selected():
+		results_item_list.deselect_all()
+
 "
 
 [sub_resource type="GDScript" id="GDScript_chh5e"]
@@ -865,38 +1091,32 @@ func create_item_and_subitem(item_text: String, _parent_item, subitem_string: St
 
 "
 
-[sub_resource type="GDScript" id="GDScript_mqjmn"]
-resource_name = "blacklist_control"
+[sub_resource type="GDScript" id="GDScript_i3qtj"]
 script/source = "extends Control
 
-@onready var black_list = %BlackList
-@onready var add_to_black = %AddToBlack
+@onready var invalid_tags_line_edit = $InvalidTagsLineEdit
+@onready var invalid_tag_list = $InvalidItemList
 
 
-func _ready():
-	add_to_black.text_submitted.connect(add_to_blacklist)
-	black_list.item_activated.connect(remove_from_blacklist)
+func _ready() -> void:
+	for invalid_tag in Tagger.settings_lists.invalid_tags:
+		invalid_tag_list.add_item(invalid_tag)
 	
-	for item in Tagger.settings_lists.suggestion_blacklist:
-		black_list.add_item(item)
-
-
-func add_to_blacklist(new_item: String) -> void:
-	new_item = new_item.to_lower().strip_edges().replace(\"_\", \" \")
+	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
+	invalid_tag_list.item_activated.connect(remove_from_invalids)
 	
-	if Tagger.settings_lists.suggestion_blacklist.has(new_item):
-		return
-	
-	black_list.add_item(new_item)
-	Tagger.settings_lists.add_to_blacklist(new_item)
-	add_to_black.clear()
+
+func add_to_invalid_tags(tag_to_add: String) -> void:
+	if not Tagger.settings_lists.invalid_tags.has(tag_to_add):
+		invalid_tag_list.add_item(tag_to_add)
+		Tagger.settings_lists.invalid_tags.append(tag_to_add)
+	invalid_tags_line_edit.clear()
 
 
-func remove_from_blacklist(index_id) -> void:
-	var _target = black_list.get_item_text(index_id)
-	black_list.remove_item(index_id)
-	Tagger.settings_lists.remove_from_blacklist(_target)
-
+func remove_from_invalids(tag_id: int) -> void:
+	var tag_text: String = invalid_tag_list.get_item_text(tag_id)
+	invalid_tag_list.remove_item(tag_id)
+	Tagger.settings_lists.remove_from_invalids(tag_text)
 "
 
 [sub_resource type="GDScript" id="GDScript_dvmq4"]
@@ -939,32 +1159,69 @@ func remove_constant(constant_id: int) -> void:
 
 "
 
-[sub_resource type="GDScript" id="GDScript_i3qtj"]
+[sub_resource type="GDScript" id="GDScript_4yj0t"]
+resource_name = "suggestion_blacklist_script"
 script/source = "extends Control
 
-@onready var invalid_tags_line_edit = $InvalidTagsLineEdit
-@onready var invalid_tag_list = $InvalidItemList
+@onready var sugg_blacklist_line_edit = $SuggBlacklistLineEdit
+@onready var sugg_blacklist_item_list = $SuggBlacklistItemList
 
 
-func _ready() -> void:
-	for invalid_tag in Tagger.settings_lists.invalid_tags:
-		invalid_tag_list.add_item(invalid_tag)
+func _ready():
+	for blacktag in Tagger.settings_lists.suggestion_review_blacklist:
+		sugg_blacklist_item_list.add_item(blacktag)
 	
-	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
-	invalid_tag_list.item_activated.connect(remove_from_invalids)
+	sugg_blacklist_line_edit.text_submitted.connect(add_to_sugg_blacklist)
+	sugg_blacklist_item_list.item_activated.connect(remove_from_sugg_blacklist)
+
+
+func add_to_sugg_blacklist(new_tag: String) -> void:
+	new_tag = new_tag.strip_edges().to_lower().replace(\"_\", \" \")
+	Tagger.settings_lists.suggestion_review_blacklist.append(new_tag)
+	sugg_blacklist_item_list.add_item(new_tag)
+	sugg_blacklist_line_edit.clear()
+
+
+func remove_from_sugg_blacklist(item_index: int) -> void:
+	var tag_name: String = sugg_blacklist_item_list.get_item_text(item_index)
+	Tagger.settings_lists.remove_from_suggestion_review_blacklist(tag_name)
+	sugg_blacklist_item_list.remove_item(item_index)
 	
+	
+"
 
-func add_to_invalid_tags(tag_to_add: String) -> void:
-	if not Tagger.settings_lists.invalid_tags.has(tag_to_add):
-		invalid_tag_list.add_item(tag_to_add)
-		Tagger.settings_lists.invalid_tags.append(tag_to_add)
-	invalid_tags_line_edit.clear()
+[sub_resource type="GDScript" id="GDScript_mqjmn"]
+resource_name = "blacklist_control"
+script/source = "extends Control
+
+@onready var black_list = %BlackList
+@onready var add_to_black = %AddToBlack
 
 
-func remove_from_invalids(tag_id: int) -> void:
-	var tag_text: String = invalid_tag_list.get_item_text(tag_id)
-	invalid_tag_list.remove_item(tag_id)
-	Tagger.settings_lists.remove_from_invalids(tag_text)
+func _ready():
+	add_to_black.text_submitted.connect(add_to_blacklist)
+	black_list.item_activated.connect(remove_from_blacklist)
+	
+	for item in Tagger.settings_lists.suggestion_blacklist:
+		black_list.add_item(item)
+
+
+func add_to_blacklist(new_item: String) -> void:
+	new_item = new_item.to_lower().strip_edges().replace(\"_\", \" \")
+	
+	if Tagger.settings_lists.suggestion_blacklist.has(new_item):
+		return
+	
+	black_list.add_item(new_item)
+	Tagger.settings_lists.add_to_blacklist(new_item)
+	add_to_black.clear()
+
+
+func remove_from_blacklist(index_id) -> void:
+	var _target = black_list.get_item_text(index_id)
+	black_list.remove_item(index_id)
+	Tagger.settings_lists.remove_from_blacklist(_target)
+
 "
 
 [sub_resource type="GDScript" id="GDScript_7dq25"]
@@ -1093,8 +1350,8 @@ offset_bottom = 48.0
 
 [node name="Menu" type="PopupMenu" parent="MenuBar"]
 unique_name_in_owner = true
-size = Vector2i(132, 170)
-item_count = 6
+size = Vector2i(132, 197)
+item_count = 7
 item_0/text = "Tag list"
 item_0/id = 0
 item_1/text = "Load"
@@ -1103,10 +1360,12 @@ item_2/text = "Create Tag"
 item_2/id = 4
 item_3/text = "Review tag"
 item_3/id = 5
-item_4/text = "Preferences"
-item_4/id = 3
-item_5/text = "Exit"
-item_5/id = 1
+item_4/text = "Mass Editor"
+item_4/id = 6
+item_5/text = "Preferences"
+item_5/id = 3
+item_6/text = "Exit"
+item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
 visible = false
@@ -1490,6 +1749,25 @@ offset_right = 1280.0
 offset_bottom = 720.0
 script = SubResource("GDScript_w31il")
 
+[node name="TagCreator" type="MenuBar" parent="TagCreator"]
+layout_mode = 0
+offset_left = 72.0
+offset_top = -56.0
+offset_right = 112.0
+offset_bottom = -16.0
+
+[node name="Tag Creator" type="PopupMenu" parent="TagCreator/TagCreator"]
+title = "Tag Creator"
+size = Vector2i(280, 100)
+item_count = 2
+item_0/text = "Options"
+item_0/id = 0
+item_0/separator = true
+item_1/text = "Open image folder on creaton"
+item_1/checkable = 1
+item_1/checked = true
+item_1/id = 1
+
 [node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
 offset_left = 32.0
@@ -1834,11 +2112,13 @@ offset_bottom = 664.0
 
 [node name="PreviewProgressLoad" type="ProgressBar" parent="TagReviewer/Imeges"]
 layout_mode = 0
-offset_top = -8.0
-offset_right = 313.0
-max_value = 5.0
+offset_left = 1.0
+offset_top = -16.0
+offset_right = 314.0
+offset_bottom = -8.0
 step = 1.0
 show_percentage = false
+script = SubResource("GDScript_5wvn0")
 
 [node name="ColorRect" type="ColorRect" parent="TagReviewer/Imeges"]
 layout_mode = 1
@@ -1862,9 +2142,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="TagReviewerRequester" parent="TagReviewer" node_paths=PackedStringArray("progress_bar") instance=ExtResource("2_4gepn")]
+[node name="TagReviewerRequester" parent="TagReviewer" instance=ExtResource("2_4gepn")]
 max_parallel_requests = 1
-progress_bar = NodePath("../Imeges/PreviewProgressLoad")
 timeout_time = 20.0
 post_limit = 4
 get_sample_if_available = false
@@ -1875,12 +2154,249 @@ layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.0588235
 
+[node name="TagCategorySearcher" type="Control" parent="."]
+anchors_preset = 0
+offset_top = 16.0
+offset_bottom = 16.0
+script = SubResource("GDScript_yvw35")
+
+[node name="PrioritySpinBox" type="SpinBox" parent="TagCategorySearcher"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 176.0
+offset_bottom = 95.0
+allow_greater = true
+allow_lesser = true
+alignment = 1
+
+[node name="SearchWithPrioButton" type="Button" parent="TagCategorySearcher/PrioritySpinBox"]
+layout_mode = 0
+offset_top = 40.0
+offset_right = 160.0
+offset_bottom = 72.0
+text = "Search with priority"
+
+[node name="CategoryOptButton" type="OptionButton" parent="TagCategorySearcher"]
+layout_mode = 0
+offset_left = 224.0
+offset_top = 64.0
+offset_right = 400.0
+offset_bottom = 96.0
+alignment = 1
+item_count = 11
+selected = 0
+popup/item_0/text = "General"
+popup/item_0/id = 0
+popup/item_1/text = "Artist"
+popup/item_1/id = 1
+popup/item_2/text = "Series"
+popup/item_2/id = 2
+popup/item_3/text = "Character"
+popup/item_3/id = 3
+popup/item_4/text = "Species"
+popup/item_4/id = 4
+popup/item_5/text = "Gender"
+popup/item_5/id = 5
+popup/item_6/text = "Lore"
+popup/item_6/id = 6
+popup/item_7/text = "Genitals"
+popup/item_7/id = 7
+popup/item_8/text = "Objects"
+popup/item_8/id = 8
+popup/item_9/text = "Clothing"
+popup/item_9/id = 9
+popup/item_10/text = "Accessories"
+popup/item_10/id = 10
+
+[node name="SearchWithCatButton" type="Button" parent="TagCategorySearcher/CategoryOptButton"]
+layout_mode = 0
+offset_top = 40.0
+offset_right = 176.0
+offset_bottom = 71.0
+text = "Search with category"
+
+[node name="Control" type="Control" parent="TagCategorySearcher"]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 192.0
+offset_right = 400.0
+offset_bottom = 416.0
+
+[node name="ColorRect" type="ColorRect" parent="TagCategorySearcher/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.203922, 0.231373, 0.27451, 1)
+
+[node name="Label" type="Label" parent="TagCategorySearcher/Control"]
+layout_mode = 0
+offset_top = -32.0
+offset_right = 74.0
+offset_bottom = -6.0
+text = "Mass Edit:"
+
+[node name="Label2" type="Label" parent="TagCategorySearcher/Control"]
+layout_mode = 0
+offset_left = 320.0
+offset_top = -32.0
+offset_right = 381.0
+offset_bottom = -6.0
+text = "Replace"
+
+[node name="NewCatOptButton" type="OptionButton" parent="TagCategorySearcher/Control"]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 32.0
+offset_right = 288.0
+offset_bottom = 64.0
+disabled = true
+alignment = 1
+item_count = 11
+selected = 0
+popup/item_0/text = "General"
+popup/item_0/id = 0
+popup/item_1/text = "Artist"
+popup/item_1/id = 1
+popup/item_2/text = "Series"
+popup/item_2/id = 2
+popup/item_3/text = "Character"
+popup/item_3/id = 3
+popup/item_4/text = "Species"
+popup/item_4/id = 4
+popup/item_5/text = "Gender"
+popup/item_5/id = 5
+popup/item_6/text = "Lore"
+popup/item_6/id = 6
+popup/item_7/text = "Genitals"
+popup/item_7/id = 7
+popup/item_8/text = "Objects"
+popup/item_8/id = 8
+popup/item_9/text = "Clothing"
+popup/item_9/id = 9
+popup/item_10/text = "Accessories"
+popup/item_10/id = 10
+
+[node name="Label" type="Label" parent="TagCategorySearcher/Control/NewCatOptButton"]
+layout_mode = 0
+offset_left = -128.0
+offset_right = -7.0
+offset_bottom = 32.0
+text = "New Category:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ReplaceCatCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/NewCatOptButton"]
+layout_mode = 0
+offset_left = 192.0
+offset_right = 240.0
+offset_bottom = 32.0
+
+[node name="NewPrioButton" type="SpinBox" parent="TagCategorySearcher/Control"]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 80.0
+offset_right = 304.0
+offset_bottom = 111.0
+allow_greater = true
+allow_lesser = true
+alignment = 1
+editable = false
+
+[node name="Label" type="Label" parent="TagCategorySearcher/Control/NewPrioButton"]
+layout_mode = 0
+offset_left = -120.0
+offset_right = -8.0
+offset_bottom = 32.0
+text = "New Priority:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ReplacePrioCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/NewPrioButton"]
+layout_mode = 0
+offset_left = 192.0
+offset_right = 240.0
+offset_bottom = 32.0
+
+[node name="HasImageCheckbox" type="CheckBox" parent="TagCategorySearcher/Control"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 128.0
+offset_right = 160.0
+offset_bottom = 160.0
+disabled = true
+
+[node name="ReplaceHasImgCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/HasImageCheckbox"]
+layout_mode = 0
+offset_left = 200.0
+offset_right = 248.0
+offset_bottom = 32.0
+
+[node name="Label" type="Label" parent="TagCategorySearcher/Control/HasImageCheckbox"]
+layout_mode = 0
+offset_left = -88.0
+offset_right = -3.0
+offset_bottom = 32.0
+text = "Has image:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="MassUpdateButton" type="Button" parent="TagCategorySearcher/Control"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 176.0
+offset_right = 320.0
+offset_bottom = 207.0
+text = "Update Selected"
+
+[node name="ResultsItemList" type="ItemList" parent="TagCategorySearcher"]
+layout_mode = 0
+offset_left = 448.0
+offset_top = 64.0
+offset_right = 1264.0
+offset_bottom = 416.0
+select_mode = 1
+max_columns = 5
+same_column_width = true
+
+[node name="DeselectAllButton" type="Button" parent="TagCategorySearcher"]
+layout_mode = 0
+offset_left = 992.0
+offset_top = 432.0
+offset_right = 1120.0
+offset_bottom = 464.0
+text = "Deselect all"
+
+[node name="SelectAllButton" type="Button" parent="TagCategorySearcher"]
+layout_mode = 0
+offset_left = 1136.0
+offset_top = 432.0
+offset_right = 1264.0
+offset_bottom = 464.0
+text = "Select all"
+
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
 offset_bottom = 720.0
 script = SubResource("GDScript_chh5e")
+
+[node name="SettingsBar" type="MenuBar" parent="Settings"]
+layout_mode = 0
+offset_left = 72.0
+offset_top = -48.0
+offset_right = 142.0
+offset_bottom = -8.0
+
+[node name="Settings" type="PopupMenu" parent="Settings/SettingsBar"]
+item_count = 1
+item_0/text = "API key"
+item_0/id = 0
 
 [node name="Strength" type="Control" parent="Settings"]
 anchors_preset = 0
@@ -2066,69 +2582,6 @@ text = "Suggestion Blacklist"
 horizontal_alignment = 2
 vertical_alignment = 2
 
-[node name="BlackListControl" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 984.0
-offset_top = 32.0
-offset_right = 1256.0
-offset_bottom = 648.0
-script = SubResource("GDScript_mqjmn")
-
-[node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 1.0
-offset_top = -40.0
-offset_right = 272.0
-offset_bottom = -9.0
-placeholder_text = "Add to blacklist"
-
-[node name="BlackList" type="ItemList" parent="Settings/BlackListControl"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-max_columns = 2
-same_column_width = true
-
-[node name="Constants" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-script = SubResource("GDScript_dvmq4")
-
-[node name="ConstantsLineEdit" type="LineEdit" parent="Settings/Constants"]
-layout_mode = 0
-offset_left = 576.0
-offset_top = 424.0
-offset_right = 755.0
-offset_bottom = 455.0
-tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
-placeholder_text = "Add to constants"
-
-[node name="TagList" type="Control" parent="Settings/Constants"]
-anchors_preset = 0
-offset_left = 768.0
-offset_top = 520.0
-offset_right = 1216.0
-offset_bottom = 648.0
-
-[node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.429
-anchor_top = -0.437
-anchor_right = 0.411
-anchor_bottom = 0.937
-offset_left = 0.192017
-offset_top = -0.0639992
-offset_right = 7.87199
-offset_bottom = 8.064
-max_columns = 3
-
 [node name="InvalidTags" type="Control" parent="Settings"]
 anchors_preset = 0
 offset_left = 576.0
@@ -2160,17 +2613,85 @@ grow_horizontal = 2
 grow_vertical = 2
 max_columns = 2
 
-[node name="SettingsBar" type="MenuBar" parent="Settings"]
-layout_mode = 0
-offset_left = 72.0
-offset_top = -48.0
-offset_right = 142.0
-offset_bottom = -8.0
+[node name="Constants" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = SubResource("GDScript_dvmq4")
 
-[node name="Settings" type="PopupMenu" parent="Settings/SettingsBar"]
-item_count = 1
-item_0/text = "API key"
-item_0/id = 0
+[node name="ConstantsLineEdit" type="LineEdit" parent="Settings/Constants"]
+layout_mode = 0
+offset_left = 576.0
+offset_top = 424.0
+offset_right = 768.0
+offset_bottom = 455.0
+tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
+placeholder_text = "Add to constants"
+
+[node name="TagList" type="Control" parent="Settings/Constants"]
+anchors_preset = 0
+offset_left = 768.0
+offset_top = 520.0
+offset_right = 1216.0
+offset_bottom = 648.0
+
+[node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.429
+anchor_top = -0.437
+anchor_bottom = 1.0
+offset_left = 0.192001
+offset_top = -0.0639992
+
+[node name="SuggestionBlackList" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = SubResource("GDScript_4yj0t")
+
+[node name="SuggBlacklistLineEdit" type="LineEdit" parent="Settings/SuggestionBlackList"]
+layout_mode = 0
+offset_left = 784.0
+offset_top = 424.0
+offset_right = 960.0
+offset_bottom = 455.0
+placeholder_text = "Suggestion blacklist"
+
+[node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SuggestionBlackList"]
+layout_mode = 0
+offset_left = 784.0
+offset_top = 464.0
+offset_right = 960.0
+offset_bottom = 648.0
+
+[node name="BlackListControl" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 984.0
+offset_top = 32.0
+offset_right = 1256.0
+offset_bottom = 648.0
+script = SubResource("GDScript_mqjmn")
+
+[node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1.0
+offset_top = -40.0
+offset_right = 272.0
+offset_bottom = -9.0
+placeholder_text = "Add to blacklist"
+
+[node name="BlackList" type="ItemList" parent="Settings/BlackListControl"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+max_columns = 2
+same_column_width = true
 
 [node name="APILoader" type="Control" parent="Settings"]
 visible = false
