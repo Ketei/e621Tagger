@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://bu4m32fjqf0eo"]
+
+[ext_resource type="Script" path="res://Classes/lewd_display_thumbnail.gd" id="1_7fdvc"]
+
+[node name="LewdPicDisplay" type="TextureRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -992.0
+offset_bottom = -432.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 5
+stretch_mode = 4
+script = ExtResource("1_7fdvc")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
