@@ -71,7 +71,7 @@ func load_tags(tags_array: Array, replace: bool) -> void:
 func quit_app() -> void:
 	Tagger.settings.save()
 	Tagger.site_settings.save()
-	#Tagger.alias_database.save()
+	Tagger.settings_lists.save()
 	get_tree().quit()
 
 
