@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://dq3egjcbm6oqd"]
+[gd_scene load_steps=4 format=3 uid="uid://dq3egjcbm6oqd"]
 
 [ext_resource type="Script" path="res://Classes/full_screen_lewd_display.gd" id="1_ust0f"]
+[ext_resource type="Texture2D" uid="uid://7g6da58acgx2" path="res://Textures/TestWulf.png" id="2_njjog"]
 
 [sub_resource type="GDScript" id="GDScript_6nk4r"]
 resource_name = "lewd_text_script"
@@ -12,7 +13,7 @@ func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			if expand_mode == TextureRect.EXPAND_KEEP_SIZE:
-				expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+				expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			else:
 				expand_mode = TextureRect.EXPAND_KEEP_SIZE
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
@@ -51,6 +52,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 0
-expand_mode = 3
+texture = ExtResource("2_njjog")
+expand_mode = 1
 stretch_mode = 5
 script = SubResource("GDScript_6nk4r")
