@@ -85,6 +85,18 @@ func trigger_options(id: int) -> void:
 		quit_app()
 
 
+func go_to_create_tag(tag_to_create: String) -> void:
+	tag_creator.clear_menu_items("", false)
+	tag_creator.tag_to_add_line_edit.text = tag_to_create
+	tag_creator.tag_to_add_line_edit.text_changed.emit(tag_to_create)
+	trigger_options(4)
+	
+
+func go_to_edit_tag(tag_to_edit: String) -> void:
+	tag_reviewer.search_for_tag(tag_to_edit)
+	trigger_options(5)
+
+
 func load_tags(tags_array: Array, replace: bool) -> void:
 	tagger.load_tags(tags_array, replace)
 
@@ -95,28 +107,28 @@ func load_tag_if_added(tag_to_add: String) -> void:
 
 
 func quit_app() -> void:
-	e_621_requester_quick_search.cancel_main_request()
-	e_621_requester_quick_search.cancel_side_requests()
+	get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST)
 	
-	tag_reviewer_requester.cancel_main_request()
-	tag_reviewer_requester.cancel_side_requests()
-	
-	e_621_requester.cancel_main_request()
-	e_621_requester.cancel_side_requests()
-	
-	Tagger.settings.save()
-	Tagger.site_settings.save()
-	Tagger.settings_lists.save()
-	Tagger.alias_database.save()
-	
-	if is_instance_valid(tag_reviewer.thread) and tag_reviewer.thread.is_started():
-		tag_reviewer.thread_interrupt = true
-		tag_reviewer.thread.wait_to_finish()
-		
-	get_tree().quit()
 
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		quit_app()
-
+		e_621_requester_quick_search.cancel_main_request()
+		e_621_requester_quick_search.cancel_side_requests()
+		
+		tag_reviewer_requester.cancel_main_request()
+		tag_reviewer_requester.cancel_side_requests()
+		
+		e_621_requester.cancel_main_request()
+		e_621_requester.cancel_side_requests()
+		
+		Tagger.settings.save()
+		Tagger.site_settings.save()
+		Tagger.settings_lists.save()
+		Tagger.alias_database.save()
+		
+		if is_instance_valid(tag_reviewer.thread) and tag_reviewer.thread.is_started():
+			tag_reviewer.thread_interrupt = true
+			tag_reviewer.thread.wait_to_finish()
+		
+		get_tree().quit()
