@@ -9,6 +9,7 @@ extends Resource
 @export var tag_priority: int = 0
 @export var category: Tagger.Categories = Tagger.Categories.GENERAL
 @export var parents: Array = []
+@export var conflicts: Array[String] = []
 @export var suggestions: Array[String] = []
 @export var has_pictures: bool = true
 @export var variants: Dictionary = {}
