@@ -1,5 +1,5 @@
 class_name  e621Tag
-extends Node
+extends Resource
 
 enum Category {
 	GENERAL,
