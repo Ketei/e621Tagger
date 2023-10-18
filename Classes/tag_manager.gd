@@ -1,5 +1,5 @@
 class_name TagManager
-extends Node
+extends Resource
 
 
 var relation_database: Dictionary = {}
@@ -10,13 +10,6 @@ var relation_paths: Dictionary = {}
 static func load_database() -> TagManager:
 	var _relation_return: TagManager = TagManager.new()
 	
-	for local_resource in DirAccess.get_files_at("res://database/implications/"):
-		var _res_load: ImplicationDictionary = ResourceLoader.load("res://database/implications/" + local_resource)
-		if _res_load:
-			_relation_return.relation_database[_res_load.implication_index] = _res_load.tag_implications
-			_relation_return.relation_paths[_res_load.implication_index] = "res://Database/implications/" + local_resource
-
-
 	for external_resource in DirAccess.get_files_at(Tagger.implications_path):
 		if external_resource.get_extension() != "tres":
 			continue
