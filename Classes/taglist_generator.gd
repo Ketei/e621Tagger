@@ -15,6 +15,18 @@ var _offline_suggestions: Array[String] = []
 var priority_dict: Dictionary = {}
 
 
+func clear_data() -> void:
+	_gen_tags.clear()
+	_implied_tags.clear()
+	_unexplored_parents.clear()
+	_explored_parents.clear()
+	
+	_dad_queue.clear()
+	_groped_dads.clear()
+	_kid_return.clear()
+	_offline_suggestions.clear()
+
+
 func generate_tag_list(resource_tags: Array, generic_tags: Array) -> void:
 	_gen_tags.clear()
 	_implied_tags.clear()
@@ -23,7 +35,7 @@ func generate_tag_list(resource_tags: Array, generic_tags: Array) -> void:
 	priority_dict.clear()
 	
 	for generic_tag in generic_tags:
-		_gen_tags.append(generic_tag.replace(" ", Tagger.site_settings.whitespace_char))
+		_gen_tags.append_array(generic_tags as Array[String])
 	
 
 	for tag in resource_tags:
@@ -106,7 +118,26 @@ func __explore_parents():
 			__explore_parents()
 
 
-func get_tag_list() -> String:
+func create_list_from_array(array_data: Array[String]) -> String:
+
+	var _return_string: String = ""
+	
+	for tag in array_data:
+		_return_string += tag.replace(" ", Tagger.site_settings.whitespace_char)
+		_return_string += Tagger.site_settings.tag_separator
+	
+	_return_string = _return_string.left(-Tagger.site_settings.tag_separator.length())
+	
+	for tag in Tagger.settings_lists.constant_tags:
+		var _formatted_tag: String = tag.replace(" ", Tagger.site_settings.whitespace_char)
+		if not array_data.has(_formatted_tag):
+			_return_string += Tagger.site_settings.tag_separator
+			_return_string += _formatted_tag
+	
+	return _return_string.strip_edges()
+	
+	
+func get_tag_list(clear_on_end: bool = true) -> Array[String]:
 	var priority_array: Array[int] = []
 	
 	for prio in priority_dict.keys():
@@ -115,29 +146,19 @@ func get_tag_list() -> String:
 	priority_array.sort()
 	priority_array.reverse()
 	
-	var full_tags = []
+	var full_tags: Array[String] = []
 	
 	for prio_key in priority_array:
 		for tag_string in priority_dict[str(prio_key)]:
 			if not full_tags.has(tag_string):
-				full_tags.append(tag_string.replace(" ", Tagger.site_settings.whitespace_char))
+				full_tags.append(tag_string)
 	
 	full_tags.append_array(_gen_tags)
 	
-	var _tag_string: String = ""
 	full_tags.append_array(_implied_tags)
 	
-	for tag in full_tags:
-		_tag_string += tag
-		_tag_string += Tagger.site_settings.tag_separator
+	if clear_on_end:
+		clear_data()
 	
-	_tag_string = _tag_string.left(-Tagger.site_settings.tag_separator.length())
-	
-	for tag in Tagger.settings_lists.constant_tags:
-		var _formatted_tag: String = tag.replace(" ", Tagger.site_settings.whitespace_char)
-		if not full_tags.has(_formatted_tag):
-			_tag_string += Tagger.site_settings.tag_separator
-			_tag_string += _formatted_tag
-
-	return _tag_string
+	return full_tags
 
