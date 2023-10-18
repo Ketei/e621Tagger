@@ -1467,7 +1467,6 @@ grow_vertical = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
 [node name="MenuBar" type="MenuBar" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.056
@@ -1568,7 +1567,6 @@ same_column_width = true
 fixed_icon_size = Vector2i(10, 10)
 
 [node name="TaggerContextMenu" type="PopupMenu" parent="Tagger"]
-position = Vector2i(0, 256)
 size = Vector2i(122, 100)
 item_count = 3
 item_0/text = "Create Tag"
