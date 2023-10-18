@@ -41,7 +41,16 @@ func get_all_tags_with_paths() -> Dictionary:
 	
 
 func has_tag(tag_implication: String) -> bool:
-	return relation_database.has(tag_implication.left(1)) and relation_database[tag_implication.left(1)].has(tag_implication)
+	if relation_database.has(tag_implication.left(1)) and relation_database[tag_implication.left(1)].has(tag_implication):
+		if ResourceLoader.exists(relation_database[tag_implication.left(1)][tag_implication], "Tag"):
+			return true
+		else:
+			var _relation_to_tweak: ImplicationDictionary = ResourceLoader.load(relation_paths[tag_implication.left(1)])
+			_relation_to_tweak.tag_implications.erase(tag_implication)
+			_relation_to_tweak.save()
+	
+	return false
+	
 
 
 func get_tag(tag_name: String) -> Tag:
