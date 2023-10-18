@@ -1,7 +1,7 @@
 class_name e621Requester
 extends Node
 
-signal get_finished()
+signal get_finished(response_data)
 signal downloads_finished()
 signal image_created(image_file)
 signal image_skipped
@@ -40,8 +40,8 @@ enum Category {
 
 @onready var main_e621: e621Request = $main_E621
 
-var response_array: Array = []
-var response_array_unflipped: Array = []
+#var response_array: Array = []
+#var response_array_unflipped: Array = []
 
 var current_queue_index: int = 0
 var queue_pictures: Array[e621Post] = []
@@ -55,7 +55,7 @@ var download_on_finish: bool = false
 var main_active: bool = false
 
 func _ready():
-	main_e621.job_finished.connect(_get_finished)
+	main_e621.parsed_result.connect(_get_finished)
 	main_e621.timeout = timeout_time
 	
 	for gen in range(max_parallel_requests):
@@ -123,18 +123,19 @@ func get_tags() -> void:
 	main_e621.request(_url, Tagger.get_headers())
 
 
-func _get_finished(requester: e621Request) -> void:
-	response_array = requester.request_result.duplicate()
-	response_array_unflipped = response_array.duplicate()
-	response_array.reverse()
-	get_finished.emit()
+func response_received(e621_data_array: Array) -> void:
+	get_finished.emit(e621_data_array)
+
+
+func _get_finished(e621_data_array: Array) -> void:
+	main_active = false
 	
 	if download_on_finish:
-		download_pictures()
+		download_pictures(e621_data_array)
 		download_on_finish = false
-	
-	main_active = false
-
+	else:
+		get_finished.emit(e621_data_array)
+		
 
 func cancel_main_request() -> void:
 	main_e621.cancel_request()
@@ -160,9 +161,8 @@ func get_posts_and_download() -> void:
 
 # ------------------- Pic download functions -----------------
 ## Gets the pictures if there are any in the response array
-func download_pictures():
-	downloaded_pictures.clear()
-	
+func download_pictures(data_array: Array = []):
+
 	for machine in http_requester_references:
 		if not machine.request_completed.is_connected(_create_image):
 			machine.request_completed.connect(_create_image.bind(machine))
@@ -171,33 +171,16 @@ func download_pictures():
 	current_queue_index = 0
 	queue_pictures.clear()
 	
-	for post_object in response_array:
+	for post_object in data_array:
 		if post_object is e621Post:
 			queue_pictures.append(post_object)
 	
-#	if progress_bar:
-#		progress_bar.max_value = queue_pictures.size()
-#		progress_bar.visible = true
 	
 	for requester in http_requester_references:
 		if not queue_pictures.is_empty():
 			_next_in_queue(requester)
 			active_requesters += 1
-			current_queue_index += 1
-#			var _request_data: e621Post = queue_pictures.pop_back()
-#
-#			requester.job_index = current_queue_index
-#
-#			if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
-#				if _request_data.sample.url.is_empty():
-#					continue
-#				requester.image_format = "jpg"
-#				requester.request(_request_data.sample.url, Tagger.get_headers())
-#			elif not _request_data.file.url.is_empty():
-#				requester.image_format = _request_data.file.extension
-#				requester.request(_request_data.file.url, Tagger.get_headers())
-#			else:
-#				pass
+
 
 
 func disable_bar():
@@ -238,10 +221,9 @@ func _next_in_queue(requester: e621Request) -> void:
 			downloads_finished.emit()
 		return
 	
-	var _request_data: e621Post = queue_pictures.pop_back()
-	current_queue_index += 1
+	var _request_data: e621Post = queue_pictures.pop_front()
 	requester.job_index = current_queue_index
-	
+	current_queue_index += 1
 	
 	if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
 		requester.image_format = "jpg"
@@ -250,14 +232,11 @@ func _next_in_queue(requester: e621Request) -> void:
 		requester.image_format = _request_data.file.extension
 		requester.request(_request_data.file.url, Tagger.get_headers())
 	else:
-#		progress_bar.value += 1
 		image_skipped.emit()
 		_next_in_queue(requester)
 	
 	
 func _create_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
-	if progress_bar:
-		progress_bar.value += 1
 	
 	if result != 0:
 		return
