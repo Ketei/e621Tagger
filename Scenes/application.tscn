@@ -488,7 +488,7 @@ func image_checkbox_toggle(new_toggle: bool) -> void:
 
 
 func activate_menu_bar(id_button: int) -> void:
-	if id_button == 1:
+	if id_button == 1: # Deleting a tag
 		var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
 		var _tag_path = Tagger.tags_path + _tag.file_name
 		
@@ -511,7 +511,8 @@ func activate_menu_bar(id_button: int) -> void:
 			thread.wait_to_finish()
 			
 		clear_and_disable()
-	elif id_button == 2:
+	
+	elif id_button == 2: # Show conflicts
 		conflict_window.show()
 
 
@@ -1495,6 +1496,7 @@ item_6/text = "Exit"
 item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -2350,7 +2352,6 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
