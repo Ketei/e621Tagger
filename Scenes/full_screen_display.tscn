@@ -7,16 +7,84 @@ resource_name = "lewd_text_script"
 script/source = "extends TextureRect
 
 signal hide_lewd_image()
+@onready var scroll_container: ScrollContainer = $\"..\"
+
+
+var max_h_range: int = 0:
+	set(value):
+		max_h_range = maxi(value, 0)
+
+var max_v_range: int = 0:
+	set(value):
+		max_v_range = maxi(value, 0)
+
+var is_zooming: bool = false
+var target_center_pixel: Vector2 = Vector2.ZERO
+
+
+
+func _ready():
+	scroll_container.get_h_scroll_bar().changed.connect(set_horizontal)
+	scroll_container.get_v_scroll_bar().changed.connect(set_vertical)
+
 
 func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			if expand_mode == TextureRect.EXPAND_KEEP_SIZE:
+				is_zooming = false
 				expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			else:
-				expand_mode = TextureRect.EXPAND_KEEP_SIZE
+				var texture_dimensions: Vector2 = texture.get_size()
+				var mouse_pos: Vector2 = get_global_mouse_position()
+				
+				# Setting range
+				var vertical_coverage: int = mini(floori((texture_dimensions.y / texture_dimensions.x) * 1280), 720)
+				var horizontal_coverage: int = mini(floori((texture_dimensions.x / texture_dimensions.y) * 720), 1280)
+
+				@warning_ignore(\"integer_division\")
+				var initial_h_point: int = (1280 - horizontal_coverage) / 2
+				@warning_ignore(\"integer_division\")
+				var initial_v_point: int = (720 - vertical_coverage) / 2
+				
+				var initial_positions := Vector2(initial_h_point, initial_v_point)
+				var final_positions := Vector2(initial_h_point + horizontal_coverage, initial_v_point + vertical_coverage)
+		
+				if initial_positions.x <= mouse_pos.x and mouse_pos.x <= final_positions.x and initial_positions.y <= mouse_pos.y and mouse_pos.y <= final_positions.y:
+					@warning_ignore(\"narrowing_conversion\")
+					var relative_x_position: int = maxi(mouse_pos.x - initial_positions.x, 0)
+					@warning_ignore(\"narrowing_conversion\")
+					var relative_y_position: int = maxi(mouse_pos.y - initial_positions.y, 0)
+					
+					is_zooming = true
+					# 968 x 720
+					target_center_pixel.x = roundf((relative_x_position * texture_dimensions.x) / horizontal_coverage)
+					target_center_pixel.y = roundf((relative_y_position * texture_dimensions.y) / vertical_coverage)
+					expand_mode = TextureRect.EXPAND_KEEP_SIZE
+				
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			hide_lewd_image.emit()
+
+
+func set_horizontal() -> void:
+	if not is_zooming:
+		return
+	var max_range: int = maxi(max_h_range, 0)
+	@warning_ignore(\"narrowing_conversion\")
+	scroll_container.get_h_scroll_bar().value = clampi(target_center_pixel.x - 640, 0, max_range)
+
+
+func set_vertical() -> void:
+	if not is_zooming:
+		return
+	
+	var max_range: int = maxi(max_v_range, 0)
+	@warning_ignore(\"narrowing_conversion\")
+	scroll_container.get_v_scroll_bar().value = clampi(target_center_pixel.y - 360, 0, max_range)
+	
+	
+	
+	
 "
 
 [node name="FullScreenDisplay" type="Control"]
