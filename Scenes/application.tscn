@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=30 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -8,12 +8,12 @@
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="5_hkklg"]
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
+[ext_resource type="Script" path="res://Scenes/api_interaction_script.gd" id="8_ves6w"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
 script/source = "extends Control
 
 signal add_tag_signal(tag_string)
-
 
 @export var tags_to_add: int = 10
 
@@ -32,6 +32,9 @@ var is_tagger_requesting: float = false
 
 
 func _ready():
+	
+	e6_requester_quick_search.post_limit = tags_to_add + 1
+	
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
 	request_cooldown_timer.timeout.connect(timer_timeout)
@@ -124,9 +127,6 @@ func add_online_to_list(parsed_array: Array) -> void:
 			continue
 
 		item_list.append(tag_name)
-		
-		if item_list.size() == tags_to_add:
-			break
 	
 	for item in item_list:
 		tag_search_array.append(item)
@@ -149,6 +149,7 @@ func close_add() -> void:
 
 func timer_timeout() -> void:
 	auto_com_line_edit.editable = true
+
 "
 
 [sub_resource type="GDScript" id="GDScript_trwfl"]
@@ -762,13 +763,7 @@ func create_download_textures() -> void:
 
 func display_big_pic(texture_to_load: ImageTexture) -> void:
 	full_screen_display.show_picture(texture_to_load)
-#	full_screen_display.visible = true
 
-
-#func _exit_tree():
-#	if is_instance_valid(thread) and thread.is_started():
-#		thread.wait_to_finish()
-#		thread = null
 "
 
 [sub_resource type="GDScript" id="GDScript_5wvn0"]
@@ -1371,37 +1366,73 @@ func hide_api_loader() -> void:
 resource_name = "load_api_key"
 script/source = "extends Control
 
+signal successful_load
+
 @onready var api_key: LineEdit = $APIKey
 @onready var reveal_pass_button: CheckButton = $APIKey/RevealPassButton
 @onready var load_button: Button = $LoadButton
 @onready var button_text_timer: Timer = $ButtonTextTimer
+@onready var requesst_verify: HTTPRequest = $HTTPRequest
+
+var valid_file: bool = false
+var auth_header_memory: String = \"\"
 
 
 func _ready():
+	
+	requesst_verify.request_completed.connect(load_response)
+	
+	if FileAccess.file_exists(Tagger.api_file_path):
+		load_button.disabled = false
+		api_key.editable = true
+		reveal_pass_button.disabled = false
+	
 	reveal_pass_button.toggled.connect(reveal_pass)
 	button_text_timer.timeout.connect(restore_button_text)
 	load_button.pressed.connect(load_api_key)
 
 
+func clear_and_disable() -> void:
+	api_key.clear()
+	api_key.editable = false
+	load_button.disabled = true
+	reveal_pass_button.disabled = true
+	reveal_pass_button.button_pressed = false
+	auth_header_memory = \"\"
+
+
 func load_api_key() -> void:
-	if not FileAccess.file_exists(Tagger.api_file_path):
-		api_key.clear()
-		load_button.text = \"Missing File\"
-		button_text_timer.start()
-		return
 	
-	var config_file := ConfigFile.new()
+	var config_file := FileAccess.open_encrypted_with_pass(Tagger.api_file_path, FileAccess.READ, api_key.text)
 	
-	if config_file.load_encrypted_pass(Tagger.api_file_path, api_key.text) != OK:
+	if config_file:
+		valid_file = true
+		auth_header_memory = config_file.get_as_text()
+		
+		var headers: Array = Tagger.get_headers()
+		headers.append(\"Authorization: \" + auth_header_memory)
+		requesst_verify.request(\"https://e621.net/posts.json?limit=1\", headers)
+		load_button.text = \"Please Wait\"
+	else:
 		api_key.clear()
 		load_button.text = \"Wrong Password\"
 		button_text_timer.start()
-		return
-	
-	Tagger.e6_headers_data[\"Authorization\"] = config_file.get_value(\"API_Key\", \"Authorization\")
-	load_button.text = \"Success!\"
-	api_key.clear()
-	button_text_timer.start()
+
+
+func load_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	if result == 0 and response_code == 200:
+		Tagger.e6_headers_data[\"Authorization\"] = auth_header_memory
+		load_button.text = \"Success!\"
+		button_text_timer.start()
+		clear_and_disable()
+		successful_load.emit()
+	else:
+		if valid_file:
+			load_button.text = \"Invalid API Key\"
+			button_text_timer.start()
+		else:
+			load_button.text = \"Network error\"
+			button_text_timer.start()
 
 
 func restore_button_text() -> void:
@@ -1410,11 +1441,14 @@ func restore_button_text() -> void:
 
 func reveal_pass(is_enabled: bool) -> void:
 	api_key.secret = not is_enabled
+
 "
 
 [sub_resource type="GDScript" id="GDScript_gagfo"]
 resource_name = "login_api"
 script/source = "extends Control
+
+signal successful_log_in
 
 @onready var user_line_edit: LineEdit = $UserLineEdit
 @onready var key_line_edit: LineEdit = $KeyLineEdit
@@ -1422,11 +1456,22 @@ script/source = "extends Control
 @onready var encrypt_key_line_edit: LineEdit = $RememberCheck/EncryptKeyLineEdit
 @onready var reveal_encrypt: CheckButton = $RememberCheck/EncryptKeyLineEdit/RevealEncrypt
 @onready var save_btn: Button = $SaveBTN
+@onready var verify_request: HTTPRequest = $HTTPRequest
+@onready var info_label = $InfoLabel
+@onready var log_in_label = $LogInLabel
+
+var _auth_header: String = \"\"
 
 
 func _ready():
 	reveal_encrypt.toggled.connect(toggle_secret)
 	save_btn.pressed.connect(save_key)
+	remember_check.toggled.connect(remember_key_check_toggle)
+	verify_request.request_completed.connect(verify_login)
+
+
+func remember_key_check_toggle(toggle_state: bool) -> void:
+	encrypt_key_line_edit.editable = toggle_state
 
 
 func toggle_secret(is_hidden: bool) -> void:
@@ -1434,16 +1479,57 @@ func toggle_secret(is_hidden: bool) -> void:
 
 
 func save_key() -> void:
-	Tagger.e6_headers_data[\"Authorization\"] = str(Marshalls.utf8_to_base64(user_line_edit.text + \":\" + key_line_edit.text))
+	if remember_check.button_pressed and encrypt_key_line_edit.text.is_empty():
+		log_in_label.text = \"Password field can't be empty!\"
+		return
 	
-	if remember_check.button_pressed:
-		var save_config_file := ConfigFile.new()
-		save_config_file.set_value(\"API_Key\", \"Authorization\", Tagger.e6_headers_data[\"Authorization\"])
-		save_config_file.save_encrypted_pass(Tagger.api_file_path, encrypt_key_line_edit.text)
-		encrypt_key_line_edit.clear()
+	_auth_header = str(Marshalls.utf8_to_base64(user_line_edit.text.to_lower() + \":\" + key_line_edit.text))
+	var headers: Array = Tagger.get_headers()
+	headers.append(\"Authorization: \" + _auth_header)
+	verify_request.request(\"https://e621.net/posts.json?limit=1\", headers)
 	
+	save_btn.text = \"Please Wait\"
+	
+	await verify_request.request_completed
+	
+	save_btn.text = \"Log-In\"
+	
+	
+func verify_login(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray): #401 = BAD
+	if result == 0 and response_code == 200:
+		successfull_login()
+	else:
+		failed_log_in()
+
+
+func failed_log_in() -> void:
+	log_in_label.text = \"Failed to log in.\"
+
+
+func clear_and_disable() -> void:
+	_auth_header = \"\"
+	save_btn.disabled = true
+	encrypt_key_line_edit.clear()
+	remember_check.disabled = true
 	user_line_edit.clear()
+	user_line_edit.editable = false
 	key_line_edit.clear()
+	key_line_edit.editable = false
+	encrypt_key_line_edit.editable = false
+
+
+func successfull_login() -> void:
+	
+	Tagger.e6_headers_data[\"Authorization\"] = _auth_header
+	
+	log_in_label.text = \"Successfully logged in\"
+	if remember_check.button_pressed:
+		var encrypted_file := FileAccess.open_encrypted_with_pass(Tagger.api_file_path,FileAccess.WRITE, encrypt_key_line_edit.text)
+		encrypted_file.store_string(Tagger.e6_headers_data[\"Authorization\"])
+		encrypted_file.close()
+		
+	clear_and_disable()
+	successful_log_in.emit()
 	
 "
 
@@ -1895,6 +1981,7 @@ metadata/_edit_use_anchors_ = true
 [node name="e621RequesterQuickSearch" parent="Tagger/AddAutoComplete/QuickSearch" instance=ExtResource("2_4gepn")]
 max_parallel_requests = 0
 timeout_time = 5.0
+post_limit = 25
 order = "count"
 
 [node name="AddSelectedButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
@@ -2352,6 +2439,7 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagReviewer" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2979,7 +3067,6 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -3296,7 +3383,6 @@ max_columns = 2
 same_column_width = true
 
 [node name="APILoader" type="Control" parent="Settings"]
-visible = false
 layout_mode = 1
 anchor_top = -0.0843373
 anchor_right = 1.0
@@ -3322,6 +3408,7 @@ anchor_top = 0.267
 anchor_right = 0.85
 anchor_bottom = 0.8
 offset_top = -40.24
+script = ExtResource("8_ves6w")
 
 [node name="AppBG" type="ColorRect" parent="Settings/APILoader/AllItems"]
 layout_mode = 1
@@ -3332,7 +3419,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.435294, 0.47451, 0.556863, 1)
 
-[node name="Load" type="Control" parent="Settings/APILoader/AllItems"]
+[node name="LoadAPI" type="Control" parent="Settings/APILoader/AllItems"]
 anchors_preset = 0
 offset_left = 464.0
 offset_top = 48.0
@@ -3340,7 +3427,7 @@ offset_right = 888.0
 offset_bottom = 416.0
 script = SubResource("GDScript_ert6n")
 
-[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/Load"]
+[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -3349,7 +3436,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
 
-[node name="Label3" type="Label" parent="Settings/APILoader/AllItems/Load"]
+[node name="Label3" type="Label" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = -8.0
 offset_top = 8.0
@@ -3359,7 +3446,7 @@ text = "Load key"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="APIKey" type="LineEdit" parent="Settings/APILoader/AllItems/Load"]
+[node name="APIKey" type="LineEdit" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = 32.0
 offset_top = 152.0
@@ -3367,26 +3454,31 @@ offset_right = 352.0
 offset_bottom = 183.0
 placeholder_text = "Encryption Key"
 alignment = 1
+editable = false
 secret = true
 
-[node name="RevealPassButton" type="CheckButton" parent="Settings/APILoader/AllItems/Load/APIKey"]
+[node name="RevealPassButton" type="CheckButton" parent="Settings/APILoader/AllItems/LoadAPI/APIKey"]
 layout_mode = 0
 offset_left = 320.0
 offset_right = 368.0
 offset_bottom = 32.0
+disabled = true
 
-[node name="LoadButton" type="Button" parent="Settings/APILoader/AllItems/Load"]
+[node name="LoadButton" type="Button" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = 96.0
 offset_top = 192.0
 offset_right = 288.0
 offset_bottom = 223.0
+disabled = true
 text = "Load Key"
 
-[node name="ButtonTextTimer" type="Timer" parent="Settings/APILoader/AllItems/Load"]
+[node name="ButtonTextTimer" type="Timer" parent="Settings/APILoader/AllItems/LoadAPI"]
 one_shot = true
 
-[node name="LogIn" type="Control" parent="Settings/APILoader/AllItems"]
+[node name="HTTPRequest" type="HTTPRequest" parent="Settings/APILoader/AllItems/LoadAPI"]
+
+[node name="LogInAPI" type="Control" parent="Settings/APILoader/AllItems"]
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 48.0
@@ -3394,7 +3486,7 @@ offset_right = 432.0
 offset_bottom = 416.0
 script = SubResource("GDScript_gagfo")
 
-[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -3403,7 +3495,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
 
-[node name="Label2" type="Label" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="Label2" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -3413,26 +3505,26 @@ text = "Log-in to e621"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="UserLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="UserLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 88.0
-offset_top = 56.0
+offset_top = 40.0
 offset_right = 344.0
-offset_bottom = 87.0
+offset_bottom = 71.0
 placeholder_text = "Username"
 alignment = 1
 
-[node name="KeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="KeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 88.0
-offset_top = 96.0
+offset_top = 80.0
 offset_right = 344.0
-offset_bottom = 127.0
+offset_bottom = 111.0
 placeholder_text = "API Key"
 alignment = 1
 secret = true
 
-[node name="Label" type="Label" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="InfoLabel" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 256.0
@@ -3441,7 +3533,7 @@ offset_bottom = 360.0
 text = "\"Remember key\" will save your info to a plain text file and encrypt it with a key you set. It is not reccomended to save your API key using this software."
 autowrap_mode = 2
 
-[node name="RememberCheck" type="CheckBox" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="RememberCheck" type="CheckBox" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 144.0
 offset_top = 192.0
@@ -3449,7 +3541,7 @@ offset_right = 289.0
 offset_bottom = 223.0
 text = "Remember key"
 
-[node name="EncryptKeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn/RememberCheck"]
+[node name="EncryptKeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogInAPI/RememberCheck"]
 layout_mode = 0
 offset_left = -56.0
 offset_top = 32.0
@@ -3459,19 +3551,31 @@ placeholder_text = "Encryption Key"
 alignment = 1
 secret = true
 
-[node name="RevealEncrypt" type="CheckButton" parent="Settings/APILoader/AllItems/LogIn/RememberCheck/EncryptKeyLineEdit"]
+[node name="RevealEncrypt" type="CheckButton" parent="Settings/APILoader/AllItems/LogInAPI/RememberCheck/EncryptKeyLineEdit"]
 layout_mode = 0
 offset_left = 256.0
 offset_right = 304.0
 offset_bottom = 32.0
 
-[node name="SaveBTN" type="Button" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="SaveBTN" type="Button" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 112.0
 offset_top = 144.0
 offset_right = 320.0
 offset_bottom = 184.0
-text = "Save"
+text = "Log-in"
+
+[node name="HTTPRequest" type="HTTPRequest" parent="Settings/APILoader/AllItems/LogInAPI"]
+timeout = 10.0
+
+[node name="LogInLabel" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 112.0
+offset_right = 344.0
+offset_bottom = 144.0
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CloseButton" type="Button" parent="Settings/APILoader/AllItems"]
 layout_mode = 0

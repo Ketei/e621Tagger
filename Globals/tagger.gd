@@ -29,7 +29,7 @@ var e6_headers_data: Dictionary = {
 const implications_path: String = "user://database/implications/"
 const tags_path: String = "user://database/tags/"
 const tag_images_path: String = "user://database/tag_images/"
-const api_file_path: String = "user://e621_key.ini"
+const api_file_path: String = "user://e621_key.txt"
 
 var alias_database: AliasDatabase
 var settings: UserSettings
