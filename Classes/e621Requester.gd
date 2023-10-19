@@ -182,7 +182,6 @@ func download_pictures(data_array: Array = []):
 			active_requesters += 1
 
 
-
 func disable_bar():
 	progress_bar.visible = false
 
@@ -255,5 +254,7 @@ func _create_image(result: int, _response_code: int, _headers: PackedStringArray
 		image_skipped.emit()
 		print_debug("Unsupporded format. Skipping")
 	
-	_next_in_queue(requester)
+	if not queue_pictures.is_empty():
+		await get_tree().create_timer(1.0).timeout
+		_next_in_queue(requester)
 	
