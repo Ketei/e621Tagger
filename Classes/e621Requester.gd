@@ -91,7 +91,7 @@ func get_posts() -> void:
 	
 	main_active = true
 	
-	main_e621.request(_url, Tagger.get_headers())
+	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
 
 
 func get_tags() -> void:
@@ -120,7 +120,7 @@ func get_tags() -> void:
 	
 	main_active = true
 	
-	main_e621.request(_url, Tagger.get_headers())
+	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
 
 
 func response_received(e621_data_array: Array) -> void:
