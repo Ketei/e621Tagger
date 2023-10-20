@@ -2439,7 +2439,6 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -3067,6 +3066,7 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
