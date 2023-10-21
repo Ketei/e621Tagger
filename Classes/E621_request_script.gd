@@ -12,6 +12,7 @@ var request_mode: RequestType = RequestType.POST
 #var request_result: Array = []
 var job_index: int = 0
 var image_format: String = ""
+var image_id: int = 0
 var is_post_downloader: bool = true
 
 
