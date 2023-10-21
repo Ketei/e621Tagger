@@ -23,6 +23,9 @@ extends Resource
 
 @export var open_tag_folder_on_creation: bool = true
 
+@export var load_web_gifs: bool = false
+@export var load_local_gifs: bool = true
+
 static var settings_version: String = "1.0" 
 
 
