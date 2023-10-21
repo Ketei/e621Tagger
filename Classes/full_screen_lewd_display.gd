@@ -6,10 +6,10 @@ extends Control
 
 func _ready():
 	lewd_texture.hide_lewd_image.connect(hide_window)
-#	self.hide()
+	self.hide()
 
 
-func show_picture(texture_for_rect: ImageTexture) -> void:
+func show_picture(texture_for_rect: Texture2D) -> void:
 	lewd_texture.texture = texture_for_rect
 	
 	lewd_texture.max_h_range = texture_for_rect.get_width() - 1280
