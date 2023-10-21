@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=33 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://Scripts/review_rmb_context_menu.gd" id="7_rbsko"]
 [ext_resource type="Script" path="res://Scripts/review_rmb_suggestion_menu.gd" id="8_q7svj"]
 [ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
+[ext_resource type="Script" path="res://Scripts/sample_blacklist_loader.gd" id="10_mi6fl"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
 script/source = "extends Control
@@ -222,6 +223,9 @@ signal tag_created(tag_name)
 @onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
 @onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
 @onready var conflict_window = $ConflictWindow
+@onready var download_samples_check_box: CheckBox = $DownloadSamplesCheckBox
+@onready var e621_samples_downloader = $e621SamplesDownloader
+@onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
 
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
@@ -230,9 +234,14 @@ var text_timer: Timer
 
 var tag_suggestion_array: Array[String] = []
 
+var samples_downloader_queue: Dictionary = {}
+var is_downloading_samples: bool = false
 
 func _ready():
 	hide()
+	
+	e621_samples_downloader.images_saved.connect(next_in_samples_queue)
+	
 	tag_creator_menu.set_item_checked(tag_creator_menu.get_item_index(1), Tagger.settings.open_tag_folder_on_creation)
 	
 	conflicts_line_edit.text_submitted.connect(add_to_conflicts)
@@ -328,12 +337,51 @@ func create_tag() -> void:
 	if has_images_check_box.button_pressed and tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)):
 		OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
 	
+	
+	
+	if download_samples_check_box.button_pressed:
+		var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+		
+		for blacklist_tag in Tagger.settings_lists.samples_blacklist:
+			if blacklist_tag == target_tag:
+				continue
+			search_tags.append(\"-\" + blacklist_tag)
+		
+		search_tags.append(target_tag)
+		
+		samples_downloader_queue[Tagger.tag_images_path + _tag_path.get_file().get_basename() + \"/\"] = search_tags
+		
+		if not is_downloading_samples:
+			download_samples()
+		
 	clear_menu_items(\"Done!\")
 	
 	tag_created.emit(target_tag)
 
 
+func download_samples() -> void:
+	is_downloading_samples = true
+	var key_to_download: String = samples_downloader_queue.keys().front()
+	
+	e621_samples_downloader.match_name = samples_downloader_queue[key_to_download].duplicate()
+	e621_samples_downloader.save_on_finish = true
+	e621_samples_downloader.path_to_save_to = key_to_download
+	e621_samples_downloader.get_posts()
+	
+	samples_downloader_queue.erase(key_to_download)
+
+
+func next_in_samples_queue() -> void:
+	if samples_downloader_queue.is_empty():
+		is_downloading_samples = false
+		return
+	else:
+		await get_tree().create_timer(10.0).timeout
+		download_samples()
+
+
 func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
+	download_samples_check_box.button_pressed = false
 	has_images_check_box.button_pressed = true
 	tag_suggestion_array.clear()
 	suggestion_item_list.clear()
@@ -409,6 +457,8 @@ var conflicts_array: Array[String] = []
 var parents: Array = []
 var suggestions_array: Array[String] = []
 @onready var text_change_timer: Timer = $TextChangeTimer
+@onready var downloading_samples_label: Label = $DownloadingSamplesLabel
+@onready var e_621_samples_dl_review = $e621SamplesDLReview
 
 var images_to_display: Array[ImageTexture] = []
 
@@ -416,10 +466,18 @@ var thread: Thread
 
 var thread_interrupt: bool = false
 
+@onready var e621_samples_dl_review = $e621SamplesDLReview
+var samples_downloader_queue: Dictionary = {}
+var is_downloading_samples: bool = false:
+	set(value):
+		is_downloading_samples = value
+		downloading_samples_label.visible = is_downloading_samples
+
 
 func _ready():
 	hide()
 	
+	e621_samples_dl_review.images_saved.connect(next_in_samples_queue)
 	add_conflict_line_edit.text_submitted.connect(add_tag_conflict)
 	conflicts_item_list.item_activated.connect(remove_tag_conflict)
 	
@@ -522,6 +580,9 @@ func activate_menu_bar(id_button: int) -> void:
 	
 	elif id_button == 2: # Show conflicts
 		conflict_window.show()
+	
+	elif id_button == 3:
+		add_to_download_queue()
 
 
 func clear_and_disable() -> void:
@@ -629,7 +690,6 @@ func search_for_tag(new_text: String) -> void:
 	var file_names: Array = DirAccess.get_files_at(Tagger.tag_images_path + _tag.file_name.get_basename())
 	var final_file_names: Array = []
 	
-
 	if _tag.has_pictures and Tagger.settings.can_load_from_local():
 		if DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
 			if Tagger.settings.local_review_amount < file_names.size():
@@ -737,6 +797,13 @@ func display_image(image_texture: Texture2D):
 	
 	var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
 	new_child_thumb.texture = image_texture
+	
+	var texture_size: Vector2 = image_texture.get_size()
+	
+	var new_heigth: float = (texture_size.y / texture_size.x) * lewd_pic_container.size.x
+	
+	new_child_thumb.custom_minimum_size = Vector2(lewd_pic_container.size.x, new_heigth)
+	
 	lewd_pic_container.add_child(new_child_thumb)
 	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
 
@@ -779,6 +846,47 @@ func create_download_textures() -> void:
 
 func display_big_pic(texture_to_load: Texture2D) -> void:
 	full_screen_display.show_picture(texture_to_load)
+
+
+func add_to_download_queue():
+	var tag: Tag = Tagger.tag_manager.get_tag(name_line.text)
+	
+	if samples_downloader_queue.has(Tagger.tag_images_path + tag.file_name.get_basename() + \"/\"):
+		return
+	
+	var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+		
+	for blacklist_tag in Tagger.settings_lists.samples_blacklist:
+		if blacklist_tag == name_line.text:
+			continue
+		search_tags.append(\"-\" + blacklist_tag)
+	
+	search_tags.append(name_line.text)
+	
+	samples_downloader_queue[Tagger.tag_images_path + tag.file_name.get_basename() + \"/\"] = search_tags
+	
+	if not is_downloading_samples:
+		download_samples()
+
+
+func download_samples() -> void:
+	is_downloading_samples = true
+	var key_to_download: String = samples_downloader_queue.keys().front()
+	
+	e621_samples_dl_review.match_name = samples_downloader_queue[key_to_download].duplicate()
+	e621_samples_dl_review.save_on_finish = true
+	e621_samples_dl_review.path_to_save_to = key_to_download
+	e621_samples_dl_review.get_posts()
+	samples_downloader_queue.erase(key_to_download)
+
+
+func next_in_samples_queue() -> void:
+	if samples_downloader_queue.is_empty():
+		is_downloading_samples = false
+		return
+	else:
+		await get_tree().create_timer(10.0).timeout
+		download_samples()
 
 "
 
@@ -1033,18 +1141,19 @@ script/source = "extends CheckButton
 func _ready():
 	
 	button_pressed = Tagger.settings.load_review_images
-	e621_load_button.disabled = not button_pressed
-	local_load_button.disabled = not button_pressed
-	e_621_spin_box.editable = button_pressed and not e621_load_button.disabled
-	local_spin_box.editable = button_pressed and not local_load_button.disabled
 	local_load_button.button_pressed = Tagger.settings.load_review_local
-	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
 	e621_load_button.button_pressed = Tagger.settings.load_review_e621
 	load_gif_e621_check_box.button_pressed = Tagger.settings.load_web_gifs
 	load_gif_local_check_box.button_pressed = Tagger.settings.load_local_gifs
+
+	e621_load_button.disabled = not button_pressed
+	local_load_button.disabled = not button_pressed
+	e_621_spin_box.editable = button_pressed and e621_load_button.button_pressed
+	local_spin_box.editable = button_pressed and local_load_button.button_pressed
+	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
 	
-	load_gif_e621_check_box.disabled = not button_pressed or e621_load_button.disabled
-	load_gif_local_check_box.disabled = not button_pressed or local_load_button.disabled
+	load_gif_e621_check_box.disabled = not button_pressed or not e621_load_button.button_pressed
+	load_gif_local_check_box.disabled = not button_pressed or not local_load_button.button_pressed
 
 	load_gif_e621_check_box.toggled.connect(toggle_load_gifs_e621)
 	load_gif_local_check_box.toggled.connect(toggle_load_gifs_local)
@@ -1440,6 +1549,7 @@ func _ready():
 	reveal_pass_button.toggled.connect(reveal_pass)
 	button_text_timer.timeout.connect(restore_button_text)
 	load_button.pressed.connect(load_api_key)
+	api_key.text_submitted.connect(load_api_key)
 
 
 func clear_and_disable() -> void:
@@ -1451,7 +1561,7 @@ func clear_and_disable() -> void:
 	auth_header_memory = \"\"
 
 
-func load_api_key() -> void:
+func load_api_key(_text_sumbit: String = \"\") -> void:
 	
 	var config_file := FileAccess.open_encrypted_with_pass(Tagger.api_file_path, FileAccess.READ, api_key.text)
 	
@@ -2311,19 +2421,23 @@ item_2/checked = true
 item_2/id = 1
 
 [node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.025
-anchor_right = 0.2875
-anchor_bottom = 0.0472561
+anchor_top = -0.0121951
+anchor_right = 0.23125
+anchor_bottom = 0.035061
+offset_top = 8.00001
+offset_right = 24.0
+offset_bottom = 8.00001
 placeholder_text = "Tag to add"
-metadata/_edit_use_anchors_ = true
 
 [node name="CategoriesMenu" type="OptionButton" parent="TagCreator"]
 layout_mode = 0
 offset_left = 112.0
-offset_top = 48.0
+offset_top = 56.0
 offset_right = 256.0
-offset_bottom = 80.0
+offset_bottom = 88.0
 item_count = 11
 selected = 0
 popup/item_0/text = "General"
@@ -2359,9 +2473,9 @@ vertical_alignment = 1
 [node name="TagPrioBox" type="SpinBox" parent="TagCreator"]
 layout_mode = 0
 offset_left = 352.0
-offset_top = 48.0
+offset_top = 56.0
 offset_right = 512.0
-offset_bottom = 79.0
+offset_bottom = 87.0
 allow_greater = true
 allow_lesser = true
 alignment = 1
@@ -2430,14 +2544,17 @@ anchor_bottom = 0.804878
 metadata/_edit_use_anchors_ = true
 
 [node name="HasImagesCheckBox" type="CheckBox" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.29375
-anchor_right = 0.385156
-anchor_bottom = 0.0472561
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.2625
+anchor_top = 0.0121951
+anchor_right = 0.353906
+anchor_bottom = 0.0594512
+offset_top = 8.0
+offset_bottom = 8.0
 tooltip_text = "If the tag has images associated to it. When reviewing it'll try to load images."
 button_pressed = true
 text = "Has Images"
-metadata/_edit_use_anchors_ = true
 
 [node name="ConflictWindow" type="Control" parent="TagCreator"]
 visible = false
@@ -2505,8 +2622,26 @@ anchor_bottom = 0.181402
 text = "x"
 metadata/_edit_use_anchors_ = true
 
+[node name="DownloadSamplesCheckBox" type="CheckBox" parent="TagCreator"]
+layout_mode = 0
+offset_left = 336.0
+offset_top = -16.0
+offset_right = 511.0
+offset_bottom = 15.0
+tooltip_text = "If enabled some samples for the tags will be downloaded on tag creation."
+text = "Download samples"
+
+[node name="e621SamplesDownloader" parent="TagCreator" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 1
+timeout_time = 10.0
+post_limit = 5
+get_sample_if_available = false
+
+[node name="SamplesCooldownTimer" type="Timer" parent="TagCreator"]
+wait_time = 2.0
+one_shot = true
+
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2532,18 +2667,20 @@ offset_right = -0.400009
 offset_bottom = 48.12
 
 [node name="Review" type="PopupMenu" parent="TagReviewer/ReviewerMenuBar"]
-size = Vector2i(172, 143)
+size = Vector2i(175, 116)
 hide_on_checkable_item_selection = false
-item_count = 3
+item_count = 4
 item_0/text = "Tags"
 item_0/id = 0
 item_0/separator = true
-item_1/text = "Tag conflicts"
-item_1/id = 2
-item_1/disabled = true
-item_2/text = "Delete Tag"
-item_2/id = 1
+item_1/text = "Download samples"
+item_1/id = 3
+item_2/text = "Tag conflicts"
+item_2/id = 2
 item_2/disabled = true
+item_3/text = "Delete Tag"
+item_3/id = 1
+item_3/disabled = true
 
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
 layout_mode = 1
@@ -2894,6 +3031,22 @@ anchor_top = -0.0588235
 [node name="TextChangeTimer" type="Timer" parent="TagReviewer"]
 one_shot = true
 
+[node name="e621SamplesDLReview" parent="TagReviewer" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 1
+timeout_time = 10.0
+post_limit = 5
+get_sample_if_available = false
+
+[node name="DownloadingSamplesLabel" type="Label" parent="TagReviewer"]
+visible = false
+layout_mode = 0
+offset_left = 159.0
+offset_top = -32.0
+offset_right = 329.0
+text = "Downloading samples"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="TagCategorySearcher" type="Control" parent="."]
 visible = false
 layout_mode = 1
@@ -3152,6 +3305,7 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -3410,36 +3564,36 @@ script = SubResource("GDScript_dvmq4")
 layout_mode = 0
 offset_left = 576.0
 offset_top = 424.0
-offset_right = 768.0
+offset_right = 800.0
 offset_bottom = 455.0
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
 placeholder_text = "Add to constants"
 
 [node name="TagList" type="Control" parent="Settings/Constants"]
 anchors_preset = 0
-offset_left = 768.0
-offset_top = 520.0
-offset_right = 1216.0
+offset_left = 576.0
+offset_top = 464.0
+offset_right = 800.0
 offset_bottom = 648.0
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.429
-anchor_top = -0.437
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.192001
-offset_top = -0.0639992
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="SuggestionBlackList" type="Control" parent="Settings"]
 anchors_preset = 0
-offset_right = 40.0
+offset_left = 72.0
+offset_right = 112.0
 offset_bottom = 40.0
 script = SubResource("GDScript_4yj0t")
 
 [node name="SuggBlacklistLineEdit" type="LineEdit" parent="Settings/SuggestionBlackList"]
 layout_mode = 0
-offset_left = 784.0
+offset_left = 744.0
 offset_top = 424.0
 offset_right = 960.0
 offset_bottom = 455.0
@@ -3447,17 +3601,42 @@ placeholder_text = "Suggestion blacklist"
 
 [node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SuggestionBlackList"]
 layout_mode = 0
-offset_left = 784.0
+offset_left = 744.0
 offset_top = 464.0
 offset_right = 960.0
 offset_bottom = 648.0
+
+[node name="DownloadSampleBlacklist" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 1048.0
+offset_top = 464.0
+offset_right = 1264.0
+offset_bottom = 648.0
+script = ExtResource("10_mi6fl")
+
+[node name="SampleBlacklistItemList" type="ItemList" parent="Settings/DownloadSampleBlacklist"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Tags to be blacklisted when downloading samples on tag creation. If the tag being created is blacklisted then that tag in the blacklist will be ignored"
+
+[node name="SampleBlacklistLineEdit" type="LineEdit" parent="Settings/DownloadSampleBlacklist"]
+layout_mode = 0
+offset_top = -40.0
+offset_right = 216.0
+offset_bottom = -9.0
+tooltip_text = "Add a tag to be blacklisted when downloading samples on tag creation"
+placeholder_text = "Sample Blacklist"
 
 [node name="BlackListControl" type="Control" parent="Settings"]
 anchors_preset = 0
 offset_left = 984.0
 offset_top = 32.0
 offset_right = 1256.0
-offset_bottom = 648.0
+offset_bottom = 400.0
 script = SubResource("GDScript_mqjmn")
 
 [node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
