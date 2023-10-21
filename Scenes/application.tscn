@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="5_hkklg"]
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
-[ext_resource type="Script" path="res://Scenes/api_interaction_script.gd" id="8_ves6w"]
+[ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
 script/source = "extends Control
@@ -230,6 +230,7 @@ var tag_suggestion_array: Array[String] = []
 
 
 func _ready():
+	hide()
 	tag_creator_menu.set_item_checked(tag_creator_menu.get_item_index(1), Tagger.settings.open_tag_folder_on_creation)
 	
 	conflicts_line_edit.text_submitted.connect(add_to_conflicts)
@@ -401,6 +402,7 @@ signal _finished_loading_local()
 @onready var conflict_window = $ConflictWindow
 
 var lewd_display = preload(\"res://Scenes/lewd_pic_display.tscn\")
+var lewd_gif_display = preload(\"res://Scenes/lewd_gif_display.tscn\")
 
 var conflicts_array: Array[String] = []
 
@@ -416,7 +418,7 @@ var thread_interrupt: bool = false
 
 
 func _ready():
-	
+	hide()
 	add_conflict_line_edit.text_submitted.connect(add_tag_conflict)
 	conflicts_item_list.item_activated.connect(remove_tag_conflict)
 	
@@ -684,16 +686,22 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 		var tempstring: String = file_name
 		
 		var file_extension = tempstring.get_extension()
-		
-		if file_extension != \"png\" and file_extension != \"jpg\":
+
+		if file_extension != \"png\" and file_extension != \"jpg\" and file_extension != \"gif\":
 			preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
 			continue
 		
-		var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
-		var _new_texture := ImageTexture.create_from_image(_new_image)
-#		images_to_display.append(_new_texture)
-#		preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
-		display_image.call_deferred(_new_texture)
+		if file_extension == \"gif\":
+			if Tagger.settings.load_local_gifs:
+				var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name, 256)
+				new_gif_display.pause = false
+				display_image.call_deferred(new_gif_display)
+			else:
+				preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
+		else:
+			var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
+			var _new_texture := ImageTexture.create_from_image(_new_image)
+			display_image.call_deferred(_new_texture)
 		
 	display_images.call_deferred()
 
@@ -714,16 +722,16 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 
 
-func create_and_display_image(image_file: Image) -> void:
-	var _new_texture := ImageTexture.create_from_image(image_file)
-	display_image(_new_texture)
+func create_and_display_image(image_file: Texture2D) -> void:
+#	var _new_texture := ImageTexture.create_from_image(image_file)
+	display_image(image_file)
 
 
-func display_image(image_texture: ImageTexture):
+func display_image(image_texture: Texture2D):
 	preview_progress_load.value += 1
+	
 	var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
 	new_child_thumb.texture = image_texture
-	new_child_thumb.name = \"LewdTextureRect\" + str(randi_range(0,1000))
 	lewd_pic_container.add_child(new_child_thumb)
 	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
 
@@ -740,6 +748,9 @@ func search_web_images(tag_names: String) -> void:
 		tag_names = \"vaporeon -female -ambiguous_gender rating:explicit\"
 	
 	var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+	
+	if Tagger.settings.load_web_gifs:
+		search_tags.append(\"~type:gif\")
 	
 	search_tags.append(tag_names)
 	
@@ -761,7 +772,7 @@ func create_download_textures() -> void:
 		lewd_pic_container.add_child(new_lewd_child)
 
 
-func display_big_pic(texture_to_load: ImageTexture) -> void:
+func display_big_pic(texture_to_load: Texture2D) -> void:
 	full_screen_display.show_picture(texture_to_load)
 
 "
@@ -932,6 +943,7 @@ var timer: Timer
 
 
 func _ready():
+	hide()
 	settings_bar.id_pressed.connect(settings_menu_press)
 	
 	open_tags_button.pressed.connect(open_tags_folder)
@@ -1010,14 +1022,10 @@ script/source = "extends CheckButton
 @onready var local_load_button: CheckButton = $VBoxContainer/ToggleButtons/LocalLoadButton
 @onready var e_621_spin_box: SpinBox = $VBoxContainer/AmountToLoad/e621SpinBox
 @onready var local_spin_box: SpinBox = $VBoxContainer/AmountToLoad/LocalSpinBox
+@onready var load_gif_e621_check_box: CheckBox = $VBoxContainer/AmountToLoad2/LoadGife6CheckBox
+@onready var load_gif_local_check_box: CheckBox = $VBoxContainer/AmountToLoad2/LoadGifLocalCheckBox2
 
 func _ready():
-
-	e621_load_button.toggled.connect(toggle_e6_load)
-	e_621_spin_box.value_changed.connect(e6_spinbox_value_changed)
-	
-	local_load_button.toggled.connect(toggle_local_load)
-	local_spin_box.value_changed.connect(local_spinbox_value_changed)
 	
 	button_pressed = Tagger.settings.load_review_images
 	
@@ -1025,14 +1033,36 @@ func _ready():
 	local_load_button.disabled = not button_pressed
 	e_621_spin_box.editable = button_pressed
 	local_spin_box.editable = button_pressed
-
-	e621_load_button.button_pressed = Tagger.settings.load_review_e621
-	e_621_spin_box.set_value_no_signal(Tagger.settings.e621_review_amount)
-	
 	local_load_button.button_pressed = Tagger.settings.load_review_local
 	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
+	e621_load_button.button_pressed = Tagger.settings.load_review_e621
+	load_gif_e621_check_box.button_pressed = Tagger.settings.load_web_gifs
+	load_gif_local_check_box.button_pressed = Tagger.settings.load_local_gifs
+	
+	load_gif_e621_check_box.disabled = not button_pressed
+	load_gif_local_check_box.disabled = not button_pressed
 
+	load_gif_e621_check_box.toggled.connect(toggle_load_gifs_e621)
+	load_gif_local_check_box.toggled.connect(toggle_load_gifs_local)
+	
+	e621_load_button.toggled.connect(toggle_e6_load)
+	e_621_spin_box.value_changed.connect(e6_spinbox_value_changed)
+	
+	local_load_button.toggled.connect(toggle_local_load)
+	local_spin_box.value_changed.connect(local_spinbox_value_changed)
+	
+	e_621_spin_box.set_value_no_signal(Tagger.settings.e621_review_amount)
+	
 	self.toggled.connect(toggle_sub_buttons)
+
+
+func toggle_load_gifs_e621(toggle_state: bool) -> void:
+	Tagger.settings.load_web_gifs = toggle_state
+
+
+func toggle_load_gifs_local(toggle_state: bool) -> void:
+	Tagger.settings.load_local_gifs = toggle_state
+
 
 
 func local_spinbox_value_changed(new_value: float) -> void:
@@ -1051,6 +1081,8 @@ func toggle_sub_buttons(toggle_state: bool) -> void:
 	local_load_button.disabled = not toggle_state
 	e_621_spin_box.editable = toggle_state
 	local_spin_box.editable = toggle_state
+	load_gif_e621_check_box.disabled = not toggle_state
+	load_gif_local_check_box.disabled = not toggle_state
 
 
 func toggle_e6_load(toggle_state: bool) -> void:
@@ -1582,7 +1614,6 @@ item_6/text = "Exit"
 item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -1629,6 +1660,14 @@ item_6/text = "Enable offline suggestions"
 item_6/checkable = 1
 item_6/checked = true
 item_6/id = 3
+
+[node name="ClearTagsButton" type="Button" parent="Tagger"]
+layout_mode = 0
+offset_left = 336.0
+offset_top = -32.0
+offset_right = 385.0
+offset_bottom = -1.0
+text = "Clear"
 
 [node name="CurrentTags" type="Control" parent="Tagger"]
 layout_mode = 1
@@ -1740,6 +1779,14 @@ offset_right = 0.159912
 offset_bottom = 47.712
 text = "Implied tags:"
 metadata/_edit_use_anchors_ = true
+
+[node name="ClearSuggestedButton" type="Button" parent="Tagger"]
+layout_mode = 0
+offset_left = 608.0
+offset_top = -32.0
+offset_right = 657.0
+offset_bottom = -1.0
+text = "Clear"
 
 [node name="Implied Tags" type="Control" parent="Tagger"]
 layout_mode = 1
@@ -2439,6 +2486,7 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagReviewer" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -3134,26 +3182,26 @@ vertical_alignment = 1
 [node name="LoadImagesButton" type="CheckButton" parent="Settings"]
 layout_mode = 0
 offset_left = 32.0
-offset_top = 96.0
+offset_top = 112.0
 offset_right = 233.0
-offset_bottom = 136.0
+offset_bottom = 152.0
 text = "Load review images"
 script = SubResource("GDScript_lqhue")
 
 [node name="ColorRect" type="ColorRect" parent="Settings/LoadImagesButton"]
 layout_mode = 0
 offset_left = 208.0
-offset_top = -16.0
+offset_top = -32.0
 offset_right = 480.0
-offset_bottom = 56.0
+offset_bottom = 72.0
 color = Color(0.188235, 0.215686, 0.258824, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Settings/LoadImagesButton"]
 layout_mode = 0
 offset_left = 208.0
-offset_top = -16.0
+offset_top = -32.0
 offset_right = 480.0
-offset_bottom = 56.0
+offset_bottom = 72.0
 
 [node name="ToggleButtons" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
 layout_mode = 2
@@ -3187,27 +3235,43 @@ size_flags_horizontal = 6
 max_value = 10.0
 editable = false
 
+[node name="AmountToLoad2" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LoadGife6CheckBox" type="CheckBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad2"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
+
+[node name="LoadGifLocalCheckBox2" type="CheckBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad2"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
+
 [node name="OpenTagsButton" type="Button" parent="Settings"]
 layout_mode = 0
 offset_left = 32.0
-offset_top = 168.0
+offset_top = 200.0
 offset_right = 208.0
-offset_bottom = 216.0
+offset_bottom = 248.0
 text = "Open tags folder"
 
 [node name="RecreateDatabaseBtn" type="Button" parent="Settings"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 216.0
-offset_top = 168.0
+offset_top = 200.0
 offset_right = 512.0
-offset_bottom = 216.0
+offset_bottom = 248.0
 tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
 text = "Recreate tag impliactions"
 
 [node name="Aliases" type="Control" parent="Settings"]
 anchors_preset = 0
-offset_left = 64.0
+offset_left = 32.0
 offset_top = 264.0
 offset_right = 512.0
 offset_bottom = 584.0
@@ -3218,45 +3282,42 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -32.0
-offset_top = -24.0
-offset_bottom = -40.0
+offset_top = -8.0
+offset_bottom = -48.0
 grow_horizontal = 2
 grow_vertical = 2
 script = SubResource("GDScript_hr4cx")
 
 [node name="OldAlias" type="LineEdit" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = -32.0
-offset_top = 288.0
-offset_right = 200.0
-offset_bottom = 328.0
+offset_top = 280.0
+offset_right = 232.0
+offset_bottom = 320.0
 placeholder_text = "Old name"
 alignment = 1
 
 [node name="NewAlias" type="LineEdit" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = 216.0
-offset_top = 288.0
-offset_right = 448.0
-offset_bottom = 328.0
+offset_left = 248.0
+offset_top = 280.0
+offset_right = 480.0
+offset_bottom = 320.0
 placeholder_text = "New name"
 alignment = 1
 
 [node name="RemoveAliasButton" type="Button" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = -32.0
 offset_top = 344.0
-offset_right = 200.0
+offset_right = 232.0
 offset_bottom = 384.0
 disabled = true
 text = "Remove Alias"
 
 [node name="AddAliasButton" type="Button" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = 216.0
+offset_left = 248.0
 offset_top = 344.0
-offset_right = 448.0
+offset_right = 480.0
 offset_bottom = 384.0
 disabled = true
 text = "Add alias"
@@ -3383,6 +3444,7 @@ max_columns = 2
 same_column_width = true
 
 [node name="APILoader" type="Control" parent="Settings"]
+visible = false
 layout_mode = 1
 anchor_top = -0.0843373
 anchor_right = 1.0
@@ -3408,7 +3470,7 @@ anchor_top = 0.267
 anchor_right = 0.85
 anchor_bottom = 0.8
 offset_top = -40.24
-script = ExtResource("8_ves6w")
+script = ExtResource("8_vpvmy")
 
 [node name="AppBG" type="ColorRect" parent="Settings/APILoader/AllItems"]
 layout_mode = 1
