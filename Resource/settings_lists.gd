@@ -532,6 +532,7 @@ extends Resource
 @export var constant_tags: Array[String] = []
 
 @export var suggestion_review_blacklist: Array[String] = []
+@export var samples_blacklist: Array[String] = []
 
 
 static func load_database() -> SettingLists:
@@ -562,8 +563,19 @@ func add_to_blacklist(tag_to_add: String) -> void:
 	suggestion_blacklist.append(tag_to_add)
 
 
-## Use this function to remove from blacklist as big blacklist erase could take
-## some time.
+func remove_from_sample_blacklist(tag_to_remove: String) -> void:
+	if not samples_blacklist.has(tag_to_remove):
+		return
+	
+	if samples_blacklist.size() == 1:
+		samples_blacklist.clear()
+		return
+	
+	var target_index: int = samples_blacklist.find(tag_to_remove)
+	samples_blacklist[target_index] = samples_blacklist.back()
+	samples_blacklist.resize(samples_blacklist.size() - 1)
+
+
 func remove_from_blacklist(tag_to_remove: String) -> void:
 	var target_index = suggestion_blacklist.find(tag_to_remove)
 	if target_index == -1:
