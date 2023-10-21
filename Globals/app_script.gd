@@ -117,6 +117,12 @@ func _notification(what):
 		e_621_requester_quick_search.cancel_main_request()
 		e_621_requester_quick_search.cancel_side_requests()
 		
+		tag_creator.e621_samples_downloader.cancel_main_request()
+		tag_creator.e621_samples_downloader.cancel_side_requests()
+		
+		tag_reviewer.e_621_samples_dl_review.cancel_main_request()
+		tag_reviewer.e_621_samples_dl_review.cancel_side_requests()
+		
 		tag_reviewer_requester.cancel_main_request()
 		tag_reviewer_requester.cancel_side_requests()
 		
