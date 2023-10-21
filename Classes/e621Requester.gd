@@ -40,12 +40,8 @@ enum Category {
 
 @onready var main_e621: e621Request = $main_E621
 
-#var response_array: Array = []
-#var response_array_unflipped: Array = []
-
 var current_queue_index: int = 0
 var queue_pictures: Array[e621Post] = []
-var downloaded_pictures: Dictionary = {}
 
 var http_requester_references: Array[e621Request] = []
 var active_requesters: int = 0
@@ -186,32 +182,6 @@ func disable_bar():
 	progress_bar.visible = false
 
 
-func create_textures() -> Array[ImageTexture]:
-	var item_count: Array = []
-	
-	if 1 < max_parallel_requests:
-		for pic_key in downloaded_pictures.keys():
-			item_count.append(int(pic_key))
-		item_count.sort()
-	else:
-		item_count = downloaded_pictures.keys()
-	
-#	if progress_bar:
-#		var _tween :Tween = create_tween()
-#		_tween.tween_property(progress_bar, "self_modulate", Color.TRANSPARENT, 2.0)
-#		_tween.finished.connect(disable_bar)
-		
-	var _return_array: Array[ImageTexture] = []
-	
-	for index in item_count:
-	
-		var _new_text := ImageTexture.new()
-		_new_text = ImageTexture.create_from_image(downloaded_pictures[str(index)])
-		_return_array.append(_new_text)
-	
-	return _return_array
-
-
 func _next_in_queue(requester: e621Request) -> void:
 	if queue_pictures.is_empty():
 		active_requesters -= 1
@@ -241,15 +211,19 @@ func _create_image(result: int, _response_code: int, _headers: PackedStringArray
 		return
 	
 	var _new_image := Image.new()
+	var new_texture : ImageTexture
 	
 	if requester.image_format == "jpg":
 		_new_image.load_jpg_from_buffer(body)
-		downloaded_pictures[str(requester.job_index)] = _new_image
-		image_created.emit(_new_image)
+		new_texture = ImageTexture.create_from_image(_new_image)
+		image_created.emit(new_texture)
 	elif requester.image_format == "png":
 		_new_image.load_png_from_buffer(body)
-		downloaded_pictures[str(requester.job_index)] = _new_image
-		image_created.emit(_new_image)
+		new_texture = ImageTexture.create_from_image(_new_image)
+		image_created.emit(new_texture)
+	elif requester.image_format == "gif":
+		var new_animated: AnimatedTexture = GifManager.animated_texture_from_buffer(body, 256)
+		image_created.emit(new_animated)
 	else:
 		image_skipped.emit()
 		print_debug("Unsupporded format. Skipping")
