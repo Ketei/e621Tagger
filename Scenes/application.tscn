@@ -1033,27 +1033,30 @@ script/source = "extends CheckButton
 func _ready():
 	
 	button_pressed = Tagger.settings.load_review_images
-	
 	e621_load_button.disabled = not button_pressed
 	local_load_button.disabled = not button_pressed
-	e_621_spin_box.editable = button_pressed
-	local_spin_box.editable = button_pressed
+	e_621_spin_box.editable = button_pressed and not e621_load_button.disabled
+	local_spin_box.editable = button_pressed and not local_load_button.disabled
 	local_load_button.button_pressed = Tagger.settings.load_review_local
 	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
 	e621_load_button.button_pressed = Tagger.settings.load_review_e621
 	load_gif_e621_check_box.button_pressed = Tagger.settings.load_web_gifs
 	load_gif_local_check_box.button_pressed = Tagger.settings.load_local_gifs
 	
-	load_gif_e621_check_box.disabled = not button_pressed
-	load_gif_local_check_box.disabled = not button_pressed
+	load_gif_e621_check_box.disabled = not button_pressed or e621_load_button.disabled
+	load_gif_local_check_box.disabled = not button_pressed or local_load_button.disabled
 
 	load_gif_e621_check_box.toggled.connect(toggle_load_gifs_e621)
 	load_gif_local_check_box.toggled.connect(toggle_load_gifs_local)
 	
 	e621_load_button.toggled.connect(toggle_e6_load)
+	e621_load_button.toggled.connect(e_621_spin_box.set_editable)
+	e621_load_button.toggled.connect(e621_gif_checkbox_set_enabled)
 	e_621_spin_box.value_changed.connect(e6_spinbox_value_changed)
 	
 	local_load_button.toggled.connect(toggle_local_load)
+	local_load_button.toggled.connect(local_spin_box.set_editable)
+	local_load_button.toggled.connect(local_gif_checkbox_set_enabled)
 	local_spin_box.value_changed.connect(local_spinbox_value_changed)
 	
 	e_621_spin_box.set_value_no_signal(Tagger.settings.e621_review_amount)
@@ -1069,6 +1072,13 @@ func toggle_load_gifs_local(toggle_state: bool) -> void:
 	Tagger.settings.load_local_gifs = toggle_state
 
 
+func e621_gif_checkbox_set_enabled(is_enabled: bool) -> void:
+	load_gif_e621_check_box.disabled = not is_enabled
+
+
+func local_gif_checkbox_set_enabled(is_enabled: bool) -> void:
+	load_gif_local_check_box.disabled = not is_enabled
+
 
 func local_spinbox_value_changed(new_value: float) -> void:
 	var _value: int = int(new_value)
@@ -1082,12 +1092,15 @@ func e6_spinbox_value_changed(new_value: float) -> void:
 
 func toggle_sub_buttons(toggle_state: bool) -> void:
 	Tagger.settings.load_review_images = toggle_state
+
 	e621_load_button.disabled = not toggle_state
 	local_load_button.disabled = not toggle_state
-	e_621_spin_box.editable = toggle_state
-	local_spin_box.editable = toggle_state
-	load_gif_e621_check_box.disabled = not toggle_state
-	load_gif_local_check_box.disabled = not toggle_state
+	
+	e_621_spin_box.editable = e621_load_button.button_pressed and not e621_load_button.disabled
+	local_spin_box.editable = local_load_button.button_pressed and not local_load_button.disabled
+	
+	load_gif_e621_check_box.disabled = not e621_load_button.button_pressed or e621_load_button.disabled
+	load_gif_local_check_box.disabled = not local_load_button.button_pressed or local_load_button.disabled
 
 
 func toggle_e6_load(toggle_state: bool) -> void:
@@ -2261,7 +2274,8 @@ offset_top = 47.712
 offset_right = 0.639893
 offset_bottom = -72.0
 theme_override_constants/h_separation = 10
-max_columns = 0
+max_columns = 3
+same_column_width = true
 metadata/_edit_use_anchors_ = true
 
 [node name="TagCreator" type="Control" parent="."]
@@ -2492,6 +2506,7 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagReviewer" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -3137,7 +3152,6 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
