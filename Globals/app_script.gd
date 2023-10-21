@@ -110,7 +110,6 @@ func quit_app() -> void:
 	get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST)
 	
 
-
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		e_621_requester_quick_search.cancel_main_request()
@@ -132,3 +131,4 @@ func _notification(what):
 			tag_reviewer.thread.wait_to_finish()
 		
 		get_tree().quit()
+
