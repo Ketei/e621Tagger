@@ -17,6 +17,9 @@ extends Control
 @onready var conflicting_tags = $ConflictingTags
 @onready var main_application = $".."
 
+@onready var clear_tags_button: Button = $ClearTagsButton
+@onready var clear_suggested_button: Button = $ClearSuggestedButton
+
 var tag_queue: Array[String] = []
 var is_searching_tags: bool = false
 
@@ -38,7 +41,11 @@ var context_menu_item_index: int = -1
 
 
 func _ready():
-		
+	show()
+	clear_tags_button.pressed.connect(clear_manual_tags)
+	clear_suggested_button.pressed.connect(clear_suggested_tags)
+	
+	
 	tagger_context_menu.id_pressed.connect(left_click_context_menu_clicked)
 	item_list.item_clicked.connect(move_left_context)
 	
@@ -127,6 +134,21 @@ func tagger_menu_pressed(option_id: int) -> void:
 		Tagger.settings.load_suggested = tagger_menu_bar.is_item_checked(tagger_menu_bar.get_item_index(option_id))
 	elif option_id == 4:
 		conflicting_tags.show()
+
+
+func clear_manual_tags() -> void:
+	_full_tag_list.clear()
+	_implied_tags.clear()
+	valid_tags.clear()
+	generic_tags.clear()
+	
+	item_list.clear()
+	implied_list.clear()
+	
+
+func clear_suggested_tags() -> void:
+	suggestion_tags.clear()
+	suggested_list.clear()
 
 
 func clear_tags() -> void:
