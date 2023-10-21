@@ -402,7 +402,6 @@ signal _finished_loading_local()
 @onready var conflict_window = $ConflictWindow
 
 var lewd_display = preload(\"res://Scenes/lewd_pic_display.tscn\")
-var lewd_gif_display = preload(\"res://Scenes/lewd_gif_display.tscn\")
 
 var conflicts_array: Array[String] = []
 
