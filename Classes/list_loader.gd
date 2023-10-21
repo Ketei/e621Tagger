@@ -18,6 +18,7 @@ var timer_text: Timer
 
 
 func _ready():
+	hide()
 	transfer_tags.pressed.connect(send_tags)
 	preview_tags.pressed.connect(generate_preview)
 	timer_text = Timer.new()
