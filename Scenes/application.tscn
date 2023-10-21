@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=32 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="5_hkklg"]
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
+[ext_resource type="Script" path="res://Scripts/review_rmb_context_menu.gd" id="7_rbsko"]
+[ext_resource type="Script" path="res://Scripts/review_rmb_suggestion_menu.gd" id="8_q7svj"]
 [ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
@@ -417,6 +419,7 @@ var thread_interrupt: bool = false
 
 func _ready():
 	hide()
+	
 	add_conflict_line_edit.text_submitted.connect(add_tag_conflict)
 	conflicts_item_list.item_activated.connect(remove_tag_conflict)
 	
@@ -439,7 +442,11 @@ func _ready():
 	review_menu.id_pressed.connect(activate_menu_bar)
 	
 	parents_item_list.item_activated.connect(remove_parent)
+	parents_item_list.search_for_tag.connect(search_for_tag)
 	add_parent_line_edit.text_submitted.connect(add_parent)
+	
+	tag_suggestion_list.item_activated.connect(remove_parent)
+	tag_suggestion_list.search_for_tag.connect(search_for_tag)
 	
 
 func update_tag() -> void:
@@ -1612,6 +1619,7 @@ item_6/text = "Exit"
 item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -2484,7 +2492,6 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2658,7 +2665,16 @@ anchor_left = 0.00546875
 anchor_top = 0.352941
 anchor_right = 0.154687
 anchor_bottom = 0.811765
+script = ExtResource("7_rbsko")
 metadata/_edit_use_anchors_ = true
+
+[node name="ParentsItemsPopupMenu" type="PopupMenu" parent="TagReviewer/ParentsItemList"]
+size = Vector2i(108, 62)
+item_count = 2
+item_0/text = "Search for"
+item_0/id = 0
+item_1/text = "Create tag"
+item_1/id = 1
 
 [node name="AddParentLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
@@ -2687,7 +2703,16 @@ anchor_left = 0.167187
 anchor_top = 0.352941
 anchor_right = 0.317187
 anchor_bottom = 0.811765
+script = ExtResource("8_q7svj")
 metadata/_edit_use_anchors_ = true
+
+[node name="SuggestionsItemsPopUpMenu" type="PopupMenu" parent="TagReviewer/TagSuggestionList"]
+size = Vector2i(108, 62)
+item_count = 2
+item_0/text = "Search for"
+item_0/id = 0
+item_1/text = "Create tag"
+item_1/id = 1
 
 [node name="TagSuggestionLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0

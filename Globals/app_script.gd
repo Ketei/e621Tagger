@@ -19,6 +19,8 @@ var current_menu: int = 0
 
 func _ready():
 	
+	tag_reviewer.parents_item_list.create_tag.connect(go_to_create_tag)
+	tag_reviewer.tag_suggestion_list.create_tag.connect(go_to_create_tag)
 	tag_creator.tag_created.connect(load_tag_if_added)
 	
 	menu.id_pressed.connect(trigger_options)
