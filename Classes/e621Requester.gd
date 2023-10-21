@@ -5,6 +5,7 @@ signal get_finished(response_data)
 signal downloads_finished()
 signal image_created(image_file)
 signal image_skipped
+signal images_saved
 	
 enum Category {
 	ANY = -1,
@@ -46,7 +47,12 @@ var queue_pictures: Array[e621Post] = []
 var http_requester_references: Array[e621Request] = []
 var active_requesters: int = 0
 
+var active_download_requesters: int = 0
+var current_download_index: int = 0
 var download_on_finish: bool = false
+var save_on_finish: bool = false
+var path_to_save_to: String = ""
+var queue_downloads: Array[e621Post] = []
 
 var main_active: bool = false
 
@@ -119,6 +125,71 @@ func get_tags() -> void:
 	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
 
 
+func save_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
+	if result != 0:
+		return
+	
+	var _new_image := Image.new()
+	
+	if requester.image_format == "jpg":
+		_new_image.load_jpg_from_buffer(body)
+		_new_image.save_jpg(path_to_save_to + str(requester.image_id) + ".jpg", 1.0)
+	elif requester.image_format == "png":
+		_new_image.load_png_from_buffer(body)
+		_new_image.save_png(path_to_save_to + str(requester.image_id) + ".png")
+	else:
+		print_debug("Unsupporded format. Skipping")
+	
+	await get_tree().create_timer(1.0).timeout
+	next_download_in_queue(requester)
+
+
+func next_download_in_queue(requester) -> void:
+	if queue_downloads.is_empty():
+		active_requesters -= 1
+		requester.request_completed.disconnect(save_image)
+		images_saved.emit()
+		return
+	
+	var _request_data: e621Post = queue_downloads.pop_front()
+	requester.job_index = current_queue_index
+	current_queue_index += 1
+	
+	requester.image_id = _request_data.id
+	
+	if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
+		requester.image_format = "jpg"
+		requester.request(_request_data.sample.url, Tagger.get_headers())
+	elif not _request_data.file.url.is_empty():
+		requester.image_format = _request_data.file.extension
+		requester.request(_request_data.file.url, Tagger.get_headers())
+	else:
+		next_download_in_queue(requester)
+
+
+func save_posts_to_path(e621_data_array: Array = []) -> void:
+	if path_to_save_to.is_empty():
+		get_finished.emit(e621_data_array)
+		return
+	
+	for machine in http_requester_references:
+		if not machine.request_completed.is_connected(save_image):
+			machine.request_completed.connect(save_image.bind(machine))
+	
+	active_download_requesters = 0
+	current_download_index = 0
+	queue_downloads.clear()
+	
+	for post_object in e621_data_array:
+		if post_object is e621Post:
+			queue_downloads.append(post_object)
+	
+	for requester in http_requester_references:
+		if not queue_downloads.is_empty():
+			next_download_in_queue(requester)
+			active_requesters += 1
+
+
 func response_received(e621_data_array: Array) -> void:
 	get_finished.emit(e621_data_array)
 
@@ -129,6 +200,9 @@ func _get_finished(e621_data_array: Array) -> void:
 	if download_on_finish:
 		download_pictures(e621_data_array)
 		download_on_finish = false
+	elif save_on_finish:
+		save_on_finish = false
+		save_posts_to_path(e621_data_array)
 	else:
 		get_finished.emit(e621_data_array)
 		
@@ -158,7 +232,6 @@ func get_posts_and_download() -> void:
 # ------------------- Pic download functions -----------------
 ## Gets the pictures if there are any in the response array
 func download_pictures(data_array: Array = []):
-
 	for machine in http_requester_references:
 		if not machine.request_completed.is_connected(_create_image):
 			machine.request_completed.connect(_create_image.bind(machine))
@@ -206,7 +279,6 @@ func _next_in_queue(requester: e621Request) -> void:
 	
 	
 func _create_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
-	
 	if result != 0:
 		return
 	
