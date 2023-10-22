@@ -343,11 +343,12 @@ func suggestions_found(e621_data_array: Array) -> void:
 		is_searching_tags = false
 	
 
-func transfer_suggested(item_activated) -> void:
+func transfer_suggested(item_activated: int) -> void:
 	var _tag_text = suggested_list.get_item_text(item_activated)
 	
 	if _full_tag_list.has(_tag_text):
 		suggested_list.remove_item(item_activated)
+		suggestion_tags.erase(_tag_text)
 		return
 	
 	if Tagger.tag_manager.has_tag(_tag_text):
@@ -372,6 +373,8 @@ func generate_tag_list() -> void:
 
 
 func add_valid_tag(tag_name: String, tag_data: Tag, add_position: int = -1) -> void:
+	if valid_tags.has(tag_name):
+		return
 	
 	if _implied_tags.has(tag_name):
 		var _index = _implied_tags.find(tag_name)
@@ -384,7 +387,11 @@ func add_valid_tag(tag_name: String, tag_data: Tag, add_position: int = -1) -> v
 		suggestion_tags.remove_at(_s_index)
 	
 	valid_tags[tag_name] = tag_data
-	_full_tag_list.append(tag_name)
+	
+	if add_position != -1:
+		_full_tag_list.insert(add_position, tag_name)
+	else:
+		_full_tag_list.append(tag_name)
 	
 	tag_list_generator._dad_queue = [tag_data]
 	tag_list_generator.explore_parents()
@@ -414,6 +421,9 @@ func add_valid_tag(tag_name: String, tag_data: Tag, add_position: int = -1) -> v
 
 
 func add_generic_tag(tag_name: String) -> void:
+	if generic_tags.has(tag_name):
+		return
+	
 	
 	if _implied_tags.has(tag_name):
 		var _index = _implied_tags.find(tag_name)
