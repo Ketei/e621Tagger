@@ -381,6 +381,7 @@ extends Resource
 	"exotic",
 	"expression",
 	"extreme",
+	"eyes",
 	"eyes opened",
 	"eyes opening",
 	"faces",
@@ -531,8 +532,8 @@ extends Resource
 
 @export var constant_tags: Array[String] = []
 
-@export var suggestion_review_blacklist: Array[String] = []
-@export var samples_blacklist: Array[String] = []
+@export var suggestion_review_blacklist: Array[String] = ["comic"]
+@export var samples_blacklist: Array[String] = ["comic"]
 
 
 static func load_database() -> SettingLists:
