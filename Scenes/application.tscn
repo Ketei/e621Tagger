@@ -240,6 +240,8 @@ var is_downloading_samples: bool = false
 func _ready():
 	hide()
 	
+	has_images_check_box.toggled.connect(has_images_toggled)
+	
 	e621_samples_downloader.images_saved.connect(next_in_samples_queue)
 	
 	tag_creator_menu.set_item_checked(tag_creator_menu.get_item_index(1), Tagger.settings.open_tag_folder_on_creation)
@@ -264,7 +266,17 @@ func _ready():
 	add_child(text_timer)
 
 
+func has_images_toggled(is_toggled: bool) -> void:
+	download_samples_check_box.disabled = not is_toggled
+
+
 func add_to_conflicts(conflict_name: String) -> void:
+	conflict_name = conflict_name.strip_edges().to_lower()
+	
+	if conflict_name.is_empty():
+		conflicts_line_edit.clear()
+		return
+	
 	conflict_item_list.add_item(conflict_name)
 	conflicts_array.append(conflict_name)
 	conflicts_line_edit.clear()
@@ -285,6 +297,11 @@ func tag_creator_menu_changed(id_selected: int) -> void:
 
 
 func add_suggestion(new_suggestion: String) -> void:
+	new_suggestion = new_suggestion.strip_edges().to_lower()
+	
+	if new_suggestion.is_empty():
+		return
+	
 	if not tag_suggestion_array.has(new_suggestion):
 		tag_suggestion_array.append(new_suggestion)
 		suggestion_item_list.add_item(new_suggestion)
@@ -305,6 +322,9 @@ func check_if_can_add_tag(new_text: String) -> void:
 
 func add_parent(new_parent:String) -> void:
 	new_parent = new_parent.to_lower().strip_edges()
+
+	if new_parent.is_empty():
+		return
 	
 	if new_parent.is_empty() or parent_tags.has(new_parent):
 		add_parent_line_edit.clear()
@@ -337,9 +357,7 @@ func create_tag() -> void:
 	if has_images_check_box.button_pressed and tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)):
 		OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
 	
-	
-	
-	if download_samples_check_box.button_pressed:
+	if download_samples_check_box.button_pressed and has_images_check_box.button_pressed:
 		var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
 		
 		for blacklist_tag in Tagger.settings_lists.samples_blacklist:
@@ -383,6 +401,8 @@ func next_in_samples_queue() -> void:
 func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
 	download_samples_check_box.button_pressed = false
 	has_images_check_box.button_pressed = true
+	conflict_item_list.clear()
+	conflicts_array.clear()
 	tag_suggestion_array.clear()
 	suggestion_item_list.clear()
 	suggestion_line_edit.clear()
@@ -523,7 +543,9 @@ func update_tag() -> void:
 
 
 func add_tag_conflict(tag_conflict: String) -> void:
-	if name_line.text == tag_conflict or conflicts_array.has(tag_conflict):
+	tag_conflict = tag_conflict.strip_edges().to_lower()
+	
+	if name_line.text == tag_conflict or conflicts_array.has(tag_conflict) or tag_conflict.is_empty():
 		return
 	
 	conflicts_item_list.add_item(tag_conflict)
@@ -626,13 +648,12 @@ func search_for_tag(new_text: String) -> void:
 		child.lewd_pic_pressed.disconnect(display_big_pic)
 		child.queue_free()
 
-	new_text = new_text.to_lower().strip_edges()
-	
-	new_text = Tagger.alias_database.get_alias(new_text)
-		
 	if new_text.is_empty():
 		clear_and_disable()
 		return
+	
+	new_text = new_text.to_lower().strip_edges()
+	new_text = Tagger.alias_database.get_alias(new_text)
 	
 	if not Tagger.tag_manager.has_tag(new_text):
 		clear_and_disable()
@@ -714,11 +735,12 @@ func search_for_tag(new_text: String) -> void:
 
 	
 func add_parent(parent_text: String) -> void:
-	parent_text = parent_text.to_lower()
-	
+	parent_text = parent_text.strip_edges().to_lower()
 	if parent_text.is_empty() or parents.has(parent_text):
 		add_parent_line_edit.clear()
 		return
+	
+	parent_text = parent_text.to_lower()
 	
 	parents.append(parent_text)
 	parents_item_list.add_item(parent_text)
@@ -731,6 +753,11 @@ func remove_parent(parent_id: int) -> void:
 
 
 func add_suggested(new_suggestion: String) -> void:
+	new_suggestion = new_suggestion.strip_edges().to_lower()
+	
+	if new_suggestion.is_empty():
+		return
+	
 	suggestions_array.append(new_suggestion)
 	tag_suggestion_list.add_item(new_suggestion)
 	tag_suggestion_line_edit.clear()
@@ -1274,8 +1301,13 @@ func new_alias_update(new_text: String) -> void:
 
 
 func add_alias() -> void:
-	var _old_string: String = old_alias.text
-	var _new_string: String = new_alias.text
+	var _old_string: String = old_alias.text.strip_edges().to_lower()
+	var _new_string: String = new_alias.text.strip_edges().to_lower()
+	
+	if _old_string.is_empty() or _new_string.is_empty():
+		old_alias.clear()
+		new_alias.clear()
+		return
 	
 	_old_string = _old_string.strip_edges().to_lower().replace(\"_\", \" \")
 	_new_string = _new_string.strip_edges().to_lower().replace(\"_\", \" \")
@@ -1307,7 +1339,13 @@ func add_alias() -> void:
 
 
 func remove_alias() -> void:
-	var _old_string: String = old_alias.text
+	var _old_string: String = old_alias.text.strip_edges()
+	
+	if _old_string.is_empty():
+		old_alias.clear()
+		return
+	
+	
 	_old_string = _old_string.strip_edges().to_lower()
 	
 	
@@ -1390,6 +1428,9 @@ func _ready() -> void:
 	
 
 func add_to_invalid_tags(tag_to_add: String) -> void:
+	tag_to_add = tag_to_add.strip_edges().to_lower()
+	if tag_to_add.is_empty():
+		return
 	if not Tagger.settings_lists.invalid_tags.has(tag_to_add):
 		invalid_tag_list.add_item(tag_to_add)
 		Tagger.settings_lists.invalid_tags.append(tag_to_add)
@@ -1423,7 +1464,11 @@ func _ready():
 
 
 func add_constant(new_constant: String) -> void:
-	new_constant = new_constant.to_lower().strip_edges().replace(\"_\", \" \")
+	new_constant = new_constant.to_lower().strip_edges()
+	
+	if new_constant.is_empty():
+		return
+	
 	if constant_tags.has(new_constant):
 		constants_line_edit.clear()
 		return
@@ -1459,7 +1504,12 @@ func _ready():
 
 
 func add_to_sugg_blacklist(new_tag: String) -> void:
-	new_tag = new_tag.strip_edges().to_lower().replace(\"_\", \" \")
+	new_tag = new_tag.strip_edges().to_lower()
+	
+	if new_tag.is_empty():
+		sugg_blacklist_line_edit.clear()
+		return
+	
 	Tagger.settings_lists.suggestion_review_blacklist.append(new_tag)
 	sugg_blacklist_item_list.add_item(new_tag)
 	sugg_blacklist_line_edit.clear()
@@ -1490,7 +1540,10 @@ func _ready():
 
 
 func add_to_blacklist(new_item: String) -> void:
-	new_item = new_item.to_lower().strip_edges().replace(\"_\", \" \")
+	new_item = new_item.to_lower().strip_edges()
+	
+	if new_item.is_empty():
+		return
 	
 	if Tagger.settings_lists.suggestion_blacklist.has(new_item):
 		return
@@ -2391,7 +2444,6 @@ same_column_width = true
 metadata/_edit_use_anchors_ = true
 
 [node name="TagCreator" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 anchor_top = 0.0888889
 anchor_right = 1.0
@@ -3310,6 +3362,7 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0

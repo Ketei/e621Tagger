@@ -33,6 +33,9 @@ func generate_tags_array(input_string: String, split_char: String = "", whitespa
 	var _split_tags: PackedStringArray = []
 	var _whitespaced_tags: PackedStringArray = []
 	
+	if input_string.is_empty():
+		return PackedStringArray()
+	
 	if split_char.is_empty():
 		_split_tags.append(input_string)
 	else:

@@ -13,6 +13,12 @@ func _ready():
 
 
 func add_to_sample_blacklist(new_item: String) -> void:
+	new_item = new_item.strip_edges().to_lower()
+	
+	if new_item.is_empty():
+		sample_blacklist_line_edit.clear()
+		return
+	
 	Tagger.settings_lists.samples_blacklist.append(new_item)
 	sample_blacklist_item_list.add_item(new_item)
 	sample_blacklist_line_edit.clear()
