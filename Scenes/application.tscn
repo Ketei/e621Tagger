@@ -490,6 +490,7 @@ func _ready():
 
 	tag_suggestion_line_edit.text_submitted.connect(add_suggested)
 	tag_suggestion_list.item_activated.connect(remove_suggested)
+	tag_suggestion_list.search_for_tag.connect(search_for_tag)
 	
 	text_change_timer.timeout.connect(_on_timer_timeout)
 	
@@ -501,10 +502,8 @@ func _ready():
 	
 	parents_item_list.item_activated.connect(remove_parent)
 	parents_item_list.search_for_tag.connect(search_for_tag)
-	add_parent_line_edit.text_submitted.connect(add_parent)
 	
-	tag_suggestion_list.item_activated.connect(remove_parent)
-	tag_suggestion_list.search_for_tag.connect(search_for_tag)
+	add_parent_line_edit.text_submitted.connect(add_parent)
 	
 
 func update_tag() -> void:
@@ -581,8 +580,11 @@ func activate_menu_bar(id_button: int) -> void:
 	elif id_button == 2: # Show conflicts
 		conflict_window.show()
 	
-	elif id_button == 3:
+	elif id_button == 3: # Download samples
 		add_to_download_queue()
+	
+	elif id_button == 4: # Reload page
+		search_for_tag(name_line.text)
 
 
 func clear_and_disable() -> void:
@@ -1742,7 +1744,6 @@ item_6/text = "Exit"
 item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -2642,6 +2643,7 @@ wait_time = 2.0
 one_shot = true
 
 [node name="TagReviewer" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2669,18 +2671,20 @@ offset_bottom = 48.12
 [node name="Review" type="PopupMenu" parent="TagReviewer/ReviewerMenuBar"]
 size = Vector2i(175, 116)
 hide_on_checkable_item_selection = false
-item_count = 4
+item_count = 5
 item_0/text = "Tags"
 item_0/id = 0
 item_0/separator = true
-item_1/text = "Download samples"
-item_1/id = 3
-item_2/text = "Tag conflicts"
-item_2/id = 2
-item_2/disabled = true
-item_3/text = "Delete Tag"
-item_3/id = 1
+item_1/text = "Reload tag"
+item_1/id = 4
+item_2/text = "Download samples"
+item_2/id = 3
+item_3/text = "Tag conflicts"
+item_3/id = 2
 item_3/disabled = true
+item_4/text = "Delete Tag"
+item_4/id = 1
+item_4/disabled = true
 
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
 layout_mode = 1
