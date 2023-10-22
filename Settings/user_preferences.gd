@@ -14,7 +14,7 @@ extends Resource
 @export var load_review_images: bool = false
 
 @export var load_review_e621: bool = false
-@export var e621_review_amount: int = 4
+@export var e621_review_amount: int = 2
 
 @export var load_review_local: bool = false
 @export var local_review_amount: int = 4
