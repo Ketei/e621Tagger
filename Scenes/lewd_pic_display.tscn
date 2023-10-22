@@ -10,7 +10,9 @@ offset_right = -992.0
 offset_bottom = -432.0
 grow_horizontal = 2
 grow_vertical = 2
-expand_mode = 5
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
 stretch_mode = 4
 script = ExtResource("1_7fdvc")
 

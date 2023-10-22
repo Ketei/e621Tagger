@@ -1,7 +1,7 @@
 class_name TagMaker
 extends Node
 
-static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = [], has_images: bool = true) -> String:
+static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = [], has_images: bool = true, tag_conflicts: Array[String] = []) -> String:
 	var _tag_dict: Dictionary = {}
 	
 	var _tag := Tag.new()
@@ -12,6 +12,7 @@ static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.
 	_tag.tag_priority = tag_prio
 	_tag.suggestions = tag_suggestions.duplicate()
 	_tag.has_pictures = has_images
+	_tag.conflicts = tag_conflicts.duplicate()
 	var tag_path: String = _tag.save()
 	
 	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_path.get_basename()):

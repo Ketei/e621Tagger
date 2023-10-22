@@ -3,15 +3,24 @@ extends Node
 enum Categories {
 	GENERAL,
 	ARTIST,
-	SERIES,
+	COPYRIGHT,
 	CHARACTER,
 	SPECIES,
 	GENDER,
-	LORE,
-	GENITALS,
+	BODY_TYPES,
+	ANATOMY,
+	MARKINGS,
+	POSES_AND_STANCES,
+	ACTIONS_AND_INTERACTIONS,
+	SEX_AND_POSITIONS,
+	PENETRATION,
+	FLUIDS,
+	EXPRESSIONS,
+	COLORS,
 	OBJECTS,
 	CLOTHING,
 	ACCESSORIES,
+	PROFESSION,
 }
 
 enum Sites {
@@ -22,14 +31,14 @@ enum Sites {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "Taglist Maker/v0.5.0 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.5.1 (by Ketei)",
 }
 
 
 const implications_path: String = "user://database/implications/"
 const tags_path: String = "user://database/tags/"
 const tag_images_path: String = "user://database/tag_images/"
-const api_file_path: String = "user://e621_key.ini"
+const api_file_path: String = "user://e621_key.txt"
 
 var alias_database: AliasDatabase
 var settings: UserSettings

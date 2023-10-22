@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://qhb1yq0ap51f"]
+
+[ext_resource type="Script" path="res://Scripts/cat_menu_filling.gd" id="1_mpf0k"]
+
+[node name="CategoriesMenu" type="OptionButton"]
+offset_right = 192.0
+offset_bottom = 40.0
+action_mode = 1
+text_overrun_behavior = 3
+clip_text = true
+script = ExtResource("1_mpf0k")

@@ -1,10 +1,11 @@
 class_name e621Requester
 extends Node
 
-signal get_finished()
+signal get_finished(response_data)
 signal downloads_finished()
 signal image_created(image_file)
 signal image_skipped
+signal images_saved
 	
 enum Category {
 	ANY = -1,
@@ -40,22 +41,23 @@ enum Category {
 
 @onready var main_e621: e621Request = $main_E621
 
-var response_array: Array = []
-var response_array_unflipped: Array = []
-
 var current_queue_index: int = 0
 var queue_pictures: Array[e621Post] = []
-var downloaded_pictures: Dictionary = {}
 
 var http_requester_references: Array[e621Request] = []
 var active_requesters: int = 0
 
+var active_download_requesters: int = 0
+var current_download_index: int = 0
 var download_on_finish: bool = false
+var save_on_finish: bool = false
+var path_to_save_to: String = ""
+var queue_downloads: Array[e621Post] = []
 
 var main_active: bool = false
 
 func _ready():
-	main_e621.job_finished.connect(_get_finished)
+	main_e621.parsed_result.connect(_get_finished)
 	main_e621.timeout = timeout_time
 	
 	for gen in range(max_parallel_requests):
@@ -91,7 +93,7 @@ func get_posts() -> void:
 	
 	main_active = true
 	
-	main_e621.request(_url, Tagger.get_headers())
+	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
 
 
 func get_tags() -> void:
@@ -120,21 +122,90 @@ func get_tags() -> void:
 	
 	main_active = true
 	
-	main_e621.request(_url, Tagger.get_headers())
+	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
 
 
-func _get_finished(requester: e621Request) -> void:
-	response_array = requester.request_result.duplicate()
-	response_array_unflipped = response_array.duplicate()
-	response_array.reverse()
-	get_finished.emit()
+func save_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
+	if result != 0:
+		return
+	
+	var _new_image := Image.new()
+	
+	if requester.image_format == "jpg":
+		_new_image.load_jpg_from_buffer(body)
+		_new_image.save_jpg(path_to_save_to + str(requester.image_id) + ".jpg", 1.0)
+	elif requester.image_format == "png":
+		_new_image.load_png_from_buffer(body)
+		_new_image.save_png(path_to_save_to + str(requester.image_id) + ".png")
+	else:
+		print_debug("Unsupporded format. Skipping")
+	
+	await get_tree().create_timer(1.0).timeout
+	next_download_in_queue(requester)
+
+
+func next_download_in_queue(requester) -> void:
+	if queue_downloads.is_empty():
+		active_requesters -= 1
+		requester.request_completed.disconnect(save_image)
+		images_saved.emit()
+		return
+	
+	var _request_data: e621Post = queue_downloads.pop_front()
+	requester.job_index = current_queue_index
+	current_queue_index += 1
+	
+	requester.image_id = _request_data.id
+	
+	if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
+		requester.image_format = "jpg"
+		requester.request(_request_data.sample.url, Tagger.get_headers())
+	elif not _request_data.file.url.is_empty():
+		requester.image_format = _request_data.file.extension
+		requester.request(_request_data.file.url, Tagger.get_headers())
+	else:
+		next_download_in_queue(requester)
+
+
+func save_posts_to_path(e621_data_array: Array = []) -> void:
+	if path_to_save_to.is_empty():
+		get_finished.emit(e621_data_array)
+		return
+	
+	for machine in http_requester_references:
+		if not machine.request_completed.is_connected(save_image):
+			machine.request_completed.connect(save_image.bind(machine))
+	
+	active_download_requesters = 0
+	current_download_index = 0
+	queue_downloads.clear()
+	
+	for post_object in e621_data_array:
+		if post_object is e621Post:
+			queue_downloads.append(post_object)
+	
+	for requester in http_requester_references:
+		if not queue_downloads.is_empty():
+			next_download_in_queue(requester)
+			active_requesters += 1
+
+
+func response_received(e621_data_array: Array) -> void:
+	get_finished.emit(e621_data_array)
+
+
+func _get_finished(e621_data_array: Array) -> void:
+	main_active = false
 	
 	if download_on_finish:
-		download_pictures()
+		download_pictures(e621_data_array)
 		download_on_finish = false
-	
-	main_active = false
-
+	elif save_on_finish:
+		save_on_finish = false
+		save_posts_to_path(e621_data_array)
+	else:
+		get_finished.emit(e621_data_array)
+		
 
 func cancel_main_request() -> void:
 	main_e621.cancel_request()
@@ -160,9 +231,7 @@ func get_posts_and_download() -> void:
 
 # ------------------- Pic download functions -----------------
 ## Gets the pictures if there are any in the response array
-func download_pictures():
-	downloaded_pictures.clear()
-	
+func download_pictures(data_array: Array = []):
 	for machine in http_requester_references:
 		if not machine.request_completed.is_connected(_create_image):
 			machine.request_completed.connect(_create_image.bind(machine))
@@ -171,63 +240,19 @@ func download_pictures():
 	current_queue_index = 0
 	queue_pictures.clear()
 	
-	for post_object in response_array:
+	for post_object in data_array:
 		if post_object is e621Post:
 			queue_pictures.append(post_object)
 	
-#	if progress_bar:
-#		progress_bar.max_value = queue_pictures.size()
-#		progress_bar.visible = true
 	
 	for requester in http_requester_references:
 		if not queue_pictures.is_empty():
 			_next_in_queue(requester)
 			active_requesters += 1
-			current_queue_index += 1
-#			var _request_data: e621Post = queue_pictures.pop_back()
-#
-#			requester.job_index = current_queue_index
-#
-#			if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
-#				if _request_data.sample.url.is_empty():
-#					continue
-#				requester.image_format = "jpg"
-#				requester.request(_request_data.sample.url, Tagger.get_headers())
-#			elif not _request_data.file.url.is_empty():
-#				requester.image_format = _request_data.file.extension
-#				requester.request(_request_data.file.url, Tagger.get_headers())
-#			else:
-#				pass
 
 
 func disable_bar():
 	progress_bar.visible = false
-
-
-func create_textures() -> Array[ImageTexture]:
-	var item_count: Array = []
-	
-	if 1 < max_parallel_requests:
-		for pic_key in downloaded_pictures.keys():
-			item_count.append(int(pic_key))
-		item_count.sort()
-	else:
-		item_count = downloaded_pictures.keys()
-	
-#	if progress_bar:
-#		var _tween :Tween = create_tween()
-#		_tween.tween_property(progress_bar, "self_modulate", Color.TRANSPARENT, 2.0)
-#		_tween.finished.connect(disable_bar)
-		
-	var _return_array: Array[ImageTexture] = []
-	
-	for index in item_count:
-	
-		var _new_text := ImageTexture.new()
-		_new_text = ImageTexture.create_from_image(downloaded_pictures[str(index)])
-		_return_array.append(_new_text)
-	
-	return _return_array
 
 
 func _next_in_queue(requester: e621Request) -> void:
@@ -238,10 +263,9 @@ func _next_in_queue(requester: e621Request) -> void:
 			downloads_finished.emit()
 		return
 	
-	var _request_data: e621Post = queue_pictures.pop_back()
-	current_queue_index += 1
+	var _request_data: e621Post = queue_pictures.pop_front()
 	requester.job_index = current_queue_index
-	
+	current_queue_index += 1
 	
 	if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
 		requester.image_format = "jpg"
@@ -250,31 +274,33 @@ func _next_in_queue(requester: e621Request) -> void:
 		requester.image_format = _request_data.file.extension
 		requester.request(_request_data.file.url, Tagger.get_headers())
 	else:
-#		progress_bar.value += 1
 		image_skipped.emit()
 		_next_in_queue(requester)
 	
 	
 func _create_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
-	if progress_bar:
-		progress_bar.value += 1
-	
 	if result != 0:
 		return
 	
 	var _new_image := Image.new()
+	var new_texture : ImageTexture
 	
 	if requester.image_format == "jpg":
 		_new_image.load_jpg_from_buffer(body)
-		downloaded_pictures[str(requester.job_index)] = _new_image
-		image_created.emit(_new_image)
+		new_texture = ImageTexture.create_from_image(_new_image)
+		image_created.emit(new_texture)
 	elif requester.image_format == "png":
 		_new_image.load_png_from_buffer(body)
-		downloaded_pictures[str(requester.job_index)] = _new_image
-		image_created.emit(_new_image)
+		new_texture = ImageTexture.create_from_image(_new_image)
+		image_created.emit(new_texture)
+	elif requester.image_format == "gif":
+		var new_animated: AnimatedTexture = GifManager.animated_texture_from_buffer(body, 256)
+		image_created.emit(new_animated)
 	else:
 		image_skipped.emit()
 		print_debug("Unsupporded format. Skipping")
 	
-	_next_in_queue(requester)
+	if not queue_pictures.is_empty():
+		await get_tree().create_timer(1.0).timeout
+		_next_in_queue(requester)
 	

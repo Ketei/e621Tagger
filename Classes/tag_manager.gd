@@ -1,5 +1,5 @@
 class_name TagManager
-extends Node
+extends Resource
 
 
 var relation_database: Dictionary = {}
@@ -10,13 +10,6 @@ var relation_paths: Dictionary = {}
 static func load_database() -> TagManager:
 	var _relation_return: TagManager = TagManager.new()
 	
-	for local_resource in DirAccess.get_files_at("res://database/implications/"):
-		var _res_load: ImplicationDictionary = ResourceLoader.load("res://database/implications/" + local_resource)
-		if _res_load:
-			_relation_return.relation_database[_res_load.implication_index] = _res_load.tag_implications
-			_relation_return.relation_paths[_res_load.implication_index] = "res://Database/implications/" + local_resource
-
-
 	for external_resource in DirAccess.get_files_at(Tagger.implications_path):
 		if external_resource.get_extension() != "tres":
 			continue
@@ -48,7 +41,16 @@ func get_all_tags_with_paths() -> Dictionary:
 	
 
 func has_tag(tag_implication: String) -> bool:
-	return relation_database.has(tag_implication.left(1)) and relation_database[tag_implication.left(1)].has(tag_implication)
+	if relation_database.has(tag_implication.left(1)) and relation_database[tag_implication.left(1)].has(tag_implication):
+		if ResourceLoader.exists(relation_database[tag_implication.left(1)][tag_implication], "Tag"):
+			return true
+		else:
+			var _relation_to_tweak: ImplicationDictionary = ResourceLoader.load(relation_paths[tag_implication.left(1)])
+			_relation_to_tweak.tag_implications.erase(tag_implication)
+			_relation_to_tweak.save()
+	
+	return false
+	
 
 
 func get_tag(tag_name: String) -> Tag:

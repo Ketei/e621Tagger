@@ -3,15 +3,16 @@ extends HTTPRequest
 
 
 signal job_finished(reference)
-
+signal parsed_result(e621_result)
 
 enum RequestType {POST, TAG}
 
 var request_mode: RequestType = RequestType.POST
 
-var request_result: Array = []
+#var request_result: Array = []
 var job_index: int = 0
 var image_format: String = ""
+var image_id: int = 0
 var is_post_downloader: bool = true
 
 
@@ -21,7 +22,7 @@ func _ready():
 
 
 func _on_response(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-	request_result.clear()
+#	request_result.clear()
 	
 	if result != 0:
 		job_finished.emit(self)
@@ -30,6 +31,8 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 
 	if request_mode == RequestType.POST:
 		var response_json: Dictionary = JSON.parse_string(body.get_string_from_utf8())
+		
+		var response_post_array: Array[e621Post] = []
 		
 		for post_index in range(response_json["posts"].size()):
 			var _e6_post := e621Post.new()
@@ -87,7 +90,10 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 			else:
 				_e6_post.duration = 0.0
 			
-			request_result.append(_e6_post)
+			response_post_array.append(_e6_post)
+			
+		parsed_result.emit(response_post_array)
+		
 		
 	elif request_mode == RequestType.TAG:
 		var response_array = JSON.parse_string(body.get_string_from_utf8())
@@ -95,6 +101,8 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 		if typeof(response_array) == TYPE_DICTIONARY:
 			job_finished.emit(self)
 			return
+		
+		var tags_array: Array[e621Tag] = []
 		
 		for index in range(response_array.size()):
 			var _e621_tag: e621Tag = e621Tag.new()
@@ -105,7 +113,7 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 			_e621_tag.category = response_array[index]["category"]
 			_e621_tag.is_locked = response_array[index]["is_locked"]
 	
-			request_result.append(_e621_tag)
-	
-	job_finished.emit(self)
+			tags_array.append(_e621_tag)
+		
+		parsed_result.emit(tags_array)
 

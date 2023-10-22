@@ -12,7 +12,6 @@ config_version=5
 
 config/name="Tagging Project"
 run/main_scene="res://Scenes/application.tscn"
-config/auto_accept_quit=false
 config/features=PackedStringArray("4.1", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -25,6 +24,7 @@ Tagger="*res://Globals/tagger.gd"
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/size/resizable=false
+window/stretch/aspect="ignore"
 
 [rendering]
 

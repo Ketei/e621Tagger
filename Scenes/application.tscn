@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=34 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -7,13 +7,17 @@
 [ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="4_83kdk"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="5_hkklg"]
+[ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="7_7hodc"]
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
+[ext_resource type="Script" path="res://Scripts/review_rmb_context_menu.gd" id="7_rbsko"]
+[ext_resource type="Script" path="res://Scripts/review_rmb_suggestion_menu.gd" id="8_q7svj"]
+[ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
+[ext_resource type="Script" path="res://Scripts/sample_blacklist_loader.gd" id="10_mi6fl"]
 
 [sub_resource type="GDScript" id="GDScript_6n0ht"]
 script/source = "extends Control
 
 signal add_tag_signal(tag_string)
-
 
 @export var tags_to_add: int = 10
 
@@ -32,6 +36,9 @@ var is_tagger_requesting: float = false
 
 
 func _ready():
+	
+	e6_requester_quick_search.post_limit = tags_to_add + 1
+	
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
 	request_cooldown_timer.timeout.connect(timer_timeout)
@@ -111,12 +118,12 @@ func search_for_tag(tag_to_search: String) -> void:
 	request_cooldown_timer.start()
 	
 
-func add_online_to_list() -> void:
+func add_online_to_list(parsed_array: Array) -> void:
 	is_tagger_requesting = false
 	
 	var item_list: Array[String] = []
 	
-	for e621_tag in e6_requester_quick_search.response_array_unflipped:
+	for e621_tag in parsed_array:
 		var temp_format: e621Tag = e621_tag
 		var tag_name: String = temp_format.tag_name
 		
@@ -124,9 +131,6 @@ func add_online_to_list() -> void:
 			continue
 
 		item_list.append(tag_name)
-		
-		if item_list.size() == tags_to_add:
-			break
 	
 	for item in item_list:
 		tag_search_array.append(item)
@@ -149,6 +153,55 @@ func close_add() -> void:
 
 func timer_timeout() -> void:
 	auto_com_line_edit.editable = true
+
+"
+
+[sub_resource type="GDScript" id="GDScript_trwfl"]
+resource_name = "conflicted_tags_screen"
+script/source = "extends Control
+
+@onready var conflicting_tags_tree: Tree = $ConflictingTagsTree
+@onready var check_for_conflicts_button: Button = $CheckForConflictsButton
+@onready var tagger = $\"..\"
+@onready var close_conflict_button: Button = $CloseConflictButton
+
+
+func _ready():
+	hide()
+	check_for_conflicts_button.pressed.connect(check_for_conflicts)
+	close_conflict_button.pressed.connect(hide)
+
+
+func check_for_conflicts() -> void:	
+	conflicting_tags_tree.clear()
+	
+	var root_tree = conflicting_tags_tree.create_item()
+	
+	root_tree.set_text(0, \"Conflicts\")
+	
+	var conflicts_dict: Dictionary = {}
+	
+	for tag in tagger.valid_tags.keys():
+		
+		var tag_data: Tag = tagger.valid_tags[tag]
+		
+		for conflict_tag in tag_data.conflicts:
+			if tagger._full_tag_list.has(conflict_tag) or tagger._implied_tags.has(conflict_tag):
+				if not conflicts_dict.has(tag):
+					conflicts_dict[tag] = []
+				
+				conflicts_dict[tag].append(conflict_tag)
+	
+	for conflict_tag in conflicts_dict.keys():
+		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
+		_sub_tree_conflict.set_text(0, conflict_tag)
+		_sub_tree_conflict.collapsed = true
+		
+		for conflicted_tag in conflicts_dict[conflict_tag]:
+			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
+			_conflicted_tag.set_text(0, conflicted_tag)
+		
+		
 "
 
 [sub_resource type="GDScript" id="GDScript_w31il"]
@@ -156,7 +209,7 @@ script/source = "extends Control
 
 signal tag_created(tag_name)
 
-@onready var tag_to_add_line_edit = $TagToAddLineEdit
+@onready var tag_to_add_line_edit: LineEdit = $TagToAddLineEdit
 @onready var categories_menu = $CategoriesMenu
 @onready var create_tags_button = $CreateTagsButton
 @onready var wiki_info = $WikiInfo
@@ -168,17 +221,34 @@ signal tag_created(tag_name)
 @onready var has_images_check_box: CheckBox = $HasImagesCheckBox
 @onready var tag_creator_menu = $\"TagCreator/Tag Creator\"
 
+@onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
+@onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
+@onready var conflict_window = $ConflictWindow
+@onready var download_samples_check_box: CheckBox = $DownloadSamplesCheckBox
+@onready var e621_samples_downloader = $e621SamplesDownloader
+@onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
 
 var parent_tags: Array = []
+var conflicts_array: Array[String] = []
 
 var text_timer: Timer
 
-
 var tag_suggestion_array: Array[String] = []
 
+var samples_downloader_queue: Dictionary = {}
+var is_downloading_samples: bool = false
 
 func _ready():
+	hide()
+	
+	has_images_check_box.toggled.connect(has_images_toggled)
+	
+	e621_samples_downloader.images_saved.connect(next_in_samples_queue)
+	
 	tag_creator_menu.set_item_checked(tag_creator_menu.get_item_index(1), Tagger.settings.open_tag_folder_on_creation)
+	
+	conflicts_line_edit.text_submitted.connect(add_to_conflicts)
+	conflict_item_list.item_activated.connect(remove_from_conflict)
 	
 	tag_creator_menu.id_pressed.connect(tag_creator_menu_changed)
 	suggestion_line_edit.text_submitted.connect(add_suggestion)
@@ -197,14 +267,42 @@ func _ready():
 	add_child(text_timer)
 
 
+func has_images_toggled(is_toggled: bool) -> void:
+	download_samples_check_box.disabled = not is_toggled
+
+
+func add_to_conflicts(conflict_name: String) -> void:
+	conflict_name = conflict_name.strip_edges().to_lower()
+	
+	if conflict_name.is_empty():
+		conflicts_line_edit.clear()
+		return
+	
+	conflict_item_list.add_item(conflict_name)
+	conflicts_array.append(conflict_name)
+	conflicts_line_edit.clear()
+
+
+func remove_from_conflict(conflict_index: int) -> void:
+	conflicts_array.remove_at(conflict_index)
+	conflict_item_list.remove_item(conflict_index)
+
+
 func tag_creator_menu_changed(id_selected: int) -> void:
 	if id_selected == 1:
 		var tag_index: int = tag_creator_menu.get_item_index(1)
 		tag_creator_menu.set_item_checked(tag_index, not tag_creator_menu.is_item_checked(tag_index))
 		Tagger.settings.open_tag_folder_on_creation = tag_creator_menu.is_item_checked(tag_index)
+	elif id_selected == 2:
+		conflict_window.show()
 
 
 func add_suggestion(new_suggestion: String) -> void:
+	new_suggestion = new_suggestion.strip_edges().to_lower()
+	
+	if new_suggestion.is_empty():
+		return
+	
 	if not tag_suggestion_array.has(new_suggestion):
 		tag_suggestion_array.append(new_suggestion)
 		suggestion_item_list.add_item(new_suggestion)
@@ -225,6 +323,9 @@ func check_if_can_add_tag(new_text: String) -> void:
 
 func add_parent(new_parent:String) -> void:
 	new_parent = new_parent.to_lower().strip_edges()
+
+	if new_parent.is_empty():
+		return
 	
 	if new_parent.is_empty() or parent_tags.has(new_parent):
 		add_parent_line_edit.clear()
@@ -247,7 +348,7 @@ func create_tag() -> void:
 		clear_menu_items(\"Tag already exists!!!\")
 		return
 
-	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value), tag_suggestion_array, has_images_check_box.button_pressed)
+	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value), tag_suggestion_array, has_images_check_box.button_pressed, conflicts_array)
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
@@ -257,13 +358,52 @@ func create_tag() -> void:
 	if has_images_check_box.button_pressed and tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)):
 		OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
 	
+	if download_samples_check_box.button_pressed and has_images_check_box.button_pressed:
+		var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+		
+		for blacklist_tag in Tagger.settings_lists.samples_blacklist:
+			if blacklist_tag == target_tag:
+				continue
+			search_tags.append(\"-\" + blacklist_tag)
+		
+		search_tags.append(target_tag)
+		
+		samples_downloader_queue[Tagger.tag_images_path + _tag_path.get_file().get_basename() + \"/\"] = search_tags
+		
+		if not is_downloading_samples:
+			download_samples()
+		
 	clear_menu_items(\"Done!\")
 	
 	tag_created.emit(target_tag)
 
 
-func clear_menu_items(btn_message: String) -> void:
-	create_tags_button.text = btn_message
+func download_samples() -> void:
+	is_downloading_samples = true
+	var key_to_download: String = samples_downloader_queue.keys().front()
+	
+	e621_samples_downloader.match_name = samples_downloader_queue[key_to_download].duplicate()
+	e621_samples_downloader.save_on_finish = true
+	e621_samples_downloader.path_to_save_to = key_to_download
+	e621_samples_downloader.get_posts()
+	
+	samples_downloader_queue.erase(key_to_download)
+
+
+func next_in_samples_queue() -> void:
+	if samples_downloader_queue.is_empty():
+		is_downloading_samples = false
+		return
+	else:
+		await get_tree().create_timer(10.0).timeout
+		download_samples()
+
+
+func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
+	download_samples_check_box.button_pressed = false
+	has_images_check_box.button_pressed = true
+	conflict_item_list.clear()
+	conflicts_array.clear()
 	tag_suggestion_array.clear()
 	suggestion_item_list.clear()
 	suggestion_line_edit.clear()
@@ -274,12 +414,26 @@ func clear_menu_items(btn_message: String) -> void:
 	parent_tags.clear()
 	parent_item_list.clear()
 	wiki_info.clear()
-	text_timer.start()
+	
+	if change_text:
+		create_tags_button.text = btn_message
+		text_timer.start()
 
 
 func on_timer_timeout() -> void:
 	create_tags_button.text = \"Create Tag\"
 
+"
+
+[sub_resource type="GDScript" id="GDScript_plco6"]
+resource_name = "conflict_window_creator"
+script/source = "extends Control
+
+@onready var close_conflict_button: Button = $CloseConflictButton
+
+func _ready():
+	hide()
+	close_conflict_button.pressed.connect(hide)
 "
 
 [sub_resource type="GDScript" id="GDScript_lfssu"]
@@ -314,12 +468,18 @@ signal _finished_loading_local()
 @onready var full_screen_display = $FullScreenDisplay
 @onready var open_pic_folder_button: Button = $OpenPicFolder
 
+@onready var add_conflict_line_edit: LineEdit = $ConflictWindow/AddConflictLineEdit
+@onready var conflicts_item_list: ItemList = $ConflictWindow/ConflictsItemList
+@onready var conflict_window = $ConflictWindow
 
 var lewd_display = preload(\"res://Scenes/lewd_pic_display.tscn\")
+var conflicts_array: Array[String] = []
 
 var parents: Array = []
 var suggestions_array: Array[String] = []
-var text_change_timer: Timer
+@onready var text_change_timer: Timer = $TextChangeTimer
+@onready var downloading_samples_label: Label = $DownloadingSamplesLabel
+@onready var e_621_samples_dl_review = $e621SamplesDLReview
 
 var images_to_display: Array[ImageTexture] = []
 
@@ -327,32 +487,43 @@ var thread: Thread
 
 var thread_interrupt: bool = false
 
+@onready var e621_samples_dl_review = $e621SamplesDLReview
+var samples_downloader_queue: Dictionary = {}
+var is_downloading_samples: bool = false:
+	set(value):
+		is_downloading_samples = value
+		downloading_samples_label.visible = is_downloading_samples
+
 
 func _ready():
+	hide()
+	
+	e621_samples_dl_review.images_saved.connect(next_in_samples_queue)
+	add_conflict_line_edit.text_submitted.connect(add_tag_conflict)
+	conflicts_item_list.item_activated.connect(remove_tag_conflict)
 	
 	tag_reviewer_requester.image_created.connect(create_and_display_image)
 	tag_reviewer_requester.image_skipped.connect(increase_progress)
-	open_pic_folder_button.pressed.connect(open_pics_folder)
-#	tag_reviewer_requester.downloads_finished.connect(create_download_textures)
 	tag_reviewer_requester.post_limit = Tagger.settings.e621_review_amount
+	
+	open_pic_folder_button.pressed.connect(open_pics_folder)
 	has_images_check_box.toggled.connect(image_checkbox_toggle)
 
 	tag_suggestion_line_edit.text_submitted.connect(add_suggested)
 	tag_suggestion_list.item_activated.connect(remove_suggested)
-	text_change_timer = Timer.new()
-	text_change_timer.wait_time = 1.0
-	text_change_timer.autostart = false
-	text_change_timer.one_shot = true
+	tag_suggestion_list.search_for_tag.connect(search_for_tag)
+	
 	text_change_timer.timeout.connect(_on_timer_timeout)
-	add_child(text_change_timer)
 	
 	tag_searcher.text_submitted.connect(search_for_tag)
 	tag_search_button.pressed.connect(button_search_pressed)
 	tag_update_button.pressed.connect(update_tag)
 	
-	review_menu.id_pressed.connect(delete_tag)
+	review_menu.id_pressed.connect(activate_menu_bar)
 	
 	parents_item_list.item_activated.connect(remove_parent)
+	parents_item_list.search_for_tag.connect(search_for_tag)
+	
 	add_parent_line_edit.text_submitted.connect(add_parent)
 	
 
@@ -365,10 +536,27 @@ func update_tag() -> void:
 	_tag.tag_priority = int(tag_prio_box.value)
 	_tag.suggestions = suggestions_array.duplicate()
 	_tag.has_pictures = has_images_check_box.button_pressed
+	_tag.conflicts = conflicts_array.duplicate()
 	_tag.save()
 	
 	tag_update_button.text = \"Updated!\"
 	text_change_timer.start()
+
+
+func add_tag_conflict(tag_conflict: String) -> void:
+	tag_conflict = tag_conflict.strip_edges().to_lower()
+	
+	if name_line.text == tag_conflict or conflicts_array.has(tag_conflict) or tag_conflict.is_empty():
+		return
+	
+	conflicts_item_list.add_item(tag_conflict)
+	conflicts_array.append(tag_conflict)
+	add_conflict_line_edit.clear()
+
+
+func remove_tag_conflict(index_id: int) -> void:
+	conflicts_array.remove_at(index_id)
+	conflicts_item_list.remove_item(index_id)
 
 
 func open_pics_folder() -> void:
@@ -387,35 +575,45 @@ func image_checkbox_toggle(new_toggle: bool) -> void:
 		open_pic_folder_button.disabled = true
 
 
-func delete_tag(id_button: int) -> void:
-	if id_button != 1:
-		return
-	
-	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
-	var _tag_path = Tagger.tags_path + _tag.file_name
-	
-	if ResourceLoader.exists(_tag_path):
-		OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
-	
-	var _implication_replace: ImplicationDictionary = Tagger.tag_manager.get_implication(_tag.tag.left(1))
-	_implication_replace.tag_implications.erase(_tag.tag)
-	
-	Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
-
-	_implication_replace.save()
-	
-	for child in lewd_pic_container.get_children():
-		child.lewd_pic_pressed.disconnect(display_big_pic)
-		child.queue_free()
-	
-	if is_instance_valid(thread) and thread.is_started():
-		thread_interrupt = true
-		thread.wait_to_finish()
+func activate_menu_bar(id_button: int) -> void:
+	if id_button == 1: # Deleting a tag
+		var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
+		var _tag_path = Tagger.tags_path + _tag.file_name
 		
-	clear_and_disable()
+		if ResourceLoader.exists(_tag_path):
+			OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
+		
+		var _implication_replace: ImplicationDictionary = Tagger.tag_manager.get_implication(_tag.tag.left(1))
+		_implication_replace.tag_implications.erase(_tag.tag)
+		
+		Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
+
+		_implication_replace.save()
+		
+		for child in lewd_pic_container.get_children():
+			child.lewd_pic_pressed.disconnect(display_big_pic)
+			child.queue_free()
+		
+		if is_instance_valid(thread) and thread.is_started():
+			thread_interrupt = true
+			thread.wait_to_finish()
+			
+		clear_and_disable()
+	
+	elif id_button == 2: # Show conflicts
+		conflict_window.show()
+	
+	elif id_button == 3: # Download samples
+		add_to_download_queue()
+	
+	elif id_button == 4: # Reload page
+		search_for_tag(name_line.text)
 
 
 func clear_and_disable() -> void:
+	conflicts_array.clear()
+	conflicts_item_list.clear()
+	add_conflict_line_edit.editable = false
 	images_to_display.clear()
 	open_pic_folder_button.disabled = true
 	has_images_check_box.button_pressed = false
@@ -435,6 +633,7 @@ func clear_and_disable() -> void:
 	wiki_edit.clear()
 	wiki_edit.editable = false
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
+	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
 	tag_update_button.disabled = true
 
 
@@ -450,18 +649,20 @@ func search_for_tag(new_text: String) -> void:
 		child.lewd_pic_pressed.disconnect(display_big_pic)
 		child.queue_free()
 
-	new_text = new_text.to_lower().strip_edges()
-	
-	new_text = Tagger.alias_database.get_alias(new_text)
-		
 	if new_text.is_empty():
 		clear_and_disable()
 		return
 	
+	new_text = new_text.to_lower().strip_edges()
+	new_text = Tagger.alias_database.get_alias(new_text)
+	
 	if not Tagger.tag_manager.has_tag(new_text):
 		clear_and_disable()
 		return
-
+	
+	conflicts_array.clear()
+	conflicts_item_list.clear()
+	
 	parents.clear()
 	parents_item_list.clear()
 	
@@ -482,6 +683,10 @@ func search_for_tag(new_text: String) -> void:
 		suggestions_array.append(suggested_tag)
 		tag_suggestion_list.add_item(suggested_tag)
 	
+	for conflicting_tag in _tag.conflicts:
+		conflicts_item_list.add_item(conflicting_tag)
+		conflicts_array.append(conflicting_tag)
+	
 	wiki_edit.clear()
 	wiki_edit.text = _tag.wiki_entry
 	tag_prio_box.set_value_no_signal(_tag.tag_priority)
@@ -491,6 +696,7 @@ func search_for_tag(new_text: String) -> void:
 	if has_images_check_box.button_pressed:
 		open_pic_folder_button.disabled = false
 	
+	add_conflict_line_edit.editable = true
 	has_images_check_box.disabled = false
 	tag_suggestion_line_edit.editable = true
 	tag_prio_box.editable = true
@@ -499,6 +705,7 @@ func search_for_tag(new_text: String) -> void:
 	wiki_edit.editable = true
 	tag_update_button.disabled = false
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
 	tag_searcher.clear()
 	
 	preview_progress_load.max_value = 0
@@ -507,10 +714,8 @@ func search_for_tag(new_text: String) -> void:
 	var file_names: Array = DirAccess.get_files_at(Tagger.tag_images_path + _tag.file_name.get_basename())
 	var final_file_names: Array = []
 	
-
 	if _tag.has_pictures and Tagger.settings.can_load_from_local():
 		if DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
-			
 			if Tagger.settings.local_review_amount < file_names.size():
 				for ignored in range(Tagger.settings.local_review_amount):
 					var tag_to_transfer = file_names.pick_random()
@@ -531,11 +736,12 @@ func search_for_tag(new_text: String) -> void:
 
 	
 func add_parent(parent_text: String) -> void:
-	parent_text = parent_text.to_lower()
-	
+	parent_text = parent_text.strip_edges().to_lower()
 	if parent_text.is_empty() or parents.has(parent_text):
 		add_parent_line_edit.clear()
 		return
+	
+	parent_text = parent_text.to_lower()
 	
 	parents.append(parent_text)
 	parents_item_list.add_item(parent_text)
@@ -548,6 +754,11 @@ func remove_parent(parent_id: int) -> void:
 
 
 func add_suggested(new_suggestion: String) -> void:
+	new_suggestion = new_suggestion.strip_edges().to_lower()
+	
+	if new_suggestion.is_empty():
+		return
+	
 	suggestions_array.append(new_suggestion)
 	tag_suggestion_list.add_item(new_suggestion)
 	tag_suggestion_line_edit.clear()
@@ -570,16 +781,22 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 		var tempstring: String = file_name
 		
 		var file_extension = tempstring.get_extension()
-		
-		if file_extension != \"png\" and file_extension != \"jpg\":
+
+		if file_extension != \"png\" and file_extension != \"jpg\" and file_extension != \"gif\":
 			preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
 			continue
 		
-		var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
-		var _new_texture := ImageTexture.create_from_image(_new_image)
-#		images_to_display.append(_new_texture)
-#		preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
-		display_image.call_deferred(_new_texture)
+		if file_extension == \"gif\":
+			if Tagger.settings.load_local_gifs:
+				var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name, 256)
+				new_gif_display.pause = false
+				display_image.call_deferred(new_gif_display)
+			else:
+				preview_progress_load.call_deferred(\"set_value\", preview_progress_load.value + 1)
+		else:
+			var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + \"/\" + file_name)
+			var _new_texture := ImageTexture.create_from_image(_new_image)
+			display_image.call_deferred(_new_texture)
 		
 	display_images.call_deferred()
 
@@ -600,15 +817,23 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 
 
-func create_and_display_image(image_file: Image) -> void:
-	var _new_texture := ImageTexture.create_from_image(image_file)
-	display_image(_new_texture)
+func create_and_display_image(image_file: Texture2D) -> void:
+#	var _new_texture := ImageTexture.create_from_image(image_file)
+	display_image(image_file)
 
 
-func display_image(image_texture: ImageTexture):
+func display_image(image_texture: Texture2D):
 	preview_progress_load.value += 1
+	
 	var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
 	new_child_thumb.texture = image_texture
+	
+	var texture_size: Vector2 = image_texture.get_size()
+	
+	var new_heigth: float = (texture_size.y / texture_size.x) * lewd_pic_container.size.x
+	
+	new_child_thumb.custom_minimum_size = Vector2(lewd_pic_container.size.x, new_heigth)
+	
 	lewd_pic_container.add_child(new_child_thumb)
 	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
 
@@ -620,10 +845,14 @@ func display_images():
 
 func search_web_images(tag_names: String) -> void:
 	tag_reviewer_requester.post_limit = Tagger.settings.e621_review_amount
+	
 	if tag_names.is_empty():
 		tag_names = \"vaporeon -female -ambiguous_gender rating:explicit\"
 	
 	var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+	
+	if Tagger.settings.load_web_gifs:
+		search_tags.append(\"~type:gif\")
 	
 	search_tags.append(tag_names)
 	
@@ -645,15 +874,50 @@ func create_download_textures() -> void:
 		lewd_pic_container.add_child(new_lewd_child)
 
 
-func display_big_pic(texture_to_load: ImageTexture) -> void:
-	full_screen_display.set_picture(texture_to_load)
-	full_screen_display.visible = true
+func display_big_pic(texture_to_load: Texture2D) -> void:
+	full_screen_display.show_picture(texture_to_load)
 
 
-func _exit_tree():
-	if is_instance_valid(thread) and thread.is_started():
-		thread.wait_to_finish()
-		thread = null
+func add_to_download_queue():
+	var tag: Tag = Tagger.tag_manager.get_tag(name_line.text)
+	
+	if samples_downloader_queue.has(Tagger.tag_images_path + tag.file_name.get_basename() + \"/\"):
+		return
+	
+	var search_tags: Array[String] = [\"~type:jpg\", \"~type:png\", \"order:score\"]
+		
+	for blacklist_tag in Tagger.settings_lists.samples_blacklist:
+		if blacklist_tag == name_line.text:
+			continue
+		search_tags.append(\"-\" + blacklist_tag)
+	
+	search_tags.append(name_line.text)
+	
+	samples_downloader_queue[Tagger.tag_images_path + tag.file_name.get_basename() + \"/\"] = search_tags
+	
+	if not is_downloading_samples:
+		download_samples()
+
+
+func download_samples() -> void:
+	is_downloading_samples = true
+	var key_to_download: String = samples_downloader_queue.keys().front()
+	
+	e621_samples_dl_review.match_name = samples_downloader_queue[key_to_download].duplicate()
+	e621_samples_dl_review.save_on_finish = true
+	e621_samples_dl_review.path_to_save_to = key_to_download
+	e621_samples_dl_review.get_posts()
+	samples_downloader_queue.erase(key_to_download)
+
+
+func next_in_samples_queue() -> void:
+	if samples_downloader_queue.is_empty():
+		is_downloading_samples = false
+		return
+	else:
+		await get_tree().create_timer(10.0).timeout
+		download_samples()
+
 "
 
 [sub_resource type="GDScript" id="GDScript_5wvn0"]
@@ -681,16 +945,28 @@ func hide_and_restore() -> void:
 	self.self_modulate = Color.CORNFLOWER_BLUE
 "
 
+[sub_resource type="GDScript" id="GDScript_j50ay"]
+resource_name = "conflict_window_reviewer"
+script/source = "extends Control
+
+@onready var close_conflict_btn: Button = $CloseConflictBtn
+
+
+func _ready():
+	hide()
+	close_conflict_btn.pressed.connect(hide)
+"
+
 [sub_resource type="GDScript" id="GDScript_yvw35"]
 resource_name = "category_searcher"
 script/source = "extends Control
 
 @onready var priority_spin_box: SpinBox = $PrioritySpinBox
 @onready var search_with_prio_button: Button = $PrioritySpinBox/SearchWithPrioButton
-@onready var category_opt_button: OptionButton = $CategoryOptButton
-@onready var search_with_cat_button: Button = $CategoryOptButton/SearchWithCatButton
-@onready var new_cat_opt_button: OptionButton = $Control/NewCatOptButton
-@onready var replace_cat_checkbox: CheckButton = $Control/NewCatOptButton/ReplaceCatCheckbox
+@onready var category_opt_button: OptionButton = $CategoriesMenu
+@onready var search_with_cat_button: Button = $CategoriesMenu/SearchWithCatButton
+@onready var new_cat_opt_button: OptionButton = $Control/CategoriesMenu
+@onready var replace_cat_checkbox: CheckButton = $Control/CategoriesMenu/ReplaceCatCheckbox
 @onready var new_prio_button: SpinBox = $Control/NewPrioButton
 @onready var replace_prio_checkbox: CheckButton = $Control/NewPrioButton/ReplacePrioCheckbox
 @onready var mass_update_button: Button = $Control/MassUpdateButton
@@ -764,9 +1040,9 @@ func mass_edit_selected() -> void:
 		
 		_tag_to_update.save()
 		
-		mass_update_button.text = \"Success\"
-		await  get_tree().create_timer(2.0).timeout
-		mass_update_button.text = \"Update Selected\"
+	mass_update_button.text = \"Success\"
+	await  get_tree().create_timer(1.0).timeout
+	mass_update_button.text = \"Update Selected\"
 	
 
 func replace_category_toggled(new_toggle: bool) -> void:
@@ -810,6 +1086,7 @@ var timer: Timer
 
 
 func _ready():
+	hide()
 	settings_bar.id_pressed.connect(settings_menu_press)
 	
 	open_tags_button.pressed.connect(open_tags_folder)
@@ -888,29 +1165,58 @@ script/source = "extends CheckButton
 @onready var local_load_button: CheckButton = $VBoxContainer/ToggleButtons/LocalLoadButton
 @onready var e_621_spin_box: SpinBox = $VBoxContainer/AmountToLoad/e621SpinBox
 @onready var local_spin_box: SpinBox = $VBoxContainer/AmountToLoad/LocalSpinBox
+@onready var load_gif_e621_check_box: CheckBox = $VBoxContainer/AmountToLoad2/LoadGife6CheckBox
+@onready var load_gif_local_check_box: CheckBox = $VBoxContainer/AmountToLoad2/LoadGifLocalCheckBox2
 
 func _ready():
+	
+	button_pressed = Tagger.settings.load_review_images
+	local_load_button.button_pressed = Tagger.settings.load_review_local
+	e621_load_button.button_pressed = Tagger.settings.load_review_e621
+	load_gif_e621_check_box.button_pressed = Tagger.settings.load_web_gifs
+	load_gif_local_check_box.button_pressed = Tagger.settings.load_local_gifs
 
+	e621_load_button.disabled = not button_pressed
+	local_load_button.disabled = not button_pressed
+	e_621_spin_box.editable = button_pressed and e621_load_button.button_pressed
+	local_spin_box.editable = button_pressed and local_load_button.button_pressed
+	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
+	
+	load_gif_e621_check_box.disabled = not button_pressed or not e621_load_button.button_pressed
+	load_gif_local_check_box.disabled = not button_pressed or not local_load_button.button_pressed
+
+	load_gif_e621_check_box.toggled.connect(toggle_load_gifs_e621)
+	load_gif_local_check_box.toggled.connect(toggle_load_gifs_local)
+	
 	e621_load_button.toggled.connect(toggle_e6_load)
+	e621_load_button.toggled.connect(e_621_spin_box.set_editable)
+	e621_load_button.toggled.connect(e621_gif_checkbox_set_enabled)
 	e_621_spin_box.value_changed.connect(e6_spinbox_value_changed)
 	
 	local_load_button.toggled.connect(toggle_local_load)
+	local_load_button.toggled.connect(local_spin_box.set_editable)
+	local_load_button.toggled.connect(local_gif_checkbox_set_enabled)
 	local_spin_box.value_changed.connect(local_spinbox_value_changed)
 	
-	button_pressed = Tagger.settings.load_review_images
-	
-	e621_load_button.disabled = not button_pressed
-	local_load_button.disabled = not button_pressed
-	e_621_spin_box.editable = button_pressed
-	local_spin_box.editable = button_pressed
-
-	e621_load_button.button_pressed = Tagger.settings.load_review_e621
 	e_621_spin_box.set_value_no_signal(Tagger.settings.e621_review_amount)
 	
-	local_load_button.button_pressed = Tagger.settings.load_review_local
-	local_spin_box.set_value_no_signal(Tagger.settings.local_review_amount)
-
 	self.toggled.connect(toggle_sub_buttons)
+
+
+func toggle_load_gifs_e621(toggle_state: bool) -> void:
+	Tagger.settings.load_web_gifs = toggle_state
+
+
+func toggle_load_gifs_local(toggle_state: bool) -> void:
+	Tagger.settings.load_local_gifs = toggle_state
+
+
+func e621_gif_checkbox_set_enabled(is_enabled: bool) -> void:
+	load_gif_e621_check_box.disabled = not is_enabled
+
+
+func local_gif_checkbox_set_enabled(is_enabled: bool) -> void:
+	load_gif_local_check_box.disabled = not is_enabled
 
 
 func local_spinbox_value_changed(new_value: float) -> void:
@@ -925,10 +1231,15 @@ func e6_spinbox_value_changed(new_value: float) -> void:
 
 func toggle_sub_buttons(toggle_state: bool) -> void:
 	Tagger.settings.load_review_images = toggle_state
+
 	e621_load_button.disabled = not toggle_state
 	local_load_button.disabled = not toggle_state
-	e_621_spin_box.editable = toggle_state
-	local_spin_box.editable = toggle_state
+	
+	e_621_spin_box.editable = e621_load_button.button_pressed and not e621_load_button.disabled
+	local_spin_box.editable = local_load_button.button_pressed and not local_load_button.disabled
+	
+	load_gif_e621_check_box.disabled = not e621_load_button.button_pressed or e621_load_button.disabled
+	load_gif_local_check_box.disabled = not local_load_button.button_pressed or local_load_button.disabled
 
 
 func toggle_e6_load(toggle_state: bool) -> void:
@@ -991,8 +1302,13 @@ func new_alias_update(new_text: String) -> void:
 
 
 func add_alias() -> void:
-	var _old_string: String = old_alias.text
-	var _new_string: String = new_alias.text
+	var _old_string: String = old_alias.text.strip_edges().to_lower()
+	var _new_string: String = new_alias.text.strip_edges().to_lower()
+	
+	if _old_string.is_empty() or _new_string.is_empty():
+		old_alias.clear()
+		new_alias.clear()
+		return
 	
 	_old_string = _old_string.strip_edges().to_lower().replace(\"_\", \" \")
 	_new_string = _new_string.strip_edges().to_lower().replace(\"_\", \" \")
@@ -1024,7 +1340,13 @@ func add_alias() -> void:
 
 
 func remove_alias() -> void:
-	var _old_string: String = old_alias.text
+	var _old_string: String = old_alias.text.strip_edges()
+	
+	if _old_string.is_empty():
+		old_alias.clear()
+		return
+	
+	
 	_old_string = _old_string.strip_edges().to_lower()
 	
 	
@@ -1107,6 +1429,9 @@ func _ready() -> void:
 	
 
 func add_to_invalid_tags(tag_to_add: String) -> void:
+	tag_to_add = tag_to_add.strip_edges().to_lower()
+	if tag_to_add.is_empty():
+		return
 	if not Tagger.settings_lists.invalid_tags.has(tag_to_add):
 		invalid_tag_list.add_item(tag_to_add)
 		Tagger.settings_lists.invalid_tags.append(tag_to_add)
@@ -1140,7 +1465,11 @@ func _ready():
 
 
 func add_constant(new_constant: String) -> void:
-	new_constant = new_constant.to_lower().strip_edges().replace(\"_\", \" \")
+	new_constant = new_constant.to_lower().strip_edges()
+	
+	if new_constant.is_empty():
+		return
+	
 	if constant_tags.has(new_constant):
 		constants_line_edit.clear()
 		return
@@ -1176,7 +1505,12 @@ func _ready():
 
 
 func add_to_sugg_blacklist(new_tag: String) -> void:
-	new_tag = new_tag.strip_edges().to_lower().replace(\"_\", \" \")
+	new_tag = new_tag.strip_edges().to_lower()
+	
+	if new_tag.is_empty():
+		sugg_blacklist_line_edit.clear()
+		return
+	
 	Tagger.settings_lists.suggestion_review_blacklist.append(new_tag)
 	sugg_blacklist_item_list.add_item(new_tag)
 	sugg_blacklist_line_edit.clear()
@@ -1207,7 +1541,10 @@ func _ready():
 
 
 func add_to_blacklist(new_item: String) -> void:
-	new_item = new_item.to_lower().strip_edges().replace(\"_\", \" \")
+	new_item = new_item.to_lower().strip_edges()
+	
+	if new_item.is_empty():
+		return
 	
 	if Tagger.settings_lists.suggestion_blacklist.has(new_item):
 		return
@@ -1244,37 +1581,74 @@ func hide_api_loader() -> void:
 resource_name = "load_api_key"
 script/source = "extends Control
 
+signal successful_load
+
 @onready var api_key: LineEdit = $APIKey
 @onready var reveal_pass_button: CheckButton = $APIKey/RevealPassButton
 @onready var load_button: Button = $LoadButton
 @onready var button_text_timer: Timer = $ButtonTextTimer
+@onready var requesst_verify: HTTPRequest = $HTTPRequest
+
+var valid_file: bool = false
+var auth_header_memory: String = \"\"
 
 
 func _ready():
+	
+	requesst_verify.request_completed.connect(load_response)
+	
+	if FileAccess.file_exists(Tagger.api_file_path):
+		load_button.disabled = false
+		api_key.editable = true
+		reveal_pass_button.disabled = false
+	
 	reveal_pass_button.toggled.connect(reveal_pass)
 	button_text_timer.timeout.connect(restore_button_text)
 	load_button.pressed.connect(load_api_key)
+	api_key.text_submitted.connect(load_api_key)
 
 
-func load_api_key() -> void:
-	if not FileAccess.file_exists(Tagger.api_file_path):
-		api_key.clear()
-		load_button.text = \"Missing File\"
-		button_text_timer.start()
-		return
+func clear_and_disable() -> void:
+	api_key.clear()
+	api_key.editable = false
+	load_button.disabled = true
+	reveal_pass_button.disabled = true
+	reveal_pass_button.button_pressed = false
+	auth_header_memory = \"\"
+
+
+func load_api_key(_text_sumbit: String = \"\") -> void:
 	
-	var config_file := ConfigFile.new()
+	var config_file := FileAccess.open_encrypted_with_pass(Tagger.api_file_path, FileAccess.READ, api_key.text)
 	
-	if config_file.load_encrypted_pass(Tagger.api_file_path, api_key.text) != OK:
+	if config_file:
+		valid_file = true
+		auth_header_memory = config_file.get_as_text()
+		
+		var headers: Array = Tagger.get_headers()
+		headers.append(\"Authorization: \" + auth_header_memory)
+		requesst_verify.request(\"https://e621.net/posts.json?limit=1\", headers)
+		load_button.text = \"Please Wait\"
+	else:
 		api_key.clear()
 		load_button.text = \"Wrong Password\"
 		button_text_timer.start()
-		return
-	
-	Tagger.e6_headers_data[\"Authorization\"] = config_file.get_value(\"API_Key\", \"Authorization\")
-	load_button.text = \"Success!\"
-	api_key.clear()
-	button_text_timer.start()
+
+
+func load_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	if result == 0 and response_code == 200:
+		Tagger.e6_headers_data[\"Authorization\"] = auth_header_memory
+		load_button.text = \"Success!\"
+		button_text_timer.start()
+		clear_and_disable()
+		successful_load.emit()
+	else:
+		if valid_file:
+			load_button.text = \"Invalid API Key\"
+			button_text_timer.start()
+		else:
+			load_button.text = \"Network error\"
+			button_text_timer.start()
 
 
 func restore_button_text() -> void:
@@ -1283,11 +1657,14 @@ func restore_button_text() -> void:
 
 func reveal_pass(is_enabled: bool) -> void:
 	api_key.secret = not is_enabled
+
 "
 
 [sub_resource type="GDScript" id="GDScript_gagfo"]
 resource_name = "login_api"
 script/source = "extends Control
+
+signal successful_log_in
 
 @onready var user_line_edit: LineEdit = $UserLineEdit
 @onready var key_line_edit: LineEdit = $KeyLineEdit
@@ -1295,11 +1672,22 @@ script/source = "extends Control
 @onready var encrypt_key_line_edit: LineEdit = $RememberCheck/EncryptKeyLineEdit
 @onready var reveal_encrypt: CheckButton = $RememberCheck/EncryptKeyLineEdit/RevealEncrypt
 @onready var save_btn: Button = $SaveBTN
+@onready var verify_request: HTTPRequest = $HTTPRequest
+@onready var info_label = $InfoLabel
+@onready var log_in_label = $LogInLabel
+
+var _auth_header: String = \"\"
 
 
 func _ready():
 	reveal_encrypt.toggled.connect(toggle_secret)
 	save_btn.pressed.connect(save_key)
+	remember_check.toggled.connect(remember_key_check_toggle)
+	verify_request.request_completed.connect(verify_login)
+
+
+func remember_key_check_toggle(toggle_state: bool) -> void:
+	encrypt_key_line_edit.editable = toggle_state
 
 
 func toggle_secret(is_hidden: bool) -> void:
@@ -1307,18 +1695,57 @@ func toggle_secret(is_hidden: bool) -> void:
 
 
 func save_key() -> void:
-	Tagger.e6_headers_data[\"Authorization\"] = str(Marshalls.utf8_to_base64(user_line_edit.text + \":\" + key_line_edit.text))
+	if remember_check.button_pressed and encrypt_key_line_edit.text.is_empty():
+		log_in_label.text = \"Password field can't be empty!\"
+		return
 	
-	if remember_check.button_pressed:
-		var save_config_file := ConfigFile.new()
-		save_config_file.set_value(\"API_Key\", \"Authorization\", Tagger.e6_headers_data[\"Authorization\"])
-		save_config_file.save_encrypted_pass(Tagger.api_file_path, encrypt_key_line_edit.text)
-		encrypt_key_line_edit.clear()
+	_auth_header = str(Marshalls.utf8_to_base64(user_line_edit.text.to_lower() + \":\" + key_line_edit.text))
+	var headers: Array = Tagger.get_headers()
+	headers.append(\"Authorization: \" + _auth_header)
+	verify_request.request(\"https://e621.net/posts.json?limit=1\", headers)
 	
+	save_btn.text = \"Please Wait\"
+	
+	await verify_request.request_completed
+	
+	save_btn.text = \"Log-In\"
+	
+	
+func verify_login(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray): #401 = BAD
+	if result == 0 and response_code == 200:
+		successfull_login()
+	else:
+		failed_log_in()
+
+
+func failed_log_in() -> void:
+	log_in_label.text = \"Failed to log in.\"
+
+
+func clear_and_disable() -> void:
+	_auth_header = \"\"
+	save_btn.disabled = true
+	encrypt_key_line_edit.clear()
+	remember_check.disabled = true
 	user_line_edit.clear()
+	user_line_edit.editable = false
 	key_line_edit.clear()
+	key_line_edit.editable = false
+	encrypt_key_line_edit.editable = false
+
+
+func successfull_login() -> void:
 	
-	print(Tagger.e6_headers_data[\"Authorization\"])
+	Tagger.e6_headers_data[\"Authorization\"] = _auth_header
+	
+	log_in_label.text = \"Successfully logged in\"
+	if remember_check.button_pressed:
+		var encrypted_file := FileAccess.open_encrypted_with_pass(Tagger.api_file_path,FileAccess.WRITE, encrypt_key_line_edit.text)
+		encrypted_file.store_string(Tagger.e6_headers_data[\"Authorization\"])
+		encrypted_file.close()
+		
+	clear_and_disable()
+	successful_log_in.emit()
 	
 "
 
@@ -1331,6 +1758,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_3k5pd")
+metadata/_edit_use_anchors_ = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
@@ -1342,10 +1770,12 @@ grow_vertical = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
 [node name="MenuBar" type="MenuBar" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.056
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 64.0
+offset_right = 0.32
 offset_bottom = 48.0
 
 [node name="Menu" type="PopupMenu" parent="MenuBar"]
@@ -1370,24 +1800,29 @@ item_6/id = 1
 [node name="Tagger" type="Control" parent="."]
 visible = false
 layout_mode = 1
-anchors_preset = 15
+anchor_top = 0.067
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 48.0
+offset_top = -0.240002
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_ika2k")
 
 [node name="TaggerMenuBar" type="MenuBar" parent="Tagger"]
-layout_mode = 0
-offset_left = 64.0
-offset_top = -40.0
-offset_right = 125.0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -0.071
+anchor_right = 0.106
+anchor_bottom = -0.071
+offset_left = 72.0
+offset_top = 7.712
+offset_right = 0.319992
+offset_bottom = 47.712
 
 [node name="Tagger" type="PopupMenu" parent="Tagger/TaggerMenuBar"]
-size = Vector2i(250, 170)
+size = Vector2i(250, 197)
 hide_on_checkable_item_selection = false
-item_count = 6
+item_count = 7
 item_0/text = "Tag lists"
 item_0/id = 99
 item_0/disabled = true
@@ -1396,24 +1831,38 @@ item_1/text = "Clear all"
 item_1/id = 0
 item_2/text = "Clear suggestions"
 item_2/id = 1
-item_3/text = "Suggestions"
-item_3/id = 100
-item_3/disabled = true
-item_3/separator = true
-item_4/text = "Enable online suggestions"
-item_4/checkable = 1
-item_4/checked = true
-item_4/id = 2
-item_5/text = "Enable offline suggestions"
+item_3/text = "Conflicts"
+item_3/id = 4
+item_4/text = "Suggestions"
+item_4/id = 100
+item_4/disabled = true
+item_4/separator = true
+item_5/text = "Enable online suggestions"
 item_5/checkable = 1
 item_5/checked = true
-item_5/id = 3
+item_5/id = 2
+item_6/text = "Enable offline suggestions"
+item_6/checkable = 1
+item_6/checked = true
+item_6/id = 3
+
+[node name="ClearTagsButton" type="Button" parent="Tagger"]
+layout_mode = 0
+offset_left = 336.0
+offset_top = -32.0
+offset_right = 385.0
+offset_bottom = -1.0
+text = "Clear"
 
 [node name="CurrentTags" type="Control" parent="Tagger"]
-anchors_preset = 0
-offset_left = 16.0
-offset_right = 448.0
-offset_bottom = 616.0
+layout_mode = 1
+anchor_left = 0.012
+anchor_top = -0.071
+anchor_right = 0.3
+anchor_bottom = 1.0
+offset_left = 0.639999
+offset_top = 47.712
+offset_bottom = -56.0
 
 [node name="ItemList" type="ItemList" parent="Tagger/CurrentTags"]
 layout_mode = 1
@@ -1424,41 +1873,72 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 theme_override_constants/h_separation = 10
+allow_rmb_select = true
 max_columns = 2
 same_column_width = true
 fixed_icon_size = Vector2i(10, 10)
 
+[node name="TaggerContextMenu" type="PopupMenu" parent="Tagger"]
+size = Vector2i(122, 100)
+item_count = 3
+item_0/text = "Create Tag"
+item_0/id = 0
+item_1/text = "Edit Tag"
+item_1/id = 1
+item_2/text = "Remove Tag"
+item_2/id = 2
+
 [node name="LineEdit" type="LineEdit" parent="Tagger"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 624.0
-offset_right = 400.0
-offset_bottom = 655.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.012
+anchor_top = 1.0
+anchor_right = 0.262
+anchor_bottom = 1.0
+offset_left = 0.639999
+offset_top = -48.0
+offset_right = 0.639954
+offset_bottom = -17.0
 placeholder_text = "Add Tag"
 
 [node name="OpenAutoCompleteBTN" type="Button" parent="Tagger"]
-layout_mode = 0
-offset_left = 408.0
-offset_top = 624.0
-offset_right = 448.0
-offset_bottom = 656.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.269
+anchor_top = 1.0
+anchor_right = 0.3
+anchor_bottom = 1.0
+offset_left = -0.320038
+offset_top = -48.0
+offset_bottom = -16.0
 tooltip_text = "Search for tags"
 icon = ExtResource("4_83kdk")
 icon_alignment = 1
 expand_icon = true
 
 [node name="Label" type="Label" parent="Tagger"]
-layout_mode = 0
-offset_left = 464.0
-offset_top = -32.0
-offset_right = 587.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.312
+anchor_top = -0.071
+anchor_right = 0.409
+anchor_bottom = -0.071
+offset_left = 0.639984
+offset_top = 15.712
+offset_right = -0.52002
+offset_bottom = 45.024
 text = "Suggested Tags:"
 
 [node name="Suggested" type="Control" parent="Tagger"]
-anchors_preset = 0
-offset_left = 464.0
-offset_right = 656.0
-offset_bottom = 616.0
+layout_mode = 1
+anchor_left = 0.312
+anchor_top = -0.071
+anchor_right = 0.512
+anchor_bottom = 1.0
+offset_left = 0.639984
+offset_top = 47.712
+offset_right = 0.639954
+offset_bottom = -56.0
 metadata/_edit_group_ = true
 
 [node name="SuggestedList" type="ItemList" parent="Tagger/Suggested"]
@@ -1471,11 +1951,37 @@ grow_vertical = 2
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 same_column_width = true
 
+[node name="Label2" type="Label" parent="Tagger"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.525
+anchor_top = -0.071
+anchor_right = 0.603
+anchor_bottom = -0.071
+offset_left = -6.10352e-05
+offset_top = 15.712
+offset_right = 0.159912
+offset_bottom = 47.712
+text = "Implied tags:"
+metadata/_edit_use_anchors_ = true
+
+[node name="ClearSuggestedButton" type="Button" parent="Tagger"]
+layout_mode = 0
+offset_left = 608.0
+offset_top = -32.0
+offset_right = 657.0
+offset_bottom = -1.0
+text = "Clear"
+
 [node name="Implied Tags" type="Control" parent="Tagger"]
-anchors_preset = 0
-offset_left = 672.0
-offset_right = 864.0
-offset_bottom = 616.0
+layout_mode = 1
+anchor_left = 0.525
+anchor_top = -0.071
+anchor_right = 0.725
+anchor_bottom = 1.0
+offset_left = -6.10352e-05
+offset_top = 47.712
+offset_bottom = -56.0
 
 [node name="ImpliedList" type="ItemList" parent="Tagger/Implied Tags"]
 layout_mode = 1
@@ -1486,56 +1992,121 @@ grow_horizontal = 2
 grow_vertical = 2
 same_column_width = true
 
-[node name="Label" type="Label" parent="Tagger/Implied Tags"]
-layout_mode = 0
-offset_top = -32.0
-offset_right = 95.0
-text = "Implied tags:"
-
 [node name="CleanSuggestionsButton" type="Button" parent="Tagger"]
-layout_mode = 0
-offset_left = 464.0
-offset_top = 624.0
-offset_right = 864.0
-offset_bottom = 655.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.312
+anchor_top = 1.0
+anchor_right = 0.725
+anchor_bottom = 1.0
+offset_left = 0.639984
+offset_top = -48.0
+offset_bottom = -17.0
 tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
 text = "Clean Suggestions"
 
-[node name="GenerateList" type="Button" parent="Tagger"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 880.0
-offset_top = 624.0
-offset_right = 1088.0
-offset_bottom = 655.0
-text = "Generate List"
+[node name="FinalList" type="Control" parent="Tagger"]
+layout_mode = 1
+anchor_left = 0.737
+anchor_top = -0.071
+anchor_right = 0.987
+anchor_bottom = 1.0
+offset_left = 0.639954
+offset_top = 87.712
+offset_right = 0.639893
+offset_bottom = -56.0
 
-[node name="CopyToClipboard" type="Button" parent="Tagger"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 1104.0
-offset_top = 624.0
-offset_right = 1264.0
-offset_bottom = 655.0
-text = "Copy to Clipboard"
-
-[node name="FinalTagList" type="TextEdit" parent="Tagger"]
-layout_mode = 0
-offset_left = 880.0
-offset_top = 40.0
-offset_right = 1264.0
-offset_bottom = 616.0
+[node name="FinalTagList" type="TextEdit" parent="Tagger/FinalList"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 placeholder_text = "Final tags"
 editable = false
 wrap_mode = 1
 scroll_smooth = true
 
+[node name="GenerateList" type="Button" parent="Tagger"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7375
+anchor_top = 1.0
+anchor_right = 0.85
+anchor_bottom = 1.0
+offset_top = -48.0
+offset_bottom = -17.0
+text = "Generate List"
+metadata/_edit_use_anchors_ = true
+
+[node name="CopyToClipboard" type="Button" parent="Tagger"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.862
+anchor_top = 1.0
+anchor_right = 0.9875
+anchor_bottom = 1.0
+offset_left = 0.639893
+offset_top = -48.0
+offset_bottom = -17.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Copy to Clipboard"
+metadata/_edit_use_anchors_ = true
+
+[node name="Label3" type="Label" parent="Tagger"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.737
+anchor_top = -0.071
+anchor_right = 0.737
+anchor_bottom = -0.071
+offset_left = 0.639893
+offset_top = 47.712
+offset_right = 128.64
+offset_bottom = 79.712
+text = "Target platform:"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="TargetPlatformButton" type="OptionButton" parent="Tagger"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.737
+anchor_top = -0.071
+anchor_right = 0.987
+anchor_bottom = -0.071
+offset_left = 136.64
+offset_top = 47.712
+offset_right = 0.639893
+offset_bottom = 79.712
+alignment = 1
+item_count = 3
+selected = 0
+popup/item_0/text = "e621/Itaku"
+popup/item_0/id = 0
+popup/item_1/text = "Postybirb"
+popup/item_1/id = 1
+popup/item_2/text = "Hydrus"
+popup/item_2/id = 2
+script = ExtResource("5_hkklg")
+metadata/_edit_use_anchors_ = true
+
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
 visible = false
-anchors_preset = 0
-offset_top = -32.0
-offset_right = 1280.0
-offset_bottom = 688.0
+layout_mode = 1
+anchor_top = -0.071
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -0.287998
+offset_right = 1.0
 
 [node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete"]
 layout_mode = 1
@@ -1547,12 +2118,16 @@ grow_vertical = 2
 color = Color(0.184314, 0.184314, 0.184314, 0.588235)
 
 [node name="QuickSearch" type="Control" parent="Tagger/AddAutoComplete"]
-anchors_preset = 0
-offset_left = 16.0
-offset_top = 352.0
-offset_right = 576.0
-offset_bottom = 664.0
+layout_mode = 1
+anchor_left = 0.012
+anchor_top = 1.0
+anchor_right = 0.45
+anchor_bottom = 1.0
+offset_left = 0.639999
+offset_top = -368.0
+offset_bottom = -56.0
 script = SubResource("GDScript_6n0ht")
+metadata/_edit_use_anchors_ = true
 
 [node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete/QuickSearch"]
 layout_mode = 1
@@ -1577,20 +2152,27 @@ grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
 
 [node name="AutoCompleteItemList" type="ItemList" parent="Tagger/AddAutoComplete/QuickSearch"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.998
+anchor_bottom = 1.0
 offset_left = 24.0
 offset_top = 16.0
-offset_right = 536.0
-offset_bottom = 256.0
+offset_right = -22.88
+offset_bottom = -56.0
 select_mode = 1
 fixed_icon_size = Vector2i(10, 10)
 
 [node name="SomeFixOption" type="OptionButton" parent="Tagger/AddAutoComplete/QuickSearch"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 0.212
+anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 264.0
-offset_right = 119.0
-offset_bottom = 295.0
+offset_top = -48.0
+offset_right = 0.279991
+offset_bottom = -17.0
 item_count = 3
 selected = 0
 popup/item_0/text = "Prefix_"
@@ -1599,216 +2181,323 @@ popup/item_1/text = "_Sufix"
 popup/item_1/id = 1
 popup/item_2/text = "_Both_"
 popup/item_2/id = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="AutoComLineEdit" type="LineEdit" parent="Tagger/AddAutoComplete/QuickSearch"]
-layout_mode = 0
-offset_left = 128.0
-offset_top = 264.0
-offset_right = 368.0
-offset_bottom = 296.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.227
+anchor_top = 1.0
+anchor_right = 0.657
+anchor_bottom = 1.0
+offset_left = 0.87999
+offset_top = -48.0
+offset_right = 0.0799866
+offset_bottom = -16.0
 placeholder_text = "Enter tag"
+metadata/_edit_use_anchors_ = true
 
 [node name="CancelAutoButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
-layout_mode = 0
-offset_left = 472.0
-offset_top = 264.0
-offset_right = 536.0
-offset_bottom = 295.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.842857
+anchor_top = 1.0
+anchor_right = 0.998
+anchor_bottom = 1.0
+offset_top = -48.0
+offset_right = -22.88
+offset_bottom = -17.0
 text = "Close"
+metadata/_edit_use_anchors_ = true
 
 [node name="e621RequesterQuickSearch" parent="Tagger/AddAutoComplete/QuickSearch" instance=ExtResource("2_4gepn")]
 max_parallel_requests = 0
 timeout_time = 5.0
+post_limit = 25
 order = "count"
 
 [node name="AddSelectedButton" type="Button" parent="Tagger/AddAutoComplete/QuickSearch"]
-layout_mode = 0
-offset_left = 376.0
-offset_top = 264.0
-offset_right = 464.0
-offset_bottom = 295.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.671429
+anchor_top = 1.0
+anchor_right = 0.829
+anchor_bottom = 1.0
+offset_top = -48.0
+offset_right = -0.240021
+offset_bottom = -17.0
 tooltip_text = "Adds all selected tags to the main list"
 text = "Add"
+metadata/_edit_use_anchors_ = true
 
 [node name="RequestCooldownTimer" type="Timer" parent="Tagger/AddAutoComplete"]
 one_shot = true
 
-[node name="TargetPlatformButton" type="OptionButton" parent="Tagger"]
-layout_mode = 0
-offset_left = 1016.0
-offset_right = 1264.0
-offset_bottom = 31.0
-alignment = 1
-item_count = 3
-selected = 0
-popup/item_0/text = "e621/Itaku"
-popup/item_0/id = 0
-popup/item_1/text = "Postybirb"
-popup/item_1/id = 1
-popup/item_2/text = "Hydrus"
-popup/item_2/id = 2
-script = ExtResource("5_hkklg")
-
-[node name="Label" type="Label" parent="Tagger/TargetPlatformButton"]
-layout_mode = 0
-offset_left = -144.0
-offset_right = -8.0
-offset_bottom = 32.0
-text = "Target platform:"
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="ListLoader" type="Control" parent="."]
+[node name="ConflictingTags" type="Control" parent="Tagger"]
 visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -192.0
+offset_top = -304.0
+offset_right = 192.0
+offset_bottom = 208.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_trwfl")
+
+[node name="BGRect" type="ColorRect" parent="Tagger/ConflictingTags"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.643
+anchor_top = -0.7
+anchor_right = -0.643
+anchor_bottom = -0.7
+offset_left = -201.088
+offset_top = 278.4
+offset_right = 1078.91
+offset_bottom = 998.4
+color = Color(0.160784, 0.172549, 0.196078, 0.392157)
+
+[node name="ColorRect" type="ColorRect" parent="Tagger/ConflictingTags"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.454902, 0.478431, 0.52549, 1)
+
+[node name="ColorRect2" type="ColorRect" parent="Tagger/ConflictingTags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="Label" type="Label" parent="Tagger/ConflictingTags"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 184.0
+offset_bottom = 42.0
+text = "Conflicting tags:"
+vertical_alignment = 1
+
+[node name="ConflictingTagsTree" type="Tree" parent="Tagger/ConflictingTags"]
+layout_mode = 0
+offset_left = 24.0
 offset_top = 48.0
+offset_right = 360.0
+offset_bottom = 456.0
+
+[node name="CheckForConflictsButton" type="Button" parent="Tagger/ConflictingTags"]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 464.0
+offset_right = 367.0
+offset_bottom = 495.0
+text = "Check for conflicts"
+
+[node name="CloseConflictButton" type="Button" parent="Tagger/ConflictingTags"]
+layout_mode = 0
+offset_left = 328.0
+offset_top = 8.0
+offset_right = 376.0
+offset_bottom = 39.0
+text = "X"
+
+[node name="ListLoader" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchor_top = 0.067
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -0.240002
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_nde26")
 
 [node name="Label" type="Label" parent="ListLoader"]
-layout_mode = 0
-offset_left = 720.0
-offset_top = -24.0
-offset_right = 782.0
-offset_bottom = 2.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.562
+anchor_top = -0.071
+anchor_right = 0.612
+anchor_bottom = -0.071
+offset_left = 0.639954
+offset_top = 15.712
+offset_right = 0.639954
+offset_bottom = 47.712
 text = "Preview"
+vertical_alignment = 1
 
 [node name="InputTags" type="TextEdit" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 8.0
-offset_right = 704.0
-offset_bottom = 600.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.006
+anchor_top = -0.071
+anchor_right = 0.55
+anchor_bottom = 1.0
+offset_left = 0.32
+offset_top = 47.712
+offset_bottom = -72.0
 wrap_mode = 1
 
 [node name="Separator" type="TextEdit" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 8.0
-offset_top = 616.0
-offset_right = 120.0
-offset_bottom = 656.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.006
+anchor_top = 1.0
+anchor_right = 0.094
+anchor_bottom = 1.0
+offset_left = 0.32
+offset_top = -56.0
+offset_right = -0.320007
+offset_bottom = -16.0
 placeholder_text = "Separator"
 draw_spaces = true
+metadata/_edit_use_anchors_ = true
 
 [node name="Whitespace" type="TextEdit" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 128.0
-offset_top = 616.0
-offset_right = 240.0
-offset_bottom = 656.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 1.0
+anchor_right = 0.1875
+anchor_bottom = 1.0
+offset_top = -56.0
+offset_bottom = -16.0
 placeholder_text = "Whitespace"
 draw_spaces = true
+metadata/_edit_use_anchors_ = true
 
 [node name="TransferTags" type="Button" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 256.0
-offset_top = 616.0
-offset_right = 576.0
-offset_bottom = 648.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.2
+anchor_top = 1.0
+anchor_right = 0.45
+anchor_bottom = 1.0
+offset_top = -56.0
+offset_bottom = -16.0
 text = "Transfer tags"
+metadata/_edit_use_anchors_ = true
 
 [node name="CheckBox" type="CheckBox" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 584.0
-offset_top = 616.0
-offset_right = 700.0
-offset_bottom = 648.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.456
+anchor_top = 1.0
+anchor_right = 0.550125
+anchor_bottom = 1.0
+offset_left = 0.319946
+offset_top = -56.0
+offset_right = -0.160034
+offset_bottom = -16.0
 text = "Replace list"
+alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="PreviewTags" type="Button" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 720.0
-offset_top = 624.0
-offset_right = 1264.0
-offset_bottom = 656.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.562
+anchor_top = 1.0
+anchor_right = 0.9875
+anchor_bottom = 1.0
+offset_left = 0.639954
+offset_top = -56.0
+offset_bottom = -16.0
 text = "Generate preview"
+metadata/_edit_use_anchors_ = true
 
 [node name="PreviewList" type="ItemList" parent="ListLoader"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 720.0
-offset_right = 1264.0
-offset_bottom = 600.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.562
+anchor_top = -0.071
+anchor_right = 0.987
+anchor_bottom = 1.0
+offset_left = 0.639954
+offset_top = 47.712
+offset_right = 0.639893
+offset_bottom = -72.0
 theme_override_constants/h_separation = 10
-max_columns = 0
+max_columns = 3
+same_column_width = true
+metadata/_edit_use_anchors_ = true
 
 [node name="TagCreator" type="Control" parent="."]
 visible = false
-anchors_preset = 0
-offset_top = 64.0
-offset_right = 1280.0
-offset_bottom = 720.0
+layout_mode = 1
+anchor_top = 0.0888889
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = SubResource("GDScript_w31il")
+metadata/_edit_use_anchors_ = true
 
 [node name="TagCreator" type="MenuBar" parent="TagCreator"]
 layout_mode = 0
-offset_left = 72.0
-offset_top = -56.0
-offset_right = 112.0
-offset_bottom = -16.0
+anchor_left = 0.05625
+anchor_top = -0.0853659
+anchor_right = 0.132813
+anchor_bottom = -0.0243902
+offset_right = -58.0
+metadata/_edit_use_anchors_ = true
 
 [node name="Tag Creator" type="PopupMenu" parent="TagCreator/TagCreator"]
 title = "Tag Creator"
 size = Vector2i(280, 100)
-item_count = 2
-item_0/text = "Options"
-item_0/id = 0
-item_0/separator = true
-item_1/text = "Open image folder on creaton"
-item_1/checkable = 1
-item_1/checked = true
-item_1/id = 1
+item_count = 3
+item_0/text = "Conflicts"
+item_0/id = 2
+item_1/text = "Options"
+item_1/id = 0
+item_1/separator = true
+item_2/text = "Open image folder on creaton"
+item_2/checkable = 1
+item_2/checked = true
+item_2/id = 1
 
 [node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 0
-offset_left = 32.0
-offset_right = 368.0
-offset_bottom = 31.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = -0.0121951
+anchor_right = 0.23125
+anchor_bottom = 0.035061
+offset_top = 8.00001
+offset_right = 24.0
+offset_bottom = 8.00001
 placeholder_text = "Tag to add"
 
-[node name="CategoriesMenu" type="OptionButton" parent="TagCreator"]
+[node name="CategoriesMenu" parent="TagCreator" instance=ExtResource("7_7hodc")]
 layout_mode = 0
-offset_left = 112.0
-offset_top = 48.0
+offset_left = 104.0
+offset_top = 56.0
 offset_right = 256.0
-offset_bottom = 80.0
-item_count = 11
-selected = 0
-popup/item_0/text = "General"
-popup/item_0/id = 0
-popup/item_1/text = "Artist"
-popup/item_1/id = 1
-popup/item_2/text = "Series"
-popup/item_2/id = 2
-popup/item_3/text = "Character"
-popup/item_3/id = 3
-popup/item_4/text = "Species"
-popup/item_4/id = 4
-popup/item_5/text = "Gender"
-popup/item_5/id = 5
-popup/item_6/text = "Lore"
-popup/item_6/id = 6
-popup/item_7/text = "Genitals"
-popup/item_7/id = 7
-popup/item_8/text = "Objects"
-popup/item_8/id = 8
-popup/item_9/text = "Clothing"
-popup/item_9/id = 9
-popup/item_10/text = "Accesories"
-popup/item_10/id = 10
+offset_bottom = 88.0
 
-[node name="Label" type="Label" parent="TagCreator/CategoriesMenu"]
+[node name="CategoriesLabel" type="Label" parent="TagCreator/CategoriesMenu"]
 layout_mode = 0
-offset_left = -88.0
+offset_left = -80.0
 offset_bottom = 32.0
 text = "Category:"
 vertical_alignment = 1
@@ -1816,9 +2505,9 @@ vertical_alignment = 1
 [node name="TagPrioBox" type="SpinBox" parent="TagCreator"]
 layout_mode = 0
 offset_left = 352.0
-offset_top = 48.0
+offset_top = 56.0
 offset_right = 512.0
-offset_bottom = 79.0
+offset_bottom = 87.0
 allow_greater = true
 allow_lesser = true
 alignment = 1
@@ -1833,112 +2522,227 @@ vertical_alignment = 1
 
 [node name="AddParentLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 536.0
-offset_right = 256.0
-offset_bottom = 576.0
+anchor_left = 0.01875
+anchor_top = 0.817073
+anchor_right = 0.2
+anchor_bottom = 0.878049
 placeholder_text = "Add new parent tag"
+metadata/_edit_use_anchors_ = true
 
 [node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
 layout_mode = 0
-offset_left = 272.0
-offset_top = 104.0
-offset_right = 496.0
-offset_bottom = 528.0
+anchor_left = 0.2125
+anchor_top = 0.158537
+anchor_right = 0.39375
+anchor_bottom = 0.804878
+metadata/_edit_use_anchors_ = true
 
 [node name="SugestionLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
-offset_left = 272.0
-offset_top = 536.0
-offset_right = 496.0
-offset_bottom = 576.0
+anchor_left = 0.2125
+anchor_top = 0.817073
+anchor_right = 0.39375
+anchor_bottom = 0.878049
 tooltip_text = "Tags to suggest if this tag is used."
 placeholder_text = "Suggestions"
+metadata/_edit_use_anchors_ = true
 
 [node name="WikiInfo" type="TextEdit" parent="TagCreator"]
 layout_mode = 0
-offset_left = 520.0
-offset_right = 1256.0
-offset_bottom = 576.0
+anchor_left = 0.40625
+anchor_right = 0.98125
+anchor_bottom = 0.878049
 placeholder_text = "Wiki Info"
 wrap_mode = 1
 scroll_smooth = true
+metadata/_edit_use_anchors_ = true
 
 [node name="CreateTagsButton" type="Button" parent="TagCreator"]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 592.0
-offset_right = 1256.0
-offset_bottom = 640.0
+anchor_left = 0.01875
+anchor_top = 0.902439
+anchor_right = 0.98125
+anchor_bottom = 0.97561
 disabled = true
 text = "Create Tag"
+metadata/_edit_use_anchors_ = true
 
 [node name="ParentItemList" type="ItemList" parent="TagCreator"]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 104.0
-offset_right = 256.0
-offset_bottom = 528.0
+anchor_left = 0.01875
+anchor_top = 0.158537
+anchor_right = 0.2
+anchor_bottom = 0.804878
+metadata/_edit_use_anchors_ = true
 
 [node name="HasImagesCheckBox" type="CheckBox" parent="TagCreator"]
-layout_mode = 0
-offset_left = 376.0
-offset_right = 493.0
-offset_bottom = 31.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.2625
+anchor_top = 0.0121951
+anchor_right = 0.353906
+anchor_bottom = 0.0594512
+offset_top = 8.0
+offset_bottom = 8.0
 tooltip_text = "If the tag has images associated to it. When reviewing it'll try to load images."
 button_pressed = true
 text = "Has Images"
 
+[node name="ConflictWindow" type="Control" parent="TagCreator"]
+visible = false
+layout_mode = 1
+anchor_top = 0.012
+anchor_bottom = 0.012
+offset_top = -7.872
+offset_right = 1280.0
+offset_bottom = 648.128
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_plco6")
+
+[node name="BG" type="ColorRect" parent="TagCreator/ConflictWindow"]
+layout_mode = 0
+anchor_top = -0.097561
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.156863, 0.168627, 0.192157, 0.588235)
+metadata/_edit_use_anchors_ = true
+
+[node name="DarkBack" type="ColorRect" parent="TagCreator/ConflictWindow"]
+layout_mode = 0
+anchor_left = 0.38125
+anchor_top = 0.121951
+anchor_right = 0.61875
+anchor_bottom = 0.792683
+color = Color(0.603922, 0.627451, 0.670588, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="ColorRect" type="ColorRect" parent="TagCreator/ConflictWindow"]
+layout_mode = 0
+anchor_left = 0.3875
+anchor_top = 0.134146
+anchor_right = 0.6125
+anchor_bottom = 0.780488
+offset_bottom = 3.05176e-05
+color = Color(0.378906, 0.40625, 0.453125, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="ConflictsLineEdit" type="LineEdit" parent="TagCreator/ConflictWindow"]
+layout_mode = 0
+anchor_left = 0.4
+anchor_top = 0.695122
+anchor_right = 0.6
+anchor_bottom = 0.756098
+placeholder_text = "Add conflict"
+metadata/_edit_use_anchors_ = true
+
+[node name="ConflictItemList" type="ItemList" parent="TagCreator/ConflictWindow"]
+layout_mode = 0
+anchor_left = 0.4
+anchor_top = 0.195122
+anchor_right = 0.6
+anchor_bottom = 0.682927
+same_column_width = true
+metadata/_edit_use_anchors_ = true
+
+[node name="CloseConflictButton" type="Button" parent="TagCreator/ConflictWindow"]
+layout_mode = 0
+anchor_left = 0.58125
+anchor_top = 0.134146
+anchor_right = 0.6125
+anchor_bottom = 0.181402
+text = "x"
+metadata/_edit_use_anchors_ = true
+
+[node name="DownloadSamplesCheckBox" type="CheckBox" parent="TagCreator"]
+layout_mode = 0
+offset_left = 336.0
+offset_top = -16.0
+offset_right = 511.0
+offset_bottom = 15.0
+tooltip_text = "If enabled some samples for the tags will be downloaded on tag creation."
+text = "Download samples"
+
+[node name="e621SamplesDownloader" parent="TagCreator" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 1
+timeout_time = 10.0
+post_limit = 5
+get_sample_if_available = false
+
+[node name="SamplesCooldownTimer" type="Timer" parent="TagCreator"]
+wait_time = 2.0
+one_shot = true
+
 [node name="TagReviewer" type="Control" parent="."]
 visible = false
-anchors_preset = 0
-offset_left = 1.0
-offset_top = 40.0
-offset_right = 1281.0
-offset_bottom = 720.0
+layout_mode = 1
+anchor_left = 0.001
+anchor_top = 0.056
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -0.28
+offset_top = -0.32
+offset_right = 1.0
 mouse_filter = 1
 script = SubResource("GDScript_lfssu")
+metadata/_edit_use_anchors_ = true
 
 [node name="ReviewerMenuBar" type="MenuBar" parent="TagReviewer"]
-layout_mode = 0
-offset_left = 71.0
-offset_top = -32.0
-offset_right = 134.0
-offset_bottom = 8.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.001
+anchor_top = -0.059
+anchor_right = 0.105
+anchor_bottom = -0.059
+offset_left = 72.28
+offset_top = 8.12
+offset_right = -0.400009
+offset_bottom = 48.12
 
 [node name="Review" type="PopupMenu" parent="TagReviewer/ReviewerMenuBar"]
-size = Vector2i(172, 143)
+size = Vector2i(175, 116)
 hide_on_checkable_item_selection = false
-item_count = 2
+item_count = 5
 item_0/text = "Tags"
 item_0/id = 0
 item_0/separator = true
-item_1/text = "Delete Tag"
-item_1/id = 1
-item_1/disabled = true
+item_1/text = "Reload tag"
+item_1/id = 4
+item_2/text = "Download samples"
+item_2/id = 3
+item_3/text = "Tag conflicts"
+item_3/id = 2
+item_3/disabled = true
+item_4/text = "Delete Tag"
+item_4/id = 1
+item_4/disabled = true
 
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
-layout_mode = 0
-offset_left = 7.0
-offset_top = 24.0
-offset_right = 286.0
-offset_bottom = 55.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.00546875
+anchor_top = 0.0352941
+anchor_right = 0.223438
+anchor_bottom = 0.0808824
+metadata/_edit_use_anchors_ = true
 
 [node name="TagSearchButton" type="Button" parent="TagReviewer/TagSearcher"]
 layout_mode = 0
-offset_left = 287.0
-offset_right = 399.0
-offset_bottom = 31.0
+anchor_left = 1.02867
+anchor_right = 1.43011
+anchor_bottom = 1.0
 text = "Search"
+metadata/_edit_use_anchors_ = true
 
 [node name="NameLine" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 103.0
-offset_top = 72.0
-offset_right = 278.0
-offset_bottom = 103.0
+anchor_left = 0.0804688
+anchor_top = 0.105882
+anchor_right = 0.217187
+anchor_bottom = 0.151471
 alignment = 1
 editable = false
+metadata/_edit_use_anchors_ = true
 
 [node name="TagName" type="Label" parent="TagReviewer/NameLine"]
 layout_mode = 0
@@ -1950,14 +2754,15 @@ vertical_alignment = 1
 
 [node name="HasImagesCheckBox" type="CheckBox" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 286.0
-offset_top = 72.0
-offset_right = 406.0
-offset_bottom = 103.0
+anchor_left = 0.223438
+anchor_top = 0.105882
+anchor_right = 0.317187
+anchor_bottom = 0.151471
 disabled = true
 text = "Has images"
+metadata/_edit_use_anchors_ = true
 
-[node name="CategoriesMenu" type="OptionButton" parent="TagReviewer"]
+[node name="CategoriesMenu" parent="TagReviewer" instance=ExtResource("7_7hodc")]
 layout_mode = 0
 offset_left = 127.0
 offset_top = 112.0
@@ -1965,30 +2770,6 @@ offset_right = 407.0
 offset_bottom = 144.0
 disabled = true
 alignment = 1
-item_count = 11
-selected = 0
-popup/item_0/text = "General"
-popup/item_0/id = 0
-popup/item_1/text = "Artist"
-popup/item_1/id = 1
-popup/item_2/text = "Series"
-popup/item_2/id = 2
-popup/item_3/text = "Character"
-popup/item_3/id = 3
-popup/item_4/text = "Species"
-popup/item_4/id = 4
-popup/item_5/text = "Gender"
-popup/item_5/id = 5
-popup/item_6/text = "Lore"
-popup/item_6/id = 6
-popup/item_7/text = "Genitals"
-popup/item_7/id = 7
-popup/item_8/text = "Objects"
-popup/item_8/id = 8
-popup/item_9/text = "Clothing"
-popup/item_9/id = 9
-popup/item_10/text = "Accesories"
-popup/item_10/id = 10
 
 [node name="CategoryLabel" type="Label" parent="TagReviewer/CategoriesMenu"]
 layout_mode = 0
@@ -2000,15 +2781,16 @@ vertical_alignment = 1
 
 [node name="TagPrioBox" type="SpinBox" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 79.0
-offset_top = 160.0
-offset_right = 223.0
-offset_bottom = 191.0
+anchor_left = 0.0617188
+anchor_top = 0.235294
+anchor_right = 0.174219
+anchor_bottom = 0.280882
 tooltip_text = "Refers to what tags will come first when GENERATING the tag list. The items added first are the ones of highest priority."
 allow_greater = true
 allow_lesser = true
 alignment = 1
 editable = false
+metadata/_edit_use_anchors_ = true
 
 [node name="Priority" type="Label" parent="TagReviewer/TagPrioBox"]
 layout_mode = 0
@@ -2020,105 +2802,139 @@ vertical_alignment = 1
 
 [node name="OpenPicFolder" type="Button" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 239.0
-offset_top = 160.0
-offset_right = 407.0
-offset_bottom = 191.0
+anchor_left = 0.186719
+anchor_top = 0.235294
+anchor_right = 0.317969
+anchor_bottom = 0.280882
 disabled = true
 text = "Open picture folder"
+metadata/_edit_use_anchors_ = true
 
 [node name="ParentsLabel" type="Label" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 7.0
-offset_top = 208.0
-offset_right = 119.0
-offset_bottom = 240.0
+anchor_left = 0.00546875
+anchor_top = 0.305882
+anchor_right = 0.0929687
+anchor_bottom = 0.352941
+offset_top = -1.52588e-05
 text = "Parent Tags:"
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="ParentsItemList" type="ItemList" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 7.0
-offset_top = 240.0
-offset_right = 198.0
-offset_bottom = 552.0
+anchor_left = 0.00546875
+anchor_top = 0.352941
+anchor_right = 0.154687
+anchor_bottom = 0.811765
+script = ExtResource("7_rbsko")
+metadata/_edit_use_anchors_ = true
+
+[node name="ParentsItemsPopupMenu" type="PopupMenu" parent="TagReviewer/ParentsItemList"]
+size = Vector2i(108, 62)
+item_count = 2
+item_0/text = "Search for"
+item_0/id = 0
+item_1/text = "Create tag"
+item_1/id = 1
 
 [node name="AddParentLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 7.0
-offset_top = 560.0
-offset_right = 198.0
-offset_bottom = 599.0
+anchor_left = 0.00546875
+anchor_top = 0.823529
+anchor_right = 0.154687
+anchor_bottom = 0.880882
 placeholder_text = "Add new parent"
 editable = false
+metadata/_edit_use_anchors_ = true
 
 [node name="TagSuggestionLabel" type="Label" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 214.0
-offset_top = 208.0
-offset_right = 334.0
-offset_bottom = 240.0
+anchor_left = 0.167187
+anchor_top = 0.305882
+anchor_right = 0.260938
+anchor_bottom = 0.352941
+offset_top = -1.52588e-05
 text = "Suggestions:"
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="TagSuggestionList" type="ItemList" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 214.0
-offset_top = 240.0
-offset_right = 406.0
-offset_bottom = 552.0
+anchor_left = 0.167187
+anchor_top = 0.352941
+anchor_right = 0.317187
+anchor_bottom = 0.811765
+script = ExtResource("8_q7svj")
+metadata/_edit_use_anchors_ = true
+
+[node name="SuggestionsItemsPopUpMenu" type="PopupMenu" parent="TagReviewer/TagSuggestionList"]
+size = Vector2i(108, 62)
+item_count = 2
+item_0/text = "Search for"
+item_0/id = 0
+item_1/text = "Create tag"
+item_1/id = 1
 
 [node name="TagSuggestionLineEdit" type="LineEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 214.0
-offset_top = 560.0
-offset_right = 406.0
-offset_bottom = 600.0
+anchor_left = 0.167187
+anchor_top = 0.823529
+anchor_right = 0.317187
+anchor_bottom = 0.882353
 placeholder_text = "Add new suggestion"
 editable = false
+metadata/_edit_use_anchors_ = true
+
+[node name="WikiLabel" type="Label" parent="TagReviewer"]
+layout_mode = 0
+anchor_left = 0.329688
+anchor_top = -0.0117647
+anchor_right = 0.417188
+anchor_bottom = 0.0352941
+text = "Wiki Entry:"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="WikiEdit" type="TextEdit" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 422.0
-offset_top = 24.0
-offset_right = 950.0
-offset_bottom = 664.0
+anchor_left = 0.329688
+anchor_top = 0.0352941
+anchor_right = 0.699219
+anchor_bottom = 0.976471
 placeholder_text = "Wiki Info"
 editable = false
 wrap_mode = 1
-
-[node name="WikiLabel" type="Label" parent="TagReviewer/WikiEdit"]
-layout_mode = 0
-offset_top = -32.0
-offset_right = 112.0
-text = "Wiki Entry:"
-vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="TagUpdate" type="Button" parent="TagReviewer"]
 layout_mode = 0
-offset_left = 7.0
-offset_top = 616.0
-offset_right = 406.0
-offset_bottom = 664.0
+anchor_left = 0.00546875
+anchor_top = 0.905882
+anchor_right = 0.317187
+anchor_bottom = 0.976471
 disabled = true
 text = "Update Tag"
+metadata/_edit_use_anchors_ = true
 
 [node name="Imeges" type="Control" parent="TagReviewer"]
 anchors_preset = 0
-offset_left = 958.0
-offset_top = 24.0
-offset_right = 1271.0
-offset_bottom = 664.0
+anchor_left = 0.705469
+anchor_top = 0.0352941
+anchor_right = 0.992969
+anchor_bottom = 0.976471
+metadata/_edit_use_anchors_ = true
 
 [node name="PreviewProgressLoad" type="ProgressBar" parent="TagReviewer/Imeges"]
 layout_mode = 0
-offset_left = 1.0
-offset_top = -16.0
-offset_right = 314.0
-offset_bottom = -8.0
+anchor_left = 0.00271739
+anchor_top = -0.025
+anchor_right = 1.0
+anchor_bottom = -0.0125
 step = 1.0
 show_percentage = false
 script = SubResource("GDScript_5wvn0")
+metadata/_edit_use_anchors_ = true
 
 [node name="ColorRect" type="ColorRect" parent="TagReviewer/Imeges"]
 layout_mode = 1
@@ -2148,80 +2964,150 @@ timeout_time = 20.0
 post_limit = 4
 get_sample_if_available = false
 
+[node name="ConflictWindow" type="Control" parent="TagReviewer"]
+visible = false
+layout_mode = 1
+anchor_left = 0.484375
+anchor_top = 0.470588
+anchor_right = 0.515625
+anchor_bottom = 0.529412
+offset_bottom = -3.05176e-05
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_j50ay")
+metadata/_edit_use_anchors_ = true
+
+[node name="BG" type="ColorRect" parent="TagReviewer/ConflictWindow"]
+layout_mode = 0
+offset_left = -619.0
+offset_top = -360.0
+offset_right = 659.0
+offset_bottom = 360.0
+color = Color(0.141176, 0.14902, 0.168627, 0.588235)
+
+[node name="LightWindow" type="ColorRect" parent="TagReviewer/ConflictWindow"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -137.0
+offset_top = -204.0
+offset_right = 135.0
+offset_bottom = 204.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.643137, 0.682353, 0.752941, 1)
+
+[node name="DarkWindow" type="ColorRect" parent="TagReviewer/ConflictWindow"]
+layout_mode = 0
+offset_left = -109.0
+offset_top = -176.0
+offset_right = 147.0
+offset_bottom = 216.0
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="ConflictsItemList" type="ItemList" parent="TagReviewer/ConflictWindow"]
+layout_mode = 0
+offset_left = -101.0
+offset_top = -136.0
+offset_right = 139.0
+offset_bottom = 168.0
+same_column_width = true
+
+[node name="AddConflictLineEdit" type="LineEdit" parent="TagReviewer/ConflictWindow"]
+layout_mode = 0
+offset_left = -101.0
+offset_top = 176.0
+offset_right = 139.0
+offset_bottom = 207.0
+placeholder_text = "Add conflict"
+
+[node name="CloseConflictBtn" type="Button" parent="TagReviewer/ConflictWindow"]
+layout_mode = 0
+offset_left = 107.0
+offset_top = -176.0
+offset_right = 147.0
+offset_bottom = -145.0
+text = "x"
+
 [node name="FullScreenDisplay" parent="TagReviewer" instance=ExtResource("7_bjv2t")]
 visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.0588235
 
+[node name="TextChangeTimer" type="Timer" parent="TagReviewer"]
+one_shot = true
+
+[node name="e621SamplesDLReview" parent="TagReviewer" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 1
+timeout_time = 10.0
+post_limit = 5
+get_sample_if_available = false
+
+[node name="DownloadingSamplesLabel" type="Label" parent="TagReviewer"]
+visible = false
+layout_mode = 0
+offset_left = 159.0
+offset_top = -32.0
+offset_right = 329.0
+text = "Downloading samples"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="TagCategorySearcher" type="Control" parent="."]
-anchors_preset = 0
-offset_top = 16.0
-offset_bottom = 16.0
+layout_mode = 1
+anchor_top = 0.089
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -0.0800018
+grow_horizontal = 2
+grow_vertical = 2
 script = SubResource("GDScript_yvw35")
 
 [node name="PrioritySpinBox" type="SpinBox" parent="TagCategorySearcher"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 64.0
-offset_right = 176.0
-offset_bottom = 95.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0125
+anchor_top = 0.0121951
+anchor_right = 0.1375
+anchor_bottom = 0.0594512
 allow_greater = true
 allow_lesser = true
 alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="SearchWithPrioButton" type="Button" parent="TagCategorySearcher/PrioritySpinBox"]
 layout_mode = 0
-offset_top = 40.0
-offset_right = 160.0
-offset_bottom = 72.0
+anchor_top = 1.29032
+anchor_right = 1.0
+anchor_bottom = 2.32258
 text = "Search with priority"
+metadata/_edit_use_anchors_ = true
 
-[node name="CategoryOptButton" type="OptionButton" parent="TagCategorySearcher"]
+[node name="CategoriesMenu" parent="TagCategorySearcher" instance=ExtResource("7_7hodc")]
 layout_mode = 0
 offset_left = 224.0
-offset_top = 64.0
+offset_top = 7.99998
 offset_right = 400.0
-offset_bottom = 96.0
-alignment = 1
-item_count = 11
-selected = 0
-popup/item_0/text = "General"
-popup/item_0/id = 0
-popup/item_1/text = "Artist"
-popup/item_1/id = 1
-popup/item_2/text = "Series"
-popup/item_2/id = 2
-popup/item_3/text = "Character"
-popup/item_3/id = 3
-popup/item_4/text = "Species"
-popup/item_4/id = 4
-popup/item_5/text = "Gender"
-popup/item_5/id = 5
-popup/item_6/text = "Lore"
-popup/item_6/id = 6
-popup/item_7/text = "Genitals"
-popup/item_7/id = 7
-popup/item_8/text = "Objects"
-popup/item_8/id = 8
-popup/item_9/text = "Clothing"
-popup/item_9/id = 9
-popup/item_10/text = "Accessories"
-popup/item_10/id = 10
 
-[node name="SearchWithCatButton" type="Button" parent="TagCategorySearcher/CategoryOptButton"]
+[node name="SearchWithCatButton" type="Button" parent="TagCategorySearcher/CategoriesMenu"]
 layout_mode = 0
-offset_top = 40.0
-offset_right = 176.0
-offset_bottom = 71.0
+anchor_top = 1.25
+anchor_right = 1.0
+anchor_bottom = 2.21875
 text = "Search with category"
+metadata/_edit_use_anchors_ = true
 
 [node name="Control" type="Control" parent="TagCategorySearcher"]
-anchors_preset = 0
-offset_left = 16.0
-offset_top = 192.0
-offset_right = 400.0
-offset_bottom = 416.0
+layout_mode = 1
+anchor_left = 0.0125
+anchor_top = 0.207317
+anchor_right = 0.3125
+anchor_bottom = 0.548781
+metadata/_edit_use_anchors_ = true
 
 [node name="ColorRect" type="ColorRect" parent="TagCategorySearcher/Control"]
 layout_mode = 1
@@ -2234,149 +3120,154 @@ color = Color(0.203922, 0.231373, 0.27451, 1)
 
 [node name="Label" type="Label" parent="TagCategorySearcher/Control"]
 layout_mode = 0
-offset_top = -32.0
-offset_right = 74.0
-offset_bottom = -6.0
+anchor_top = -0.142857
+anchor_right = 0.203125
+anchor_bottom = -0.0267857
+offset_right = -4.0
 text = "Mass Edit:"
+metadata/_edit_use_anchors_ = true
 
 [node name="Label2" type="Label" parent="TagCategorySearcher/Control"]
 layout_mode = 0
-offset_left = 320.0
-offset_top = -32.0
-offset_right = 381.0
-offset_bottom = -6.0
+anchor_left = 0.833333
+anchor_top = -0.142857
+anchor_right = 0.992188
+anchor_bottom = -0.0267857
 text = "Replace"
+metadata/_edit_use_anchors_ = true
 
-[node name="NewCatOptButton" type="OptionButton" parent="TagCategorySearcher/Control"]
+[node name="CategoriesMenu" parent="TagCategorySearcher/Control" instance=ExtResource("7_7hodc")]
 layout_mode = 0
 offset_left = 136.0
 offset_top = 32.0
-offset_right = 288.0
+offset_right = 304.0
 offset_bottom = 64.0
 disabled = true
-alignment = 1
-item_count = 11
-selected = 0
-popup/item_0/text = "General"
-popup/item_0/id = 0
-popup/item_1/text = "Artist"
-popup/item_1/id = 1
-popup/item_2/text = "Series"
-popup/item_2/id = 2
-popup/item_3/text = "Character"
-popup/item_3/id = 3
-popup/item_4/text = "Species"
-popup/item_4/id = 4
-popup/item_5/text = "Gender"
-popup/item_5/id = 5
-popup/item_6/text = "Lore"
-popup/item_6/id = 6
-popup/item_7/text = "Genitals"
-popup/item_7/id = 7
-popup/item_8/text = "Objects"
-popup/item_8/id = 8
-popup/item_9/text = "Clothing"
-popup/item_9/id = 9
-popup/item_10/text = "Accessories"
-popup/item_10/id = 10
 
-[node name="Label" type="Label" parent="TagCategorySearcher/Control/NewCatOptButton"]
-layout_mode = 0
-offset_left = -128.0
-offset_right = -7.0
-offset_bottom = 32.0
+[node name="Label" type="Label" parent="TagCategorySearcher/Control/CategoriesMenu"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.889726
+anchor_right = -0.0936734
+anchor_bottom = 1.0
+offset_left = 13.4739
+offset_top = 1.52588e-05
+offset_right = 13.4739
+offset_bottom = 1.52588e-05
 text = "New Category:"
 horizontal_alignment = 2
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
-[node name="ReplaceCatCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/NewCatOptButton"]
-layout_mode = 0
-offset_left = 192.0
-offset_right = 240.0
+[node name="ReplaceCatCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/CategoriesMenu"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = 24.0003
+offset_top = 1.52588e-05
+offset_right = 77.053
 offset_bottom = 32.0
+metadata/_edit_use_anchors_ = true
 
 [node name="NewPrioButton" type="SpinBox" parent="TagCategorySearcher/Control"]
-layout_mode = 0
-offset_left = 136.0
-offset_top = 80.0
-offset_right = 304.0
-offset_bottom = 111.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.354167
+anchor_top = 0.357143
+anchor_right = 0.791667
+anchor_bottom = 0.495536
 allow_greater = true
 allow_lesser = true
 alignment = 1
 editable = false
+metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="TagCategorySearcher/Control/NewPrioButton"]
 layout_mode = 0
-offset_left = -120.0
-offset_right = -8.0
-offset_bottom = 32.0
+anchor_left = -0.714286
+anchor_right = -0.047619
+anchor_bottom = 1.03226
 text = "New Priority:"
 horizontal_alignment = 2
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="ReplacePrioCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/NewPrioButton"]
 layout_mode = 0
-offset_left = 192.0
-offset_right = 240.0
-offset_bottom = 32.0
+anchor_left = 1.14286
+anchor_right = 1.42857
+anchor_bottom = 1.03226
+offset_left = -1.52588e-05
+metadata/_edit_use_anchors_ = true
 
 [node name="HasImageCheckbox" type="CheckBox" parent="TagCategorySearcher/Control"]
 layout_mode = 0
-offset_left = 128.0
-offset_top = 128.0
-offset_right = 160.0
-offset_bottom = 160.0
+anchor_left = 0.333333
+anchor_top = 0.571429
+anchor_right = 0.416667
+anchor_bottom = 0.714286
 disabled = true
+metadata/_edit_use_anchors_ = true
 
 [node name="ReplaceHasImgCheckbox" type="CheckButton" parent="TagCategorySearcher/Control/HasImageCheckbox"]
 layout_mode = 0
-offset_left = 200.0
-offset_right = 248.0
-offset_bottom = 32.0
+anchor_left = 6.25
+anchor_right = 7.75
+anchor_bottom = 1.0
+metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="TagCategorySearcher/Control/HasImageCheckbox"]
 layout_mode = 0
-offset_left = -88.0
-offset_right = -3.0
-offset_bottom = 32.0
+anchor_left = -2.75
+anchor_right = -0.09375
+anchor_bottom = 1.0
 text = "Has image:"
 horizontal_alignment = 2
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="MassUpdateButton" type="Button" parent="TagCategorySearcher/Control"]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 176.0
-offset_right = 320.0
-offset_bottom = 207.0
+anchor_left = 0.166667
+anchor_top = 0.785714
+anchor_right = 0.833333
+anchor_bottom = 0.924107
 text = "Update Selected"
+metadata/_edit_use_anchors_ = true
 
 [node name="ResultsItemList" type="ItemList" parent="TagCategorySearcher"]
-layout_mode = 0
-offset_left = 448.0
-offset_top = 64.0
-offset_right = 1264.0
-offset_bottom = 416.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.0121951
+anchor_right = 0.9875
+anchor_bottom = 0.548781
 select_mode = 1
-max_columns = 5
+max_columns = 3
 same_column_width = true
+fixed_column_width = 250
+metadata/_edit_use_anchors_ = true
 
 [node name="DeselectAllButton" type="Button" parent="TagCategorySearcher"]
-layout_mode = 0
-offset_left = 992.0
-offset_top = 432.0
-offset_right = 1120.0
-offset_bottom = 464.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.775
+anchor_top = 0.573171
+anchor_right = 0.875
+anchor_bottom = 0.621951
 text = "Deselect all"
+metadata/_edit_use_anchors_ = true
 
 [node name="SelectAllButton" type="Button" parent="TagCategorySearcher"]
-layout_mode = 0
-offset_left = 1136.0
-offset_top = 432.0
-offset_right = 1264.0
-offset_bottom = 464.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.8875
+anchor_top = 0.573171
+anchor_right = 0.9875
+anchor_bottom = 0.621951
 text = "Select all"
+metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
 visible = false
@@ -2447,24 +3338,26 @@ vertical_alignment = 1
 [node name="LoadImagesButton" type="CheckButton" parent="Settings"]
 layout_mode = 0
 offset_left = 32.0
-offset_top = 72.0
+offset_top = 112.0
 offset_right = 233.0
-offset_bottom = 103.0
+offset_bottom = 152.0
 text = "Load review images"
 script = SubResource("GDScript_lqhue")
 
 [node name="ColorRect" type="ColorRect" parent="Settings/LoadImagesButton"]
 layout_mode = 0
 offset_left = 208.0
+offset_top = -32.0
 offset_right = 480.0
-offset_bottom = 88.0
+offset_bottom = 72.0
 color = Color(0.188235, 0.215686, 0.258824, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Settings/LoadImagesButton"]
 layout_mode = 0
 offset_left = 208.0
+offset_top = -32.0
 offset_right = 480.0
-offset_bottom = 88.0
+offset_bottom = 72.0
 
 [node name="ToggleButtons" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
 layout_mode = 2
@@ -2472,13 +3365,13 @@ alignment = 1
 
 [node name="e621LoadButton" type="CheckButton" parent="Settings/LoadImagesButton/VBoxContainer/ToggleButtons"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 6
 disabled = true
 text = "e621"
 
 [node name="LocalLoadButton" type="CheckButton" parent="Settings/LoadImagesButton/VBoxContainer/ToggleButtons"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 6
 disabled = true
 text = "Local"
 
@@ -2488,37 +3381,53 @@ alignment = 1
 
 [node name="e621SpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 6
 max_value = 10.0
 editable = false
 
 [node name="LocalSpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
 layout_mode = 2
-size_flags_horizontal = 3
-max_value = 10.0
+size_flags_horizontal = 6
+max_value = 50.0
 editable = false
+
+[node name="AmountToLoad2" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LoadGife6CheckBox" type="CheckBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad2"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
+
+[node name="LoadGifLocalCheckBox2" type="CheckBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad2"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
 
 [node name="OpenTagsButton" type="Button" parent="Settings"]
 layout_mode = 0
 offset_left = 32.0
-offset_top = 168.0
+offset_top = 200.0
 offset_right = 208.0
-offset_bottom = 216.0
+offset_bottom = 248.0
 text = "Open tags folder"
 
 [node name="RecreateDatabaseBtn" type="Button" parent="Settings"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 216.0
-offset_top = 168.0
+offset_top = 200.0
 offset_right = 512.0
-offset_bottom = 216.0
+offset_bottom = 248.0
 tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
 text = "Recreate tag impliactions"
 
 [node name="Aliases" type="Control" parent="Settings"]
 anchors_preset = 0
-offset_left = 64.0
+offset_left = 32.0
 offset_top = 264.0
 offset_right = 512.0
 offset_bottom = 584.0
@@ -2529,45 +3438,42 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -32.0
-offset_top = -24.0
-offset_bottom = -40.0
+offset_top = -8.0
+offset_bottom = -48.0
 grow_horizontal = 2
 grow_vertical = 2
 script = SubResource("GDScript_hr4cx")
 
 [node name="OldAlias" type="LineEdit" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = -32.0
-offset_top = 288.0
-offset_right = 200.0
-offset_bottom = 328.0
+offset_top = 280.0
+offset_right = 232.0
+offset_bottom = 320.0
 placeholder_text = "Old name"
 alignment = 1
 
 [node name="NewAlias" type="LineEdit" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = 216.0
-offset_top = 288.0
-offset_right = 448.0
-offset_bottom = 328.0
+offset_left = 248.0
+offset_top = 280.0
+offset_right = 480.0
+offset_bottom = 320.0
 placeholder_text = "New name"
 alignment = 1
 
 [node name="RemoveAliasButton" type="Button" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = -32.0
 offset_top = 344.0
-offset_right = 200.0
+offset_right = 232.0
 offset_bottom = 384.0
 disabled = true
 text = "Remove Alias"
 
 [node name="AddAliasButton" type="Button" parent="Settings/Aliases"]
 layout_mode = 0
-offset_left = 216.0
+offset_left = 248.0
 offset_top = 344.0
-offset_right = 448.0
+offset_right = 480.0
 offset_bottom = 384.0
 disabled = true
 text = "Add alias"
@@ -2623,36 +3529,36 @@ script = SubResource("GDScript_dvmq4")
 layout_mode = 0
 offset_left = 576.0
 offset_top = 424.0
-offset_right = 768.0
+offset_right = 800.0
 offset_bottom = 455.0
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
 placeholder_text = "Add to constants"
 
 [node name="TagList" type="Control" parent="Settings/Constants"]
 anchors_preset = 0
-offset_left = 768.0
-offset_top = 520.0
-offset_right = 1216.0
+offset_left = 576.0
+offset_top = 464.0
+offset_right = 800.0
 offset_bottom = 648.0
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.429
-anchor_top = -0.437
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.192001
-offset_top = -0.0639992
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="SuggestionBlackList" type="Control" parent="Settings"]
 anchors_preset = 0
-offset_right = 40.0
+offset_left = 72.0
+offset_right = 112.0
 offset_bottom = 40.0
 script = SubResource("GDScript_4yj0t")
 
 [node name="SuggBlacklistLineEdit" type="LineEdit" parent="Settings/SuggestionBlackList"]
 layout_mode = 0
-offset_left = 784.0
+offset_left = 744.0
 offset_top = 424.0
 offset_right = 960.0
 offset_bottom = 455.0
@@ -2660,17 +3566,42 @@ placeholder_text = "Suggestion blacklist"
 
 [node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SuggestionBlackList"]
 layout_mode = 0
-offset_left = 784.0
+offset_left = 744.0
 offset_top = 464.0
 offset_right = 960.0
 offset_bottom = 648.0
+
+[node name="DownloadSampleBlacklist" type="Control" parent="Settings"]
+anchors_preset = 0
+offset_left = 1048.0
+offset_top = 464.0
+offset_right = 1264.0
+offset_bottom = 648.0
+script = ExtResource("10_mi6fl")
+
+[node name="SampleBlacklistItemList" type="ItemList" parent="Settings/DownloadSampleBlacklist"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Tags to be blacklisted when downloading samples on tag creation. If the tag being created is blacklisted then that tag in the blacklist will be ignored"
+
+[node name="SampleBlacklistLineEdit" type="LineEdit" parent="Settings/DownloadSampleBlacklist"]
+layout_mode = 0
+offset_top = -40.0
+offset_right = 216.0
+offset_bottom = -9.0
+tooltip_text = "Add a tag to be blacklisted when downloading samples on tag creation"
+placeholder_text = "Sample Blacklist"
 
 [node name="BlackListControl" type="Control" parent="Settings"]
 anchors_preset = 0
 offset_left = 984.0
 offset_top = 32.0
 offset_right = 1256.0
-offset_bottom = 648.0
+offset_bottom = 400.0
 script = SubResource("GDScript_mqjmn")
 
 [node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
@@ -2720,6 +3651,7 @@ anchor_top = 0.267
 anchor_right = 0.85
 anchor_bottom = 0.8
 offset_top = -40.24
+script = ExtResource("8_vpvmy")
 
 [node name="AppBG" type="ColorRect" parent="Settings/APILoader/AllItems"]
 layout_mode = 1
@@ -2730,7 +3662,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.435294, 0.47451, 0.556863, 1)
 
-[node name="Load" type="Control" parent="Settings/APILoader/AllItems"]
+[node name="LoadAPI" type="Control" parent="Settings/APILoader/AllItems"]
 anchors_preset = 0
 offset_left = 464.0
 offset_top = 48.0
@@ -2738,7 +3670,7 @@ offset_right = 888.0
 offset_bottom = 416.0
 script = SubResource("GDScript_ert6n")
 
-[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/Load"]
+[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -2747,7 +3679,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
 
-[node name="Label3" type="Label" parent="Settings/APILoader/AllItems/Load"]
+[node name="Label3" type="Label" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = -8.0
 offset_top = 8.0
@@ -2757,7 +3689,7 @@ text = "Load key"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="APIKey" type="LineEdit" parent="Settings/APILoader/AllItems/Load"]
+[node name="APIKey" type="LineEdit" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = 32.0
 offset_top = 152.0
@@ -2765,26 +3697,31 @@ offset_right = 352.0
 offset_bottom = 183.0
 placeholder_text = "Encryption Key"
 alignment = 1
+editable = false
 secret = true
 
-[node name="RevealPassButton" type="CheckButton" parent="Settings/APILoader/AllItems/Load/APIKey"]
+[node name="RevealPassButton" type="CheckButton" parent="Settings/APILoader/AllItems/LoadAPI/APIKey"]
 layout_mode = 0
 offset_left = 320.0
 offset_right = 368.0
 offset_bottom = 32.0
+disabled = true
 
-[node name="LoadButton" type="Button" parent="Settings/APILoader/AllItems/Load"]
+[node name="LoadButton" type="Button" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = 96.0
 offset_top = 192.0
 offset_right = 288.0
 offset_bottom = 223.0
+disabled = true
 text = "Load Key"
 
-[node name="ButtonTextTimer" type="Timer" parent="Settings/APILoader/AllItems/Load"]
+[node name="ButtonTextTimer" type="Timer" parent="Settings/APILoader/AllItems/LoadAPI"]
 one_shot = true
 
-[node name="LogIn" type="Control" parent="Settings/APILoader/AllItems"]
+[node name="HTTPRequest" type="HTTPRequest" parent="Settings/APILoader/AllItems/LoadAPI"]
+
+[node name="LogInAPI" type="Control" parent="Settings/APILoader/AllItems"]
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 48.0
@@ -2792,7 +3729,7 @@ offset_right = 432.0
 offset_bottom = 416.0
 script = SubResource("GDScript_gagfo")
 
-[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="DarkAppBG" type="ColorRect" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -2801,7 +3738,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
 
-[node name="Label2" type="Label" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="Label2" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -2811,26 +3748,26 @@ text = "Log-in to e621"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="UserLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="UserLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 88.0
-offset_top = 56.0
+offset_top = 40.0
 offset_right = 344.0
-offset_bottom = 87.0
+offset_bottom = 71.0
 placeholder_text = "Username"
 alignment = 1
 
-[node name="KeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="KeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 88.0
-offset_top = 96.0
+offset_top = 80.0
 offset_right = 344.0
-offset_bottom = 127.0
+offset_bottom = 111.0
 placeholder_text = "API Key"
 alignment = 1
 secret = true
 
-[node name="Label" type="Label" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="InfoLabel" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 256.0
@@ -2839,7 +3776,7 @@ offset_bottom = 360.0
 text = "\"Remember key\" will save your info to a plain text file and encrypt it with a key you set. It is not reccomended to save your API key using this software."
 autowrap_mode = 2
 
-[node name="RememberCheck" type="CheckBox" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="RememberCheck" type="CheckBox" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 144.0
 offset_top = 192.0
@@ -2847,7 +3784,7 @@ offset_right = 289.0
 offset_bottom = 223.0
 text = "Remember key"
 
-[node name="EncryptKeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogIn/RememberCheck"]
+[node name="EncryptKeyLineEdit" type="LineEdit" parent="Settings/APILoader/AllItems/LogInAPI/RememberCheck"]
 layout_mode = 0
 offset_left = -56.0
 offset_top = 32.0
@@ -2857,19 +3794,31 @@ placeholder_text = "Encryption Key"
 alignment = 1
 secret = true
 
-[node name="RevealEncrypt" type="CheckButton" parent="Settings/APILoader/AllItems/LogIn/RememberCheck/EncryptKeyLineEdit"]
+[node name="RevealEncrypt" type="CheckButton" parent="Settings/APILoader/AllItems/LogInAPI/RememberCheck/EncryptKeyLineEdit"]
 layout_mode = 0
 offset_left = 256.0
 offset_right = 304.0
 offset_bottom = 32.0
 
-[node name="SaveBTN" type="Button" parent="Settings/APILoader/AllItems/LogIn"]
+[node name="SaveBTN" type="Button" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
 offset_left = 112.0
 offset_top = 144.0
 offset_right = 320.0
 offset_bottom = 184.0
-text = "Save"
+text = "Log-in"
+
+[node name="HTTPRequest" type="HTTPRequest" parent="Settings/APILoader/AllItems/LogInAPI"]
+timeout = 10.0
+
+[node name="LogInLabel" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 112.0
+offset_right = 344.0
+offset_bottom = 144.0
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CloseButton" type="Button" parent="Settings/APILoader/AllItems"]
 layout_mode = 0
@@ -2878,6 +3827,18 @@ offset_top = 8.0
 offset_right = 888.0
 offset_bottom = 40.0
 text = "X"
+
+[node name="VersionLabel" type="Label" parent="Settings"]
+modulate = Color(0.113725, 0.133333, 0.164706, 0.643137)
+layout_mode = 0
+offset_left = 1192.0
+offset_top = -48.0
+offset_right = 1273.0
+offset_bottom = -10.0
+theme_override_font_sizes/font_size = 25
+text = "v 0.5.1"
+horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
 unique_name_in_owner = true

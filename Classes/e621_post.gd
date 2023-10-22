@@ -1,5 +1,5 @@
 class_name e621Post
-extends Node
+extends Resource
 
 
 enum Rating{
