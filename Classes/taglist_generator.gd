@@ -35,14 +35,15 @@ func generate_tag_list(resource_tags: Array, generic_tags: Array) -> void:
 	priority_dict.clear()
 	
 	for generic_tag in generic_tags:
-		_gen_tags.append_array(generic_tags as Array[String])
+		_gen_tags.append(generic_tag)
 	
-
 	for tag in resource_tags:
 		if not priority_dict.has(str(tag.tag_priority)):
 			priority_dict[str(tag.tag_priority)] = []
-
-		priority_dict[str(tag.tag_priority)].append(tag.get_tag())
+		
+		if not priority_dict[str(tag.tag_priority)].has(tag.get_tag()):
+			priority_dict[str(tag.tag_priority)].append(tag.get_tag())
+		
 		_explored_parents.append(tag)
 		
 		for parent_tag in tag.parents:
@@ -54,7 +55,7 @@ func generate_tag_list(resource_tags: Array, generic_tags: Array) -> void:
 				if not _implied_tags.has(parent_tag):# and not _user_tags.has(parent_tag):
 					_implied_tags.append(parent_tag)
 		
-		__explore_parents()
+	__explore_parents()
 
 
 func explore_parents(_is_first_run: bool = true) -> void:
@@ -119,7 +120,6 @@ func __explore_parents():
 
 
 func create_list_from_array(array_data: Array[String]) -> String:
-
 	var _return_string: String = ""
 	
 	for tag in array_data:
@@ -153,9 +153,13 @@ func get_tag_list(clear_on_end: bool = true) -> Array[String]:
 			if not full_tags.has(tag_string):
 				full_tags.append(tag_string)
 	
-	full_tags.append_array(_gen_tags)
+	for tag in _gen_tags:
+		if not full_tags.has(tag):
+			full_tags.append(tag)
 	
-	full_tags.append_array(_implied_tags)
+	for tag in _implied_tags:
+		if not full_tags.has(tag):
+			full_tags.append(tag)
 	
 	if clear_on_end:
 		clear_data()
