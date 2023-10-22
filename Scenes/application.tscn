@@ -1744,6 +1744,7 @@ item_6/text = "Exit"
 item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -3309,7 +3310,6 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -3427,7 +3427,7 @@ editable = false
 [node name="LocalSpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
 layout_mode = 2
 size_flags_horizontal = 6
-max_value = 10.0
+max_value = 50.0
 editable = false
 
 [node name="AmountToLoad2" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
