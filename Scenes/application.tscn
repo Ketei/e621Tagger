@@ -757,6 +757,7 @@ func add_suggested(new_suggestion: String) -> void:
 	new_suggestion = new_suggestion.strip_edges().to_lower()
 	
 	if new_suggestion.is_empty():
+		tag_suggestion_line_edit.clear()
 		return
 	
 	suggestions_array.append(new_suggestion)
@@ -1798,7 +1799,6 @@ item_6/text = "Exit"
 item_6/id = 1
 
 [node name="Tagger" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -1849,9 +1849,9 @@ item_6/id = 3
 [node name="ClearTagsButton" type="Button" parent="Tagger"]
 layout_mode = 0
 offset_left = 336.0
-offset_top = -32.0
+offset_top = -40.0
 offset_right = 385.0
-offset_bottom = -1.0
+offset_bottom = -9.0
 text = "Clear"
 
 [node name="CurrentTags" type="Control" parent="Tagger"]
@@ -1968,9 +1968,9 @@ metadata/_edit_use_anchors_ = true
 [node name="ClearSuggestedButton" type="Button" parent="Tagger"]
 layout_mode = 0
 offset_left = 608.0
-offset_top = -32.0
+offset_top = -40.0
 offset_right = 657.0
-offset_bottom = -1.0
+offset_bottom = -9.0
 text = "Clear"
 
 [node name="Implied Tags" type="Control" parent="Tagger"]
@@ -3058,6 +3058,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TagCategorySearcher" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.089
 anchor_right = 1.0
