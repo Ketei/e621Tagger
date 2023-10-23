@@ -53,7 +53,7 @@ func generate_tags_array(input_string: String, split_char: String = "", whitespa
 func generate_preview() -> void:
 	preview_list.clear()
 
-	for item in generate_tags_array(input_tags.text.strip_escapes().strip_edges(), separator.text, whitespace.text):
+	for item in generate_tags_array(input_tags.text.replace("\n", " ").strip_escapes().strip_edges(), separator.text, whitespace.text):
 		preview_list.add_item(item)
 
 
@@ -61,7 +61,7 @@ func send_tags() -> void:
 
 	main_application.load_tags(
 			generate_tags_array(
-					input_tags.text.strip_escapes().strip_edges(),
+					input_tags.text.replace("\n", " ").strip_escapes().strip_edges(),
 					separator.text,
 					whitespace.text),
 			check_box.button_pressed)
