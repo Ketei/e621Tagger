@@ -2,14 +2,14 @@ class_name  e621Tag
 extends Resource
 
 enum Category {
-	GENERAL,
-	ARTIST,
-	COPYRIGHT,
-	CHARACTER,
-	SPECIES,
-	INVALID,
-	META,
-	LORE,
+	GENERAL = 0,
+	ARTIST = 1,
+	COPYRIGHT = 3,
+	CHARACTER = 4,
+	SPECIES = 5,
+	INVALID = 6,
+	META = 7,
+	LORE= 8,
 }
 
 
