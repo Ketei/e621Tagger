@@ -286,7 +286,7 @@ func check_minimum_requirements() -> void: #Add one call on ready
 	var warnings_string: String = ""
 	
 	if not full_tag_list.has(character_amounts[clampi(character_amounts_added, 0, 4)]):
-		warnings_string += "- {0} character tags detected. Reccomended tag: {1}.\n".format(
+		warnings_string += "- {0} character tags detected. Recommended tag: \"{1}.\"\n".format(
 				[str(character_amounts_added), str(character_amounts[clampi(character_amounts_added, 0, 4)])]
 		)
 	if body_types_added + implied_types_added == 0 and 0 < character_amounts_added:
