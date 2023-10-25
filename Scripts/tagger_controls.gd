@@ -19,8 +19,8 @@ extends Control
 
 @onready var clear_tags_button: Button = $ClearTagsButton
 @onready var clear_suggested_button: Button = $ClearSuggestedButton
-@onready var error_display_text_edit: TextEdit = $ErrorDisplayTextEdit
 @onready var tagger_context_menu: PopupMenu = $TaggerContextMenu
+@onready var warning_rect: TextureRect = $WarningRect
 
 var tag_queue: Array[String] = []
 var is_searching_tags: bool = false
@@ -296,9 +296,12 @@ func check_minimum_requirements() -> void: #Add one call on ready
 	if species_added + implied_species_added == 0 and 0 < character_amounts_added:
 		warnings_string += "- No species tags added.\n"
 	
-	warnings_string += "Note: Please remember to check for tag conflicts in the conflicts window."
-	
-	error_display_text_edit.text = warnings_string
+	if warnings_string.is_empty():
+		warning_rect.hide()
+		warning_rect.tooltip_text = ""
+	else:
+		warning_rect.show()
+		warning_rect.tooltip_text = warnings_string
 
 
 func add_from_suggested(item_activated: int) -> void: # Connect to item activated
@@ -330,6 +333,8 @@ func regenerate_parents() -> void:
 	tag_list_generator._dad_queue = parents_array.duplicate()
 	
 	tag_list_generator.explore_parents_v2()
+	
+	print(tag_list_generator.types_count)
 	
 	implied_species_added = tag_list_generator.types_count["species"]
 	implied_genders_added = tag_list_generator.types_count["genders"]
