@@ -112,7 +112,6 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 			_e621_tag.set_related_tags(response_array[index]["related_tags"])
 			_e621_tag.category = response_array[index]["category"]
 			_e621_tag.is_locked = response_array[index]["is_locked"]
-	
 			tags_array.append(_e621_tag)
 		
 		parsed_result.emit(tags_array)

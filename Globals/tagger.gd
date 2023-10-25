@@ -77,3 +77,4 @@ func get_headers() -> Array:
 	for header_type in e6_headers_data.keys():
 		return_headers.append(header_type + ": " + e6_headers_data[header_type])
 	return return_headers
+
