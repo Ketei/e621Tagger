@@ -12,12 +12,18 @@ extends Control
 @onready var e_621_requester_quick_search = $Tagger/AddAutoComplete/QuickSearch/e621RequesterQuickSearch
 @onready var tag_reviewer_requester = $TagReviewer/TagReviewerRequester
 @onready var e_621_requester = %e621Requester
+@onready var menu_bar: MenuBar = $MenuBar
 
 
 var current_menu: int = 0
 
 
 func _ready():
+	menu_bar.set_menu_hidden(1, false) # Tagger
+	menu_bar.set_menu_hidden(2, true) # Tag Creator
+	menu_bar.set_menu_hidden(3, true) # Review
+	menu_bar.set_menu_hidden(4, true) # Settings
+	
 	
 	tag_reviewer.parents_item_list.create_tag.connect(go_to_create_tag)
 	tag_reviewer.tag_suggestion_list.create_tag.connect(go_to_create_tag)
@@ -45,6 +51,10 @@ func trigger_options(id: int) -> void:
 		tag_creator.visible = false
 		tag_reviewer.visible = false
 		tag_category_searcher.hide()
+		menu_bar.set_menu_hidden(1, false) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Settings
 		tagger.visible = true
 	elif id == 2:
 		tagger.visible = false
@@ -52,6 +62,10 @@ func trigger_options(id: int) -> void:
 		tag_creator.visible = false
 		tag_reviewer.visible = false
 		tag_category_searcher.hide()
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Settings
 		list_loader.visible = true
 	elif id == 3:
 		tagger.visible = false
@@ -59,6 +73,10 @@ func trigger_options(id: int) -> void:
 		tag_creator.visible = false
 		tag_reviewer.visible = false
 		tag_category_searcher.hide()
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, false) # Settings
 		settings.visible = true
 	elif id == 5:
 		tagger.visible = false
@@ -66,6 +84,10 @@ func trigger_options(id: int) -> void:
 		tag_creator.visible = false
 		settings.visible = false
 		tag_category_searcher.hide()
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, false) # Review
+		menu_bar.set_menu_hidden(4, true) # Settings
 		tag_reviewer.visible = true
 	elif  id == 6:
 		tagger.hide()
@@ -73,6 +95,10 @@ func trigger_options(id: int) -> void:
 		tag_creator.hide()
 		settings.hide()
 		tag_reviewer.hide()
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Settings
 		tag_category_searcher.show()
 		
 	elif id == 4:
@@ -81,6 +107,10 @@ func trigger_options(id: int) -> void:
 		settings.visible = false
 		tag_reviewer.visible = false
 		tag_category_searcher.hide()
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, false) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Settings
 		tag_creator.visible = true
 		
 	elif id == 1:
@@ -100,12 +130,11 @@ func go_to_edit_tag(tag_to_edit: String) -> void:
 
 
 func load_tags(tags_array: Array, replace: bool) -> void:
-	tagger.load_tags(tags_array, replace)
-
+#	tagger.load_tags(tags_array, replace)
+	tagger.load_tag_list(tags_array, replace)
 
 func load_tag_if_added(tag_to_add: String) -> void:
-	if tagger.is_tag_added(tag_to_add):
-		tagger.load_tags([tag_to_add], false)
+	tagger.update_tag(tag_to_add)
 
 
 func quit_app() -> void:
