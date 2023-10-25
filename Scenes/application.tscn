@@ -174,34 +174,65 @@ func _ready():
 
 func check_for_conflicts() -> void:	
 	conflicting_tags_tree.clear()
-	
+
 	var root_tree = conflicting_tags_tree.create_item()
-	
+
 	root_tree.set_text(0, \"Conflicts\")
-	
+
 	var conflicts_dict: Dictionary = {}
-	
-	for tag in tagger.valid_tags.keys():
-		
-		var tag_data: Tag = tagger.valid_tags[tag]
-		
-		for conflict_tag in tag_data.conflicts:
-			if tagger._full_tag_list.has(conflict_tag) or tagger._implied_tags.has(conflict_tag):
+
+	for tag in tagger.tags_inputed.keys():
+
+#		var tag_data: Tag = tagger.valid_tags[tag]
+
+		for conflict_tag in tagger.tags_inputed[tag][\"conflicts\"]:
+			if tagger.full_tag_list.has(conflict_tag) or tagger._implied_tags.has(conflict_tag):
 				if not conflicts_dict.has(tag):
 					conflicts_dict[tag] = []
-				
+
 				conflicts_dict[tag].append(conflict_tag)
-	
+
 	for conflict_tag in conflicts_dict.keys():
 		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
 		_sub_tree_conflict.set_text(0, conflict_tag)
 		_sub_tree_conflict.collapsed = true
-		
+
 		for conflicted_tag in conflicts_dict[conflict_tag]:
 			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
 			_conflicted_tag.set_text(0, conflicted_tag)
-		
-		
+
+
+
+#func check_for_conflicts() -> void:	
+#	conflicting_tags_tree.clear()
+#
+#	var root_tree = conflicting_tags_tree.create_item()
+#
+#	root_tree.set_text(0, \"Conflicts\")
+#
+#	var conflicts_dict: Dictionary = {}
+#
+#	for tag in tagger.valid_tags.keys():
+#
+#		var tag_data: Tag = tagger.valid_tags[tag]
+#
+#		for conflict_tag in tag_data.conflicts:
+#			if tagger._full_tag_list.has(conflict_tag) or tagger._implied_tags.has(conflict_tag):
+#				if not conflicts_dict.has(tag):
+#					conflicts_dict[tag] = []
+#
+#				conflicts_dict[tag].append(conflict_tag)
+#
+#	for conflict_tag in conflicts_dict.keys():
+#		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
+#		_sub_tree_conflict.set_text(0, conflict_tag)
+#		_sub_tree_conflict.collapsed = true
+#
+#		for conflicted_tag in conflicts_dict[conflict_tag]:
+#			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
+#			_conflicted_tag.set_text(0, conflicted_tag)
+#
+#
 "
 
 [sub_resource type="GDScript" id="GDScript_w31il"]
@@ -219,7 +250,7 @@ signal tag_created(tag_name)
 @onready var suggestion_item_list: ItemList = $SuggestionItemList
 @onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
 @onready var has_images_check_box: CheckBox = $HasImagesCheckBox
-@onready var tag_creator_menu = $\"TagCreator/Tag Creator\"
+@onready var tag_creator_menu: PopupMenu = $\"../MenuBar/Tag Creator\"
 
 @onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
 @onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
@@ -444,7 +475,7 @@ signal _finished_loading_local()
 
 @onready var tag_searcher = $TagSearcher
 @onready var tag_search_button = $TagSearcher/TagSearchButton
-@onready var name_line = $NameLine
+@onready var name_line: LineEdit = $NameLine
 @onready var categories_menu: OptionButton = $CategoriesMenu
 @onready var wiki_edit = $WikiEdit
 @onready var tag_update_button = $TagUpdate
@@ -462,7 +493,7 @@ signal _finished_loading_local()
 
 @onready var tag_reviewer_requester = $TagReviewerRequester
 
-@onready var review_menu: PopupMenu = $ReviewerMenuBar/Review
+@onready var review_menu: PopupMenu = $\"../MenuBar/Review\"
 @onready var has_images_check_box = $HasImagesCheckBox
 
 @onready var full_screen_display = $FullScreenDisplay
@@ -634,6 +665,8 @@ func clear_and_disable() -> void:
 	wiki_edit.editable = false
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
+	review_menu.set_item_disabled(review_menu.get_item_index(3), true)
+	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
 	tag_update_button.disabled = true
 
 
@@ -706,6 +739,8 @@ func search_for_tag(new_text: String) -> void:
 	tag_update_button.disabled = false
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(3), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
 	tag_searcher.clear()
 	
 	preview_progress_load.max_value = 0
@@ -880,6 +915,9 @@ func display_big_pic(texture_to_load: Texture2D) -> void:
 
 
 func add_to_download_queue():
+	if name_line.text.is_empty():
+		return
+	
 	var tag: Tag = Tagger.tag_manager.get_tag(name_line.text)
 	
 	if samples_downloader_queue.has(Tagger.tag_images_path + tag.file_name.get_basename() + \"/\"):
@@ -1079,7 +1117,7 @@ script/source = "extends Control
 @onready var line_edit = %LineEdit
 
 @onready var open_tags_button = $OpenTagsButton
-@onready var settings_bar: PopupMenu = $SettingsBar/Settings
+@onready var settings_bar: PopupMenu = $\"../MenuBar/Settings\"
 
 @onready var api_loader = $APILoader
 
@@ -1798,7 +1836,74 @@ item_5/id = 3
 item_6/text = "Exit"
 item_6/id = 1
 
+[node name="Tagger" type="PopupMenu" parent="MenuBar"]
+size = Vector2i(250, 197)
+hide_on_checkable_item_selection = false
+item_count = 7
+item_0/text = "Tag lists"
+item_0/id = 99
+item_0/disabled = true
+item_0/separator = true
+item_1/text = "Clear all"
+item_1/id = 0
+item_2/text = "Clear suggestions"
+item_2/id = 1
+item_3/text = "Conflicts"
+item_3/id = 4
+item_4/text = "Suggestions"
+item_4/id = 100
+item_4/disabled = true
+item_4/separator = true
+item_5/text = "Enable online suggestions"
+item_5/checkable = 1
+item_5/checked = true
+item_5/id = 2
+item_6/text = "Enable offline suggestions"
+item_6/checkable = 1
+item_6/checked = true
+item_6/id = 3
+
+[node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
+title = "Tag Creator"
+size = Vector2i(280, 100)
+item_count = 3
+item_0/text = "Conflicts"
+item_0/id = 2
+item_1/text = "Options"
+item_1/id = 0
+item_1/separator = true
+item_2/text = "Open image folder on creaton"
+item_2/checkable = 1
+item_2/checked = true
+item_2/id = 1
+
+[node name="Review" type="PopupMenu" parent="MenuBar"]
+size = Vector2i(175, 116)
+hide_on_checkable_item_selection = false
+item_count = 5
+item_0/text = "Tags"
+item_0/id = 0
+item_0/separator = true
+item_1/text = "Reload tag"
+item_1/id = 4
+item_1/disabled = true
+item_2/text = "Download samples"
+item_2/id = 3
+item_2/disabled = true
+item_3/text = "Tag conflicts"
+item_3/id = 2
+item_3/disabled = true
+item_4/text = "Delete Tag"
+item_4/id = 1
+item_4/disabled = true
+
+[node name="Settings" type="PopupMenu" parent="MenuBar"]
+item_count = 1
+item_0/text = "API key"
+item_0/id = 0
+
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -1809,6 +1914,7 @@ grow_vertical = 2
 script = ExtResource("2_ika2k")
 
 [node name="TaggerMenuBar" type="MenuBar" parent="Tagger"]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.071
@@ -1955,9 +2061,9 @@ same_column_width = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.525
-anchor_top = -0.071
+anchor_top = 0.0718571
 anchor_right = 0.603
-anchor_bottom = -0.071
+anchor_bottom = 0.0718571
 offset_left = -6.10352e-05
 offset_top = 15.712
 offset_right = 0.159912
@@ -1979,8 +2085,7 @@ anchor_left = 0.525
 anchor_top = -0.071
 anchor_right = 0.725
 anchor_bottom = 1.0
-offset_left = -6.10352e-05
-offset_top = 47.712
+offset_top = 143.712
 offset_bottom = -56.0
 
 [node name="ImpliedList" type="ItemList" parent="Tagger/Implied Tags"]
@@ -2005,15 +2110,30 @@ offset_bottom = -17.0
 tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
 text = "Clean Suggestions"
 
+[node name="ErrorDisplayTextEdit" type="TextEdit" parent="Tagger"]
+layout_mode = 0
+offset_left = 664.0
+offset_top = -40.0
+offset_right = 1272.0
+offset_bottom = 40.0
+placeholder_text = "Warnings"
+editable = false
+context_menu_enabled = false
+shortcut_keys_enabled = false
+drag_and_drop_selection_enabled = false
+middle_mouse_paste_enabled = false
+scroll_smooth = true
+scroll_v_scroll_speed = 10.0
+
 [node name="FinalList" type="Control" parent="Tagger"]
 layout_mode = 1
 anchor_left = 0.737
 anchor_top = -0.071
 anchor_right = 0.987
 anchor_bottom = 1.0
-offset_left = 0.639954
-offset_top = 87.712
-offset_right = 0.639893
+offset_left = 0.640015
+offset_top = 143.712
+offset_right = 0.640015
 offset_bottom = -56.0
 
 [node name="FinalTagList" type="TextEdit" parent="Tagger/FinalList"]
@@ -2061,9 +2181,9 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.737
-anchor_top = -0.071
+anchor_top = 0.0123333
 anchor_right = 0.737
-anchor_bottom = -0.071
+anchor_bottom = 0.0123333
 offset_left = 0.639893
 offset_top = 47.712
 offset_right = 128.64
@@ -2079,9 +2199,9 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.737
-anchor_top = -0.071
+anchor_top = 0.0123333
 anchor_right = 0.987
-anchor_bottom = -0.071
+anchor_bottom = 0.0123333
 offset_left = 136.64
 offset_top = 47.712
 offset_right = 0.639893
@@ -2453,29 +2573,6 @@ anchor_bottom = 1.0
 script = SubResource("GDScript_w31il")
 metadata/_edit_use_anchors_ = true
 
-[node name="TagCreator" type="MenuBar" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.05625
-anchor_top = -0.0853659
-anchor_right = 0.132813
-anchor_bottom = -0.0243902
-offset_right = -58.0
-metadata/_edit_use_anchors_ = true
-
-[node name="Tag Creator" type="PopupMenu" parent="TagCreator/TagCreator"]
-title = "Tag Creator"
-size = Vector2i(280, 100)
-item_count = 3
-item_0/text = "Conflicts"
-item_0/id = 2
-item_1/text = "Options"
-item_1/id = 0
-item_1/separator = true
-item_2/text = "Open image folder on creaton"
-item_2/checkable = 1
-item_2/checked = true
-item_2/id = 1
-
 [node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 1
 anchors_preset = -1
@@ -2674,7 +2771,6 @@ wait_time = 2.0
 one_shot = true
 
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2686,36 +2782,6 @@ offset_right = 1.0
 mouse_filter = 1
 script = SubResource("GDScript_lfssu")
 metadata/_edit_use_anchors_ = true
-
-[node name="ReviewerMenuBar" type="MenuBar" parent="TagReviewer"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.001
-anchor_top = -0.059
-anchor_right = 0.105
-anchor_bottom = -0.059
-offset_left = 72.28
-offset_top = 8.12
-offset_right = -0.400009
-offset_bottom = 48.12
-
-[node name="Review" type="PopupMenu" parent="TagReviewer/ReviewerMenuBar"]
-size = Vector2i(175, 116)
-hide_on_checkable_item_selection = false
-item_count = 5
-item_0/text = "Tags"
-item_0/id = 0
-item_0/separator = true
-item_1/text = "Reload tag"
-item_1/id = 4
-item_2/text = "Download samples"
-item_2/id = 3
-item_3/text = "Tag conflicts"
-item_3/id = 2
-item_3/disabled = true
-item_4/text = "Delete Tag"
-item_4/id = 1
-item_4/disabled = true
 
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
 layout_mode = 1
@@ -3278,18 +3344,6 @@ offset_right = 1280.0
 offset_bottom = 720.0
 script = SubResource("GDScript_chh5e")
 
-[node name="SettingsBar" type="MenuBar" parent="Settings"]
-layout_mode = 0
-offset_left = 72.0
-offset_top = -48.0
-offset_right = 142.0
-offset_bottom = -8.0
-
-[node name="Settings" type="PopupMenu" parent="Settings/SettingsBar"]
-item_count = 1
-item_0/text = "API key"
-item_0/id = 0
-
 [node name="Strength" type="Control" parent="Settings"]
 anchors_preset = 0
 offset_left = 32.0
@@ -3848,5 +3902,4 @@ timeout_time = 10.0
 post_limit = 1
 
 [node name="TagListGenerator" type="Node" parent="."]
-unique_name_in_owner = true
 script = ExtResource("5_3orkp")
