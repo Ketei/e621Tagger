@@ -1903,7 +1903,6 @@ item_0/text = "API key"
 item_0/id = 0
 
 [node name="Tagger" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -2771,6 +2770,7 @@ wait_time = 2.0
 one_shot = true
 
 [node name="TagReviewer" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -3891,7 +3891,7 @@ offset_top = -48.0
 offset_right = 1273.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 25
-text = "v 0.5.1"
+text = "v 0.5.2"
 horizontal_alignment = 2
 vertical_alignment = 1
 
