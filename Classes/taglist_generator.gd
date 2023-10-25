@@ -139,16 +139,15 @@ func explore_parents_v2(_is_first_run: bool = true) -> void:
 	
 	for tag_file in _dad_queue.duplicate():
 		_groped_dads.append(tag_file)
+		if tag_file.category == Tagger.Categories.SPECIES:
+			types_count["species"] += 1
 		
 		for new_parent in tag_file.parents:
 			_kid_return.append(new_parent)
-			
-			if tag_file.get_tag() in character_bodytypes:
+			if new_parent in character_bodytypes:
 				types_count["body_types"] += 1
-			elif tag_file.get_tag() in character_genders:
+			elif new_parent in character_genders:
 				types_count["genders"] += 1
-			elif tag_file.category == Tagger.Categories.SPECIES:
-				types_count["species"] += 1
 			
 			if Tagger.tag_manager.has_tag(new_parent):
 				var _new_parent_to_look: Tag = Tagger.tag_manager.get_tag(new_parent)
