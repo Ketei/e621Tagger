@@ -52,7 +52,6 @@ func has_tag(tag_implication: String) -> bool:
 	return false
 	
 
-
 func get_tag(tag_name: String) -> Tag:
 	if ResourceLoader.exists(relation_database[tag_name.left(1)][tag_name], "Tag"):
 		return ResourceLoader.load(relation_database[tag_name.left(1)][tag_name])
@@ -110,60 +109,91 @@ func get_implication(implication_key: String) -> ImplicationDictionary:
 	return ResourceLoader.load(relation_paths[implication_key])
 	
 
-func search_with_prefix(prefix_search: String) -> Array[String]:
+func search_with_prefix(prefix_search: String) -> Dictionary:
 	prefix_search = prefix_search.strip_edges().to_lower()
 	
-	var return_array: Array[String] = []
+	var return_dictionary: Dictionary = {}
 	
 	if prefix_search.is_empty() or not relation_database.has(prefix_search.left(1)):
-		return return_array
+		return return_dictionary
 	
 	var tags_array: Array = relation_database[prefix_search.left(1)].keys()
 	
 	for tag in tags_array:
 		if tag.begins_with(prefix_search):
-			return_array.append(tag)
+			var tag_load: Tag = get_tag(tag)
+			return_dictionary[tag_load.tag] = {
+				"id": -1,
+				"priority": tag_load.tag_priority,
+				"parents": PackedStringArray(tag_load.parents.duplicate()),
+				"conflicts": PackedStringArray(tag_load.conflicts.duplicate()),
+				"post_count": -1,
+				"related_tags": PackedStringArray(),
+				"suggested_tags": PackedStringArray(tag_load.suggestions.duplicate()),
+				"category": tag_load.category,
+				"is_locked": false,
+				"is_registered": true
+			}
 	
-	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
-	
-	return return_array
+	return return_dictionary
 
 
-func search_with_suffix(suffix_search: String) -> Array[String]:
-	suffix_search = suffix_search.strip_edges().to_lower()
-	var all_tag_list: Array = []
-	var return_array: Array[String] = []
+func search_with_suffix(suffix_search: String) -> Dictionary:
+	suffix_search = suffix_search.replace(" ", "_").strip_edges().to_lower()
+	var valid_tags: Array = []
+	var return_dict: Dictionary = {}
 	
-	for key_char in relation_database.keys():
-		all_tag_list.append_array(relation_database[key_char].keys())
-	
-	for tag in all_tag_list:
+	for tag in get_all_tags():
 		if tag.ends_with(suffix_search):
-			return_array.append(tag)
+			valid_tags.append(tag)
 	
-	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	for tag in valid_tags:
+		var tag_loader: Tag = get_tag(tag)
+		return_dict[tag_loader.tag] = {
+				"id": -1,
+				"priority": tag_loader.tag_priority,
+				"parents": PackedStringArray(tag_loader.parents.duplicate()),
+				"conflicts": PackedStringArray(tag_loader.conflicts.duplicate()),
+				"post_count": -1,
+				"related_tags": PackedStringArray(),
+				"suggested_tags": PackedStringArray(tag_loader.suggestions.duplicate()),
+				"category": tag_loader.category,
+				"is_locked": false,
+				"is_registered": true
+			}
 	
-	return return_array
+#	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	return return_dict
 	
 
-func search_for_content(contain_search: String) -> Array[String]:
-	contain_search = contain_search.strip_edges().to_lower()
-#	print("Tag to search for: " + contain_search)
-	var all_tag_list: Array = []
-	var return_array: Array[String] = []
-	
-	for keychar in relation_database.keys():
-		all_tag_list.append_array(relation_database[keychar].keys())
-	
-#	print("Searching in: " + str(all_tag_list))
-	
-	for tag in all_tag_list:
-#		print("Comparing \"" + tag + "\" with: " + contain_search)
+func search_for_content(contain_search: String) -> Dictionary:
+	contain_search = contain_search.replace("_", " ").strip_edges().to_lower()
+	var valid_tags: Array = []
+	var return_dictionary: Dictionary = {}
+		
+	for tag in get_all_tags():
 		if tag.contains(contain_search):
-			return_array.append(tag)
+			valid_tags.append(tag)
 	
-	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	for tag in valid_tags:
+		
+		var tag_loader: Tag = get_tag(tag)
+		
+		return_dictionary[tag] = {
+				"id": -1,
+				"priority": tag_loader.tag_priority,
+				"parents": PackedStringArray(tag_loader.parents.duplicate()),
+				"conflicts": PackedStringArray(tag_loader.conflicts.duplicate()),
+				"post_count": -1,
+				"related_tags": PackedStringArray(),
+				"suggested_tags": PackedStringArray(tag_loader.suggestions.duplicate()),
+				"category": tag_loader.category,
+				"is_locked": false,
+				"is_registered": true
+			}
 	
-	return return_array
+#	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	
-	
+	return return_dictionary
+
