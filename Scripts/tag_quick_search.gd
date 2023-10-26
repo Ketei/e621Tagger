@@ -85,16 +85,9 @@ func add_selected_to_list() -> void:
 
 	for index_select in selected_item_list:
 		var tag_text: String = auto_complete_item_list.get_item_text(index_select)
-		add_tag_signal.emit(tag_text, false, false, tag_search_dictionary[tag_text]["related_tags"], tag_search_dictionary[tag_text]["category"])
-	
-	selected_item_list.reverse()
-	
-	
-	
-	for index_remove in selected_item_list:
-		auto_complete_item_list.set_item_custom_bg_color(index_remove, Color.DARK_OLIVE_GREEN)
-#		list_order_array.remove_at(index_remove)
-#		auto_complete_item_list.remove_item(index_remove)
+		# tag_name: String, tag_dict: Dictionary
+		add_tag_signal.emit(tag_text, tag_search_dictionary[tag_text])
+		auto_complete_item_list.set_item_custom_bg_color(index_select, Color.DARK_OLIVE_GREEN)
 	
 	auto_complete_item_list.deselect_all()
 
@@ -202,14 +195,17 @@ func add_online_to_list(parsed_array: Array) -> void:
 		var tag_name: String = temp_format.tag_name
 		
 		var dictionary_build: Dictionary = {
-			temp_format.tag_name: {
 				"id": temp_format.id,
+				"priority": 0,
+				"parents": PackedStringArray(),
+				"conflicts": PackedStringArray(),
 				"post_count": temp_format.post_count,
 				"related_tags": temp_format.get_tags_with_strenght().duplicate(),
+				"suggested_tags": PackedStringArray(),
 				"category": tagger.translate_category(temp_format.category),
-				"is_locked": temp_format.is_locked
+				"is_locked": temp_format.is_locked,
+				"is_registered": false
 			}
-		}
 		
 		if tag_search_dictionary.has(temp_format.tag_name):
 			tag_search_dictionary[temp_format.tag_name]["id"] = temp_format.id
@@ -217,12 +213,12 @@ func add_online_to_list(parsed_array: Array) -> void:
 			tag_search_dictionary[temp_format.tag_name]["related_tags"] = temp_format.get_tags_with_strenght().duplicate()
 			tag_search_dictionary[temp_format.tag_name]["is_locked"] = temp_format.is_locked
 		else:
-			tag_search_dictionary.merge(dictionary_build)
+			tag_search_dictionary[temp_format.tag_name] = dictionary_build
 	
-	for tag in tag_search_dictionary.keys():
-		if not list_order_array.has(tag):
-			list_order_array.append(tag)
-			auto_complete_item_list.add_item(tag, load("res://Textures/generic_tag.png"))
+
+		if not list_order_array.has(temp_format.tag_name):
+			list_order_array.append(temp_format.tag_name)
+			auto_complete_item_list.add_item(temp_format.tag_name, load("res://Textures/generic_tag.png"))
 
 
 func clear_all_items() -> void:
