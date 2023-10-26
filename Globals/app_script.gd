@@ -117,12 +117,19 @@ func trigger_options(id: int) -> void:
 		quit_app()
 
 
-func go_to_create_tag(tag_to_create: String) -> void:
+func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL) -> void:
 	tag_creator.clear_menu_items("", false)
 	tag_creator.tag_to_add_line_edit.text = tag_to_create
 	tag_creator.tag_to_add_line_edit.text_changed.emit(tag_to_create)
+	for tag in suggestion_tags:
+		if tag != tag_to_create:
+			tag_creator.add_suggestion(tag)
+	for tag in parent_tags:
+		if tag != tag_to_create:
+			tag_creator.add_parent(tag)
+	tag_creator.categories_menu.select(category)
 	trigger_options(4)
-	
+
 
 func go_to_edit_tag(tag_to_edit: String) -> void:
 	tag_reviewer.search_for_tag(tag_to_edit)
