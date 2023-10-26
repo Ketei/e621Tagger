@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=37 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -10,152 +10,19 @@
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="5_hkklg"]
 [ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="7_7hodc"]
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
+[ext_resource type="Script" path="res://Scripts/tag_quick_search.gd" id="7_n4gw3"]
 [ext_resource type="Script" path="res://Scripts/review_rmb_context_menu.gd" id="7_rbsko"]
 [ext_resource type="Script" path="res://Scripts/review_rmb_suggestion_menu.gd" id="8_q7svj"]
 [ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
 [ext_resource type="Script" path="res://Scripts/sample_blacklist_loader.gd" id="10_mi6fl"]
 [ext_resource type="Texture2D" uid="uid://6b2a6r2r2br2" path="res://Textures/WarningIcon.svg" id="14_m43gh"]
 
-[sub_resource type="GDScript" id="GDScript_6n0ht"]
+[sub_resource type="GDScript" id="GDScript_7jkdy"]
 script/source = "extends Control
-
-signal add_tag_signal(tag_string)
-
-@export var tags_to_add: int = 10
-
-@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
-@onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
-@onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
-@onready var cancel_auto_button = $CancelAutoButton
-
-@onready var add_auto_complete_node = $\"..\"
-@onready var add_selected_button = $AddSelectedButton
-@onready var some_fix_option: OptionButton = $SomeFixOption
-@onready var request_cooldown_timer = $\"../RequestCooldownTimer\"
-
-var tag_search_array: Array[String] = []
-var is_tagger_requesting: float = false
 
 
 func _ready():
-	
-	e6_requester_quick_search.post_limit = tags_to_add + 1
-	
-	some_fix_option.item_selected.connect(save_search_select)
-	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
-	request_cooldown_timer.timeout.connect(timer_timeout)
-	e6_requester_quick_search.get_finished.connect(add_online_to_list)
-	auto_com_line_edit.text_submitted.connect(search_for_tag)
-	cancel_auto_button.pressed.connect(close_add)
-	add_selected_button.pressed.connect(add_selected_to_list)
-
-
-func save_search_select(item_index: int) -> void:
-	Tagger.settings.tag_search_setting = some_fix_option.get_item_id(item_index)
-
-
-func add_selected_to_list() -> void:
-	if not auto_complete_item_list.is_anything_selected():
-		return
-	
-	var selected_item_list: Array = auto_complete_item_list.get_selected_items()
-
-
-	for index_select in selected_item_list:
-		var tag_text: String = auto_complete_item_list.get_item_text(index_select)
-		add_tag_signal.emit(tag_text)
-	
-	selected_item_list.reverse()
-	
-	for index_remove in selected_item_list:
-		tag_search_array.remove_at(index_remove)
-		auto_complete_item_list.remove_item(index_remove)
-	
-	auto_complete_item_list.deselect_all()
-
-
-func search_for_tag(tag_to_search: String) -> void:
-	auto_com_line_edit.editable = false
-	tag_to_search = tag_to_search.strip_edges().to_lower()
-	
-	if is_tagger_requesting:
-		e6_requester_quick_search.cancel_main_request()
-	
-	tag_search_array.clear()
-	auto_complete_item_list.clear()
-	
-	var tag_for_url: String = \"\"
-
-	if some_fix_option.selected == 0:
-		tag_for_url = tag_to_search + \"*\"
-	elif some_fix_option.selected == 1:
-		tag_for_url = \"*\" + tag_to_search 
-	elif some_fix_option.selected == 2:
-		tag_for_url = \"*\" + tag_to_search + \"*\"
-	
-	if some_fix_option.selected == 0:
-		for tag in Tagger.tag_manager.search_with_prefix(tag_to_search):
-			if tag_search_array.has(tag):
-				continue
-			auto_complete_item_list.add_item(tag, load(\"res://Textures/valid_tag.png\"))
-			tag_search_array.append(tag)
-	elif some_fix_option.selected == 1:
-		for tag in Tagger.tag_manager.search_with_suffix(tag_to_search):
-			if tag_search_array.has(tag):
-				continue
-			auto_complete_item_list.add_item(tag, load(\"res://Textures/valid_tag.png\"))
-			tag_search_array.append(tag)
-	elif some_fix_option.selected == 2:
-		for tag in Tagger.tag_manager.search_for_content(tag_to_search):
-			if tag_search_array.has(tag):
-				continue
-			auto_complete_item_list.add_item(tag, load(\"res://Textures/valid_tag.png\"))
-			tag_search_array.append(tag)
-
-	auto_com_line_edit.clear()
-	
-	e6_requester_quick_search.match_name = [tag_for_url]
-	e6_requester_quick_search.get_tags()
-	is_tagger_requesting = true
-	request_cooldown_timer.start()
-	
-
-func add_online_to_list(parsed_array: Array) -> void:
-	is_tagger_requesting = false
-	
-	var item_list: Array[String] = []
-	
-	for e621_tag in parsed_array:
-		var temp_format: e621Tag = e621_tag
-		var tag_name: String = temp_format.tag_name
-		
-		if tag_search_array.has(tag_name) or temp_format.category == e621Tag.Category.ARTIST or temp_format.category == e621Tag.Category.INVALID:
-			continue
-
-		item_list.append(tag_name)
-	
-	for item in item_list:
-		tag_search_array.append(item)
-		auto_complete_item_list.add_item(item, load(\"res://Textures/generic_tag.png\"))
-
-
-func clear_all_items() -> void:
-	auto_com_line_edit.clear()
-	auto_complete_item_list.clear()
-	tag_search_array.clear()
-	if is_tagger_requesting:
-		e6_requester_quick_search.cancel_main_request()
-		is_tagger_requesting = false
-
-
-func close_add() -> void:
-	add_auto_complete_node.visible = false
-	clear_all_items()
-
-
-func timer_timeout() -> void:
-	auto_com_line_edit.editable = true
-
+	hide()
 "
 
 [sub_resource type="GDScript" id="GDScript_trwfl"]
@@ -243,17 +110,16 @@ script/source = "extends Control
 signal tag_created(tag_name)
 
 @onready var tag_to_add_line_edit: LineEdit = $TagToAddLineEdit
-@onready var categories_menu = $CategoriesMenu
+@onready var categories_menu: OptionButton = $CategoriesMenu
 @onready var create_tags_button = $CreateTagsButton
 @onready var wiki_info = $WikiInfo
 @onready var add_parent_line_edit = $AddParentLineEdit
-@onready var parent_item_list = $ParentItemList
+@onready var parent_item_list: ItemList = $ParentItemList
 @onready var tag_prio_box: SpinBox = $TagPrioBox
 @onready var suggestion_item_list: ItemList = $SuggestionItemList
 @onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
 @onready var has_images_check_box: CheckBox = $HasImagesCheckBox
 @onready var tag_creator_menu: PopupMenu = $\"../MenuBar/Tag Creator\"
-
 @onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
 @onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
 @onready var conflict_window = $ConflictWindow
@@ -328,6 +194,8 @@ func tag_creator_menu_changed(id_selected: int) -> void:
 		Tagger.settings.open_tag_folder_on_creation = tag_creator_menu.is_item_checked(tag_index)
 	elif id_selected == 2:
 		conflict_window.show()
+	elif id_selected == 3:
+		clear_menu_items(\"\", false)
 
 
 func add_suggestion(new_suggestion: String) -> void:
@@ -1867,17 +1735,19 @@ item_6/id = 3
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
-size = Vector2i(280, 100)
-item_count = 3
+size = Vector2i(280, 116)
+item_count = 4
 item_0/text = "Conflicts"
 item_0/id = 2
 item_1/text = "Options"
 item_1/id = 0
 item_1/separator = true
-item_2/text = "Open image folder on creaton"
-item_2/checkable = 1
-item_2/checked = true
-item_2/id = 1
+item_2/text = "Clear fields"
+item_2/id = 3
+item_3/text = "Open image folder on creaton"
+item_3/checkable = 1
+item_3/checked = true
+item_3/id = 1
 
 [node name="Review" type="PopupMenu" parent="MenuBar"]
 size = Vector2i(175, 116)
@@ -2218,7 +2088,6 @@ script = ExtResource("5_hkklg")
 metadata/_edit_use_anchors_ = true
 
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
-visible = false
 layout_mode = 1
 anchor_top = -0.071
 anchor_right = 1.0
@@ -2226,6 +2095,7 @@ anchor_bottom = 1.0
 offset_left = 1.0
 offset_top = -0.287998
 offset_right = 1.0
+script = SubResource("GDScript_7jkdy")
 
 [node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete"]
 layout_mode = 1
@@ -2245,8 +2115,18 @@ anchor_bottom = 1.0
 offset_left = 0.639999
 offset_top = -368.0
 offset_bottom = -56.0
-script = SubResource("GDScript_6n0ht")
+script = ExtResource("7_n4gw3")
+tags_to_add = 35
 metadata/_edit_use_anchors_ = true
+
+[node name="QuickSearchPopupMenu" type="PopupMenu" parent="Tagger/AddAutoComplete/QuickSearch"]
+size = Vector2i(108, 62)
+hide_on_checkable_item_selection = false
+item_count = 2
+item_0/text = "Create tag"
+item_0/id = 0
+item_1/text = "Edit tag"
+item_1/id = 1
 
 [node name="ColorRect" type="ColorRect" parent="Tagger/AddAutoComplete/QuickSearch"]
 layout_mode = 1
@@ -2280,6 +2160,7 @@ offset_top = 16.0
 offset_right = -22.88
 offset_bottom = -56.0
 select_mode = 1
+allow_rmb_select = true
 fixed_icon_size = Vector2i(10, 10)
 
 [node name="SomeFixOption" type="OptionButton" parent="Tagger/AddAutoComplete/QuickSearch"]
