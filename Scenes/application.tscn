@@ -201,7 +201,11 @@ func tag_creator_menu_changed(id_selected: int) -> void:
 func add_suggestion(new_suggestion: String) -> void:
 	new_suggestion = new_suggestion.strip_edges().to_lower()
 	
-	if new_suggestion.is_empty():
+	if new_suggestion.is_empty() or tag_suggestion_array.has(new_suggestion):
+		suggestion_line_edit.clear()
+		if tag_suggestion_array.has(new_suggestion):
+			suggestion_item_list.select(tag_suggestion_array.find(new_suggestion))
+			suggestion_item_list.ensure_current_is_visible()
 		return
 	
 	if not tag_suggestion_array.has(new_suggestion):
@@ -230,6 +234,9 @@ func add_parent(new_parent:String) -> void:
 	
 	if new_parent.is_empty() or parent_tags.has(new_parent):
 		add_parent_line_edit.clear()
+		if parent_tags.has(new_parent):
+			parent_item_list.select(parent_tags.find(new_parent))
+			parent_item_list.ensure_current_is_visible()
 		return
 	
 	parent_tags.append(new_parent)
@@ -2091,6 +2098,7 @@ script = ExtResource("5_hkklg")
 metadata/_edit_use_anchors_ = true
 
 [node name="AddAutoComplete" type="Control" parent="Tagger"]
+visible = false
 layout_mode = 1
 anchor_top = -0.071
 anchor_right = 1.0
