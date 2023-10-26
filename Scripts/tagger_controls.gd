@@ -1,20 +1,20 @@
 extends Control
 
-@onready var line_edit = $LineEdit
+@onready var line_edit: LineEdit = $LineEdit
 @onready var item_list: ItemList = $CurrentTags/ItemList
 @onready var e_621_requester = %e621Requester
-@onready var suggested_list = $Suggested/SuggestedList
+@onready var suggested_list: ItemList = $Suggested/SuggestedList
 @onready var tag_list_generator: TagListGenerator = $"../TagListGenerator"
-@onready var generate_list = %GenerateList
-@onready var final_tag_list = $FinalList/FinalTagList
-@onready var implied_list = $"Implied Tags/ImpliedList"
-@onready var copy_to_clipboard = %CopyToClipboard
-@onready var clean_suggestions_button = $CleanSuggestionsButton
-@onready var add_auto_complete = $AddAutoComplete
-@onready var open_auto_complete_btn = $OpenAutoCompleteBTN
+@onready var generate_list: Button = %GenerateList
+@onready var final_tag_list: TextEdit = $FinalList/FinalTagList
+@onready var implied_list: ItemList = $"Implied Tags/ImpliedList"
+@onready var copy_to_clipboard: Button = %CopyToClipboard
+@onready var clean_suggestions_button: Button = $CleanSuggestionsButton
+@onready var add_auto_complete: Control = $AddAutoComplete
+@onready var open_auto_complete_btn: Button = $OpenAutoCompleteBTN
 
 @onready var tagger_menu_bar: PopupMenu = $"../MenuBar/Tagger"
-@onready var conflicting_tags = $ConflictingTags
+@onready var conflicting_tags: Control = $ConflictingTags
 @onready var main_application = $".."
 
 @onready var clear_tags_button: Button = $ClearTagsButton
@@ -25,12 +25,8 @@ extends Control
 var tag_queue: Array[String] = []
 var is_searching_tags: bool = false
 
-#var generic_tags: Array[String] = [] # To be deleted
-#var valid_tags: Dictionary = {} # To be deleted
 var suggestion_tags_array: Array[String] = []
 var implied_tags_array: Array[String] = []
-
-#var _full_tag_list: Array[String] = [] # To be deleted
 
 var final_tag_list_array: Array[String] = []
 
@@ -51,9 +47,7 @@ const character_amounts: Array[String] = ["zero pictured", "solo", "duo", "trio"
 const character_bodytypes: Array[String] = ["anthro", "semi-anthro", "feral", "humanoid", "human", "taur"]
 const character_genders: Array[String] = ["male", "female", "ambiguous gender", "andromorph", "gynomorph", "herm", "maleherm"]
 
-# Pass dictionary to list generation. Encompasses _oficial_tags & _generic_tags
 var tags_inputed: Dictionary = {} 
-# Only used for item list reference. Mirrors _full_tag_llsit
 var full_tag_list: Array[String] = [] 
 
 var species_added: int = 0
@@ -131,7 +125,7 @@ func append_online_data(array_with_resource: Array) -> void: # Connect tag reque
 			add_suggested_tag(tag)
 
 
-func add_new_tag(tag_name: String, add_from_signal: bool = true) -> void: # Connect line submit here
+func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: bool = true, suggested_tags: Array = [], tag_category := Tagger.Categories.GENERAL) -> void: # Connect line submit here
 	tag_name = tag_name.to_lower().strip_edges()
 	tag_name = tag_name.replace("_", " ")
 	tag_name = Tagger.alias_database.get_alias(tag_name)
@@ -162,7 +156,15 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true) -> void: # Conn
 		item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
 	else:
 		append_empty_tag(tag_name)
+		
+		if tag_category != Tagger.Categories.GENERAL:
+			tags_inputed[tag_name]["category"] = tag_category
+			add_to_category(tag_category)
+		
 		item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
+	
+	for suggested_tag in suggested_tags:
+		add_suggested_tag(suggested_tag)
 	
 	item_list.ensure_current_is_visible()
 	full_tag_list.append(tag_name)
@@ -177,7 +179,7 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true) -> void: # Conn
 	
 	check_minimum_requirements()
 	
-	if Tagger.settings.search_suggested:
+	if Tagger.settings.search_suggested and search_online:
 		tag_queue.append(tag_name)
 		start_suggestion_lookup()
 
@@ -185,7 +187,6 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true) -> void: # Conn
 func add_suggested_tag(tag_name: String) -> void:
 	if suggestion_tags_array.has(tag_name) or tags_inputed.has(tag_name) or implied_tags_array.has(tag_name):
 		return
-	
 	suggestion_tags_array.append(tag_name)
 	suggested_list.add_item(tag_name)
 
@@ -359,6 +360,16 @@ func clear_all_tags() -> void: # Connect to clear all dropdown menu
 	
 	final_tag_list_array.clear()
 	
+	species_added = 0
+	genders_added = 0
+	character_amounts_added = 0
+	body_types_added = 0
+	char_count_tag_set = false
+
+	implied_species_added = 0
+	implied_genders_added = 0
+	implied_types_added = 0
+	
 	check_minimum_requirements()
 
 
@@ -370,6 +381,16 @@ func clear_inputted_tags() -> void: # Connect to clear tags button
 	implied_list.clear()
 	
 	final_tag_list_array.clear()
+	
+	species_added = 0
+	genders_added = 0
+	character_amounts_added = 0
+	body_types_added = 0
+	char_count_tag_set = false
+
+	implied_species_added = 0
+	implied_genders_added = 0
+	implied_types_added = 0
 	
 	check_minimum_requirements()
 
@@ -421,14 +442,6 @@ func _ready():
 	
 	tagger_menu_bar.id_pressed.connect(tagger_menu_pressed)
 	
-
-#	clear_suggested_button.pressed.connect(clear_suggested_tags)
-#	clear_tags_button.pressed.connect(clear_manual_tags)
-#	line_edit.text_submitted.connect(submit_text)
-#	item_list.item_activated.connect(remove_item)
-#	e_621_requester.get_finished.connect(suggestions_found)
-#	suggested_list.item_activated.connect(transfer_suggested)
-#	item_list.empty_clicked.connect(item_list.deselect_all) # Might delete
 	generate_list.pressed.connect(generate_tag_list)
 	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
 	clean_suggestions_button.pressed.connect(clean_suggestions)
@@ -474,12 +487,6 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		remove_tag(context_menu_item_index)
 
 
-#func _unhandled_key_input(event): # Useless now
-#	if event.is_action_pressed("ui_text_delete") and item_list.is_anything_selected():
-#		for selected_item in item_list.get_selected_items():
-#			item_list.remove_item(selected_item)
-
-
 func tagger_menu_pressed(option_id: int) -> void:
 	var item_index: int = tagger_menu_bar.get_item_index(option_id)
 	
@@ -499,176 +506,12 @@ func tagger_menu_pressed(option_id: int) -> void:
 		conflicting_tags.show()
 
 
-#func clear_manual_tags() -> void: # TO be replaced by clear_inputted_Tags()
-#	_full_tag_list.clear()
-#	implied_tags_array.clear()
-#	valid_tags.clear()
-#	generic_tags.clear()
-#
-#	item_list.clear()
-#	implied_list.clear()
-#
-
-#func clear_suggested_tags() -> void: # To be replaced by clear_suggestion_tags
-#	suggestion_tags_array.clear()
-#	suggested_list.clear()
-
-
-#func clear_tags() -> void: # To be replaced by clear_all_tags
-#	_full_tag_list.clear()
-#	implied_tags_array.clear()
-#	valid_tags.clear()
-#	generic_tags.clear()
-#	suggestion_tags_array.clear()
-#
-#	item_list.clear()
-#	implied_list.clear()
-#	suggested_list.clear()
-#
-#	final_tag_list.clear()
-
-
 func clean_suggestions() -> void:
 	for tag in suggestion_tags_array.duplicate():
 		if implied_tags_array.has(tag) or full_tag_list.has(tag):
 			var _remove_index: int = suggestion_tags_array.find(tag)
 			suggestion_tags_array.remove_at(_remove_index)
 			suggested_list.remove_item(_remove_index)
-
-
-#func clear_suggestion_box() -> void: # Duplicate. Remove
-#	suggestion_tags_array.clear()
-#	suggested_list.clear()
-
-
-#func remove_item(item_id: int) -> void: # Replaced by remove_tag()
-#	var _id_name: String = item_list.get_item_text(item_id)
-#
-#	if generic_tags.has(_id_name):
-#		quick_erase(_id_name, generic_tags)
-#	elif valid_tags.has(_id_name):
-#		valid_tags.erase(_id_name)
-#
-#	_full_tag_list.remove_at(item_id)
-#	item_list.remove_item(item_id)
-#	regenerate_implied()
-
-
-#func regenerate_implied() -> void: # To be replaced by regenerate_parents()
-#	implied_tags_array.clear()
-#	implied_list.clear()
-#
-#	tag_list_generator._dad_queue.clear()
-#
-#	tag_list_generator._dad_queue = valid_tags.values()
-#
-#	tag_list_generator.explore_parents()
-#
-#	for imp_tag in tag_list_generator._kid_return:
-#		if _full_tag_list.has(imp_tag) or implied_tags_array.has(imp_tag):
-#			continue		
-#		implied_tags_array.append(imp_tag)
-#		implied_list.add_item(imp_tag)
-
-
-#func quick_erase(element_to_erase, array_ref: Array) -> void: # No longer needed.
-#	if not array_ref.has(element_to_erase):
-#		return
-#
-#	if element_to_erase == array_ref.back():
-#		array_ref.erase(element_to_erase)
-#		return
-#
-#	var _index_target = array_ref.find(element_to_erase)
-#
-#	array_ref[_index_target] = array_ref.back()
-#	array_ref.resize(array_ref.size() - 1)
-
-
-#func add_tag(tag_to_add: String) -> void: # Redundant. Replaced by add_new_tag
-#	if _full_tag_list.has(tag_to_add):
-#		return
-#
-#	if Tagger.tag_manager.has_tag(tag_to_add):
-#		if not valid_tags.has(tag_to_add):
-#			var _tag_loading = Tagger.tag_manager.get_tag(tag_to_add)
-#			add_valid_tag(tag_to_add, _tag_loading)
-#	else:
-#		add_generic_tag(tag_to_add)
-
-
-#func submit_text(text_to_add: String) -> void:  # Replaced by add_new_tag
-#	text_to_add = text_to_add.to_lower().strip_edges()
-#	text_to_add = text_to_add.replace("_", " ")
-#
-#	if text_to_add == "":
-#		line_edit.clear()
-#		return
-#
-#	var _target_tag: String = Tagger.alias_database.get_alias(text_to_add)
-#
-#	if Tagger.settings_lists.invalid_tags.has(_target_tag):
-#		add_invalid_tag(_target_tag)
-#		line_edit.clear()
-#		return
-#
-#	if _full_tag_list.has(_target_tag):
-#		item_list.select(_full_tag_list.find(_target_tag))
-#		item_list.ensure_current_is_visible()
-#		line_edit.clear()
-#		return
-#
-#	add_tag(_target_tag)
-#
-#	line_edit.clear()
-#
-#	if Tagger.settings.search_suggested:
-#		tag_queue.append(_target_tag)
-#		start_suggestion_lookup()
-
-
-#func button_press() -> void: # Unused
-#	if line_edit.text != "":
-#		item_list.add_item(line_edit.text)
-#		line_edit.clear()
-
-
-#func is_tag_added(tag_string: String) -> bool: # Unused
-#	tag_string = tag_string.strip_edges().replace("_", " ")
-#	return _full_tag_list.has(Tagger.alias_database.get_alias(tag_string))
-
-
-#func load_tags(tags_to_load: Array, replace_tags: bool) -> void: # To be replaced by load_tag_list
-#	if replace_tags:
-#		item_list.clear()
-#		suggested_list.clear()
-#		implied_list.clear()
-#
-#		_full_tag_list.clear()
-#		generic_tags.clear()
-#		valid_tags.clear()
-#		suggestion_tags_array.clear()
-#		implied_tags_array.clear()
-#
-#	for tag in tags_to_load:
-#
-#		var _aliased: String = Tagger.alias_database.get_alias(tag)
-#
-#		if Tagger.tag_manager.has_tag(_aliased):
-#
-#			var generic_index: int = -1
-#
-#			if generic_tags.has(_aliased):
-#				generic_index = _full_tag_list.find(_aliased)
-#				item_list.remove_item(generic_index)
-#				generic_tags.erase(_aliased)
-#				_full_tag_list.remove_at(generic_index)
-#
-#			if not _full_tag_list.has(_aliased):
-#				add_valid_tag(_aliased, Tagger.tag_manager.get_tag(_aliased), generic_index)
-#		else:
-#			if not _full_tag_list.has(_aliased):
-#				add_generic_tag(_aliased)
 
 
 func start_suggestion_lookup() -> void:
@@ -700,117 +543,14 @@ func suggestions_found(e621_data_array: Array) -> void:
 		suggestion_timer.start()
 	else:
 		is_searching_tags = false
-	
-
-#func transfer_suggested(item_activated: int) -> void: # Replaced by add_from_suggested
-#	var _tag_text = suggested_list.get_item_text(item_activated)
-#
-#	if _full_tag_list.has(_tag_text):
-#		suggested_list.remove_item(item_activated)
-#		suggestion_tags_array.erase(_tag_text)
-#		return
-#
-#	if Tagger.tag_manager.has_tag(_tag_text):
-#		if not valid_tags.has(_tag_text):
-#			var _tag_loading = Tagger.tag_manager.get_tag(_tag_text)
-#			if _tag_loading:
-#				add_valid_tag(_tag_text, _tag_loading)
-#			else:
-#				add_generic_tag(_tag_text)
-#	else:
-#		add_generic_tag(_tag_text)
-#
-#	if Tagger.settings.search_suggested:
-#		tag_queue.append(_tag_text)
-#		start_suggestion_lookup()
 
 
-func generate_tag_list() -> void: # Clean comments
-#	tag_list_generator.generate_tag_list(valid_tags.values(), generic_tags)
-#	final_tag_list_array = tag_list_generator.get_tag_list().duplicate()
-#	final_tag_list.text = tag_list_generator.create_list_from_array(final_tag_list_array)
+func generate_tag_list() -> void:
 	tag_list_generator.generate_tag_list_v2(tags_inputed)
 	tag_list_generator.__explore_parents_v2()
 	final_tag_list_array = tag_list_generator.get_tag_list_v2()
-	final_tag_list.text = tag_list_generator.create_list_from_array(final_tag_list_array)
-	
-	
-# Replaced by add_new_tag()
-#func add_valid_tag(tag_name: String, tag_data: Tag, add_position: int = -1) -> void:
-#	if valid_tags.has(tag_name):
-#		return
-#
-#	if implied_tags_array.has(tag_name):
-#		var _index = implied_tags_array.find(tag_name)
-#		implied_list.remove_item(_index)
-#		implied_tags_array.remove_at(_index)
-#
-#	if suggestion_tags_array.has(tag_name):
-#		var _s_index = suggestion_tags_array.find(tag_name)
-#		suggested_list.remove_item(_s_index)
-#		suggestion_tags_array.remove_at(_s_index)
-#
-#	valid_tags[tag_name] = tag_data
-#
-#	if add_position != -1:
-#		_full_tag_list.insert(add_position, tag_name)
-#	else:
-#		_full_tag_list.append(tag_name)
-#
-#	tag_list_generator._dad_queue = [tag_data]
-#	tag_list_generator.explore_parents()
-#
-#	for implied_parent in tag_list_generator._kid_return:
-#		if not implied_tags_array.has(implied_parent) and not _full_tag_list.has(implied_parent):
-#			implied_tags_array.append(implied_parent)
-#			implied_list.add_item(implied_parent)
-#
-#	if Tagger.settings.load_suggested:
-#		for suggested_tag in tag_list_generator._offline_suggestions:
-#			if not suggestion_tags_array.has(suggested_tag):
-#				suggestion_tags_array.append(suggested_tag)
-#				suggested_list.add_item(suggested_tag)
-#
-#	tag_list_generator._kid_return.clear()
-#	tag_list_generator._offline_suggestions.clear()
-#	tag_list_generator._groped_dads.clear()
-#
-#	var item_index: int = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
-#
-#	if add_position != -1:
-#		item_list.move_item(item_index, add_position)
-#
-#	item_list.select(item_index)
-#	item_list.ensure_current_is_visible()
-
-
-# Replaced by add_new_tag()
-#func add_generic_tag(tag_name: String) -> void:
-#	if generic_tags.has(tag_name):
-#		return
-#
-#
-#	if implied_tags_array.has(tag_name):
-#		var _index = implied_tags_array.find(tag_name)
-#		implied_list.remove_item(_index)
-#		implied_tags_array.remove_at(_index)
-#
-#	if suggestion_tags_array.has(tag_name):
-#		var _s_index = suggestion_tags_array.find(tag_name)
-#		suggested_list.remove_item(_s_index)
-#		suggestion_tags_array.remove_at(_s_index)
-#
-#	generic_tags.append(tag_name)
-#	_full_tag_list.append(tag_name)
-#	item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
-#	item_list.ensure_current_is_visible()
-
-
-# Replaced by add_new_tag()
-#func add_invalid_tag(inv_tag_name: String) -> void:
-#	_full_tag_list.append(inv_tag_name)
-#	item_list.select(item_list.add_item(inv_tag_name, load("res://Textures/bad.png")))
-#	item_list.ensure_current_is_visible()
+	final_tag_list.text = tag_list_generator.create_list_from_array(
+			final_tag_list_array)
 
 
 func copy_resut_to_clipboard() -> void:
