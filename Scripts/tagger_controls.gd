@@ -54,7 +54,10 @@ var species_added: int = 0
 var genders_added: int = 0
 var character_amounts_added: int = 0
 var body_types_added: int = 0
-var char_count_tag_set: bool = false
+
+var character_count_added: int = 0
+var zero_pictured: bool = false
+
 
 var implied_species_added: int = 0
 var implied_genders_added: int = 0
@@ -75,6 +78,55 @@ func append_empty_tag(tag_to_append: String) -> void:
 		"is_registered": false
 	}
 
+
+func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
+	if tag_name.is_empty() or tag_dict.is_empty():
+		return
+
+	if Tagger.settings_lists.invalid_tags.has(tag_name):
+		var index: int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
+		item_list.select(index)
+		item_list.set_item_tooltip(index, "This tag is an invalid tag")
+		full_tag_list.append(tag_name)
+		return
+		
+	if tags_inputed.has(tag_name):
+		tags_inputed[tag_name]["id"] = tag_dict["id"]
+		tags_inputed[tag_name]["post_count"] = tag_dict["post_count"]
+		tags_inputed[tag_name]["related_tags"] = tag_dict["related_tags"]
+		tags_inputed[tag_name]["is_locked"] = tag_dict["is_locked"]
+	else:
+		if tag_name == "zero pictured":
+			zero_pictured = true
+		tags_inputed[tag_name] = tag_dict
+		full_tag_list.append(tag_name)
+		add_to_category(tag_dict["category"])
+		
+		if Tagger.tag_manager.has_tag(tag_name):
+			item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
+		else:
+			item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
+		
+		if character_bodytypes.has(tag_name):
+			body_types_added += 1
+		elif character_genders.has(tag_name):
+			genders_added += 1
+		elif character_amounts.has(tag_name):
+			character_count_added += 1
+	
+		if Tagger.settings.search_suggested:
+			tag_queue.append(tag_name)
+			start_suggestion_lookup()
+	
+	item_list.ensure_current_is_visible()
+	
+	for related_tag in tag_dict["related_tags"]:
+		add_suggested_tag(related_tag)
+	for suggested_tag in tag_dict["suggested_tags"]:
+		add_suggested_tag(suggested_tag)
+	
+	check_minimum_requirements()
+	
 
 func append_registered_tag(tag_resource: Tag) -> void:
 	if tags_inputed.has(tag_resource.tag):
@@ -151,6 +203,9 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	# So now we can add it
 	
+	if tag_name == "zero pictured":
+		zero_pictured = true
+	
 	if Tagger.tag_manager.has_tag(tag_name):
 		append_registered_tag(Tagger.tag_manager.get_tag(tag_name))
 		item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
@@ -173,6 +228,8 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		body_types_added += 1
 	elif character_genders.has(tag_name):
 		genders_added += 1
+	elif character_amounts.has(tag_name):
+			character_count_added += 1
 	
 	if add_from_signal:
 		line_edit.clear()
@@ -225,7 +282,7 @@ func update_parents(tag_resource: Tag) -> void:
 
 func update_tag(tag_name: String) -> void:
 	if not tags_inputed.has(tag_name):
-		pass
+		return
 	
 	var current_index: int = full_tag_list.find(tag_name)
 	
@@ -239,6 +296,14 @@ func update_tag(tag_name: String) -> void:
 	
 func remove_tag(item_index: int) -> void: # Connect to itemlist activate
 	var tag_name: String = item_list.get_item_text(item_index)
+	
+	if tag_name == "zero pictured":
+		zero_pictured = false
+	
+	if not tags_inputed.has(tag_name):
+		full_tag_list.remove_at(item_index)
+		item_list.remove_item(item_index)
+		return
 	
 	remove_from_category(tags_inputed[tag_name]["category"])
 	
@@ -290,11 +355,13 @@ func check_minimum_requirements() -> void: #Add one call on ready
 		warnings_string += "- {0} character tags detected. Recommended tag: \"{1}.\"\n".format(
 				[str(character_amounts_added), str(character_amounts[clampi(character_amounts_added, 0, 4)])]
 		)
-	if body_types_added + implied_types_added == 0 and 0 < character_amounts_added:
+	if character_count_added == 0:
+		warnings_string += "- No character amount specified.\n"
+	if body_types_added + implied_types_added == 0 and not zero_pictured:
 		warnings_string += "- No body type specified.\n"
-	if genders_added + implied_genders_added == 0 and 0 < character_amounts_added:
+	if genders_added + implied_genders_added == 0 and not zero_pictured:
 		warnings_string += "- No gender tags included.\n"
-	if species_added + implied_species_added == 0 and 0 < character_amounts_added:
+	if species_added + implied_species_added == 0 and not zero_pictured:
 		warnings_string += "- No species tags added.\n"
 	
 	if warnings_string.is_empty():
@@ -335,8 +402,6 @@ func regenerate_parents() -> void:
 	
 	tag_list_generator.explore_parents_v2()
 	
-	print(tag_list_generator.types_count)
-	
 	implied_species_added = tag_list_generator.types_count["species"]
 	implied_genders_added = tag_list_generator.types_count["genders"]
 	implied_types_added = tag_list_generator.types_count["body_types"]
@@ -364,7 +429,8 @@ func clear_all_tags() -> void: # Connect to clear all dropdown menu
 	genders_added = 0
 	character_amounts_added = 0
 	body_types_added = 0
-	char_count_tag_set = false
+	zero_pictured = false
+	character_count_added = 0
 
 	implied_species_added = 0
 	implied_genders_added = 0
@@ -386,7 +452,8 @@ func clear_inputted_tags() -> void: # Connect to clear tags button
 	genders_added = 0
 	character_amounts_added = 0
 	body_types_added = 0
-	char_count_tag_set = false
+	zero_pictured = false
+	character_count_added = 0
 
 	implied_species_added = 0
 	implied_genders_added = 0
@@ -433,7 +500,7 @@ func _ready():
 	tagger_context_menu.id_pressed.connect(left_click_context_menu_clicked)
 	item_list.item_clicked.connect(move_left_context)
 	
-	$AddAutoComplete/QuickSearch.add_tag_signal.connect(add_new_tag)
+	$AddAutoComplete/QuickSearch.add_tag_signal.connect(append_prefilled_tag)
 	
 	add_auto_complete.visible = false
 	open_auto_complete_btn.pressed.connect(add_auto_complete.show)
@@ -480,7 +547,10 @@ func move_left_context(index: int, item_position: Vector2, mouse_button_index: i
 
 func left_click_context_menu_clicked(id_pressed: int) -> void:
 	if id_pressed == 0:
-		main_application.go_to_create_tag(item_list.get_item_text(context_menu_item_index))
+		var tag_name = item_list.get_item_text(context_menu_item_index)
+#		tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL
+#		main_application.go_to_create_tag(item_list.get_item_text(context_menu_item_index))
+		main_application.go_to_create_tag(tag_name, tags_inputed[tag_name]["parents"], tags_inputed[tag_name]["suggested_tags"] + tags_inputed[tag_name]["related_tags"], tags_inputed[tag_name]["category"])
 	elif id_pressed == 1:
 		main_application.go_to_edit_tag(item_list.get_item_text(context_menu_item_index))
 	elif id_pressed == 2:
