@@ -140,6 +140,7 @@ func load_tags(tags_array: Array, replace: bool) -> void:
 #	tagger.load_tags(tags_array, replace)
 	tagger.load_tag_list(tags_array, replace)
 
+
 func load_tag_if_added(tag_to_add: String) -> void:
 	tagger.update_tag(tag_to_add)
 

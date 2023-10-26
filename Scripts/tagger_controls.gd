@@ -281,19 +281,22 @@ func update_parents(tag_resource: Tag) -> void:
 	
 
 func update_tag(tag_name: String) -> void:
-	if not tags_inputed.has(tag_name):
-		return
 	
-	var current_index: int = full_tag_list.find(tag_name)
+	if tags_inputed.has(tag_name):
+		var current_index: int = full_tag_list.find(tag_name)
+		
+		if Tagger.tag_manager.has_tag(tag_name):
+			append_registered_tag(Tagger.tag_manager.get_tag(tag_name))
+			item_list.set_item_icon(current_index, load("res://Textures/valid_tag.png"))
+		else:
+			item_list.set_item_icon(current_index, load("res://Textures/generic_tag.png"))
+
+	if implied_tags_array.has(tag_name):
+		regenerate_parents()
 	
-	if Tagger.tag_manager.has_tag(tag_name):
-		append_registered_tag(Tagger.tag_manager.get_tag(tag_name))
-		item_list.set_item_icon(current_index, load("res://Textures/valid_tag.png"))
-	else:
-		item_list.set_item_icon(current_index, load("res://Textures/generic_tag.png"))
 	check_minimum_requirements()
-	
-	
+
+
 func remove_tag(item_index: int) -> void: # Connect to itemlist activate
 	var tag_name: String = item_list.get_item_text(item_index)
 	
@@ -350,9 +353,10 @@ func translate_category(e621_post_category: int) -> Tagger.Categories:
 
 func check_minimum_requirements() -> void: #Add one call on ready
 	var warnings_string: String = ""
+	var suggestions_string: String = ""
 	
 	if not full_tag_list.has(character_amounts[clampi(character_amounts_added, 0, 4)]):
-		warnings_string += "- {0} character tags detected. Recommended tag: \"{1}.\"\n".format(
+		suggestions_string = "- {0} character tags detected. Recommended tag: \"{1}.\"\n".format(
 				[str(character_amounts_added), str(character_amounts[clampi(character_amounts_added, 0, 4)])]
 		)
 	if character_count_added == 0:
@@ -364,12 +368,16 @@ func check_minimum_requirements() -> void: #Add one call on ready
 	if species_added + implied_species_added == 0 and not zero_pictured:
 		warnings_string += "- No species tags added.\n"
 	
-	if warnings_string.is_empty():
+	if warnings_string.is_empty() and suggestions_string.is_empty():
 		warning_rect.hide()
 		warning_rect.tooltip_text = ""
 	else:
+		if not warnings_string.is_empty():
+			warning_rect.texture = load("res://Textures/WarningIcon.svg")
+		else:
+			warning_rect.texture = load("res://Textures/InfoIcon.svg")
 		warning_rect.show()
-		warning_rect.tooltip_text = warnings_string
+		warning_rect.tooltip_text = suggestions_string + warnings_string
 
 
 func add_from_suggested(item_activated: int) -> void: # Connect to item activated
@@ -405,7 +413,7 @@ func regenerate_parents() -> void:
 	implied_species_added = tag_list_generator.types_count["species"]
 	implied_genders_added = tag_list_generator.types_count["genders"]
 	implied_types_added = tag_list_generator.types_count["body_types"]
-
+	
 	for imp_tag in tag_list_generator._kid_return:
 		if full_tag_list.has(imp_tag) or implied_tags_array.has(imp_tag):
 			continue		
@@ -424,6 +432,7 @@ func clear_all_tags() -> void: # Connect to clear all dropdown menu
 	implied_list.clear()
 	
 	final_tag_list_array.clear()
+	final_tag_list.clear()
 	
 	species_added = 0
 	genders_added = 0
