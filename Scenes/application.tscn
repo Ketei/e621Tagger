@@ -342,6 +342,7 @@ resource_name = "tag_reviewer_script"
 script/source = "extends Control
 
 signal _finished_loading_local()
+signal tag_updated
 
 @onready var tag_searcher = $TagSearcher
 @onready var tag_search_button = $TagSearcher/TagSearchButton
@@ -439,6 +440,8 @@ func update_tag() -> void:
 	_tag.has_pictures = has_images_check_box.button_pressed
 	_tag.conflicts = conflicts_array.duplicate()
 	_tag.save()
+	
+	tag_updated.emit(_tag.tag)
 	
 	tag_update_button.text = \"Updated!\"
 	text_change_timer.start()

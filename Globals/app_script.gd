@@ -24,7 +24,7 @@ func _ready():
 	menu_bar.set_menu_hidden(3, true) # Review
 	menu_bar.set_menu_hidden(4, true) # Settings
 	
-	
+	tag_reviewer.tag_updated.connect(load_tag_if_added)
 	tag_reviewer.parents_item_list.create_tag.connect(go_to_create_tag)
 	tag_reviewer.tag_suggestion_list.create_tag.connect(go_to_create_tag)
 	tag_creator.tag_created.connect(load_tag_if_added)
