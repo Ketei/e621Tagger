@@ -29,13 +29,16 @@ func set_related_tags(set_tags: String) -> void:
 	var _weights: Array = []
 	
 	for index in range(_set_tags.size()):
+
 		if index % 2 == 0:
 			_tags.append(_set_tags[index].replace("_", " "))
 		else:
 			_weights.append(_set_tags[index])
 	
 	for index in range(_weights.size()):
-		
+		if Tagger.settings_lists.suggestion_blacklist.has(_tags[index]):
+			continue
+
 		if highest_tag_strenght < int(_weights[index]):
 			highest_tag_strenght = int(_weights[index])
 		
@@ -45,8 +48,8 @@ func set_related_tags(set_tags: String) -> void:
 		related_tags[_weights[index]].append(_tags[index])
 		
 
-func get_tags_with_strenght() -> Array[String]:
-	var _return_list: Array[String] = []
+func get_tags_with_strenght() -> PackedStringArray:
+	var _return_list: PackedStringArray = []
 	
 	var target_strenght = highest_tag_strenght * (Tagger.settings.suggestion_strength / 100.0)
 	
