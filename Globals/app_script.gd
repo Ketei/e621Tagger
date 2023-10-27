@@ -49,7 +49,7 @@ func trigger_options(id: int) -> void:
 		list_loader.visible = false
 		settings.visible = false
 		tag_creator.visible = false
-		tag_reviewer.visible = false
+		tag_reviewer.hide_node()
 		tag_category_searcher.hide()
 		menu_bar.set_menu_hidden(1, false) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -60,7 +60,7 @@ func trigger_options(id: int) -> void:
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
-		tag_reviewer.visible = false
+		tag_reviewer.hide_node()
 		tag_category_searcher.hide()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -71,7 +71,7 @@ func trigger_options(id: int) -> void:
 		tagger.visible = false
 		list_loader.visible = false
 		tag_creator.visible = false
-		tag_reviewer.visible = false
+		tag_reviewer.hide_node()
 		tag_category_searcher.hide()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -88,13 +88,13 @@ func trigger_options(id: int) -> void:
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, false) # Review
 		menu_bar.set_menu_hidden(4, true) # Settings
-		tag_reviewer.visible = true
+		tag_reviewer.show_node()
 	elif  id == 6:
 		tagger.hide()
 		list_loader.hide()
 		tag_creator.hide()
 		settings.hide()
-		tag_reviewer.hide()
+		tag_reviewer.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
@@ -105,7 +105,7 @@ func trigger_options(id: int) -> void:
 		tagger.visible = false
 		list_loader.visible = false
 		settings.visible = false
-		tag_reviewer.visible = false
+		tag_reviewer.hide_node()
 		tag_category_searcher.hide()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, false) # Tag Creator

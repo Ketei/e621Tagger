@@ -11,3 +11,9 @@ func _ready():
 
 func button_pressed() -> void:
 	lewd_pic_pressed.emit(self.texture)
+
+
+func pause_texture(is_paused: bool) -> void:
+	if texture is AnimatedTexture:
+		if texture.pause != is_paused:
+			texture.pause = is_paused
