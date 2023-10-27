@@ -407,6 +407,13 @@ var is_downloading_samples: bool = false:
 func _ready():
 	hide()
 	
+	review_menu.set_item_tooltip(
+			review_menu.get_item_index(5),
+			\"If enabled when deleting a tag, the pictures folder will be 
+			deleted as well.\")
+	
+	full_screen_display.display_hidden.connect(play_all_gifs)
+	
 	e621_samples_dl_review.images_saved.connect(next_in_samples_queue)
 	add_conflict_line_edit.text_submitted.connect(add_tag_conflict)
 	conflicts_item_list.item_activated.connect(remove_tag_conflict)
@@ -435,6 +442,16 @@ func _ready():
 	
 	add_parent_line_edit.text_submitted.connect(add_parent)
 	
+
+func hide_node() -> void:
+	pause_all_gifs()
+	hide()
+
+
+func show_node() -> void:
+	play_all_gifs()
+	show()
+
 
 func update_tag() -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
@@ -486,20 +503,30 @@ func image_checkbox_toggle(new_toggle: bool) -> void:
 		open_pic_folder_button.disabled = true
 
 
+func delete_tag(tag_to_delete: String) -> void:
+	if not Tagger.tag_manager.has_tag(tag_to_delete):
+		return
+	
+	var _tag: Tag = Tagger.tag_manager.get_tag(tag_to_delete)
+	var _tag_path = Tagger.tags_path + _tag.file_name
+	
+	if ResourceLoader.exists(_tag_path):
+		OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
+	
+	if Tagger.settings.delete_with_pictures and DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
+		OS.move_to_trash(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag.file_name.get_basename()))
+	
+	var _implication_replace: ImplicationDictionary = Tagger.tag_manager.get_implication(_tag.tag.left(1))
+	_implication_replace.tag_implications.erase(_tag.tag)
+	
+	Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
+
+	_implication_replace.save()
+
+
 func activate_menu_bar(id_button: int) -> void:
 	if id_button == 1: # Deleting a tag
-		var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
-		var _tag_path = Tagger.tags_path + _tag.file_name
-		
-		if ResourceLoader.exists(_tag_path):
-			OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
-		
-		var _implication_replace: ImplicationDictionary = Tagger.tag_manager.get_implication(_tag.tag.left(1))
-		_implication_replace.tag_implications.erase(_tag.tag)
-		
-		Tagger.tag_manager.relation_database[_implication_replace.implication_index].erase(_tag.tag)
-
-		_implication_replace.save()
+		delete_tag(name_line.text.to_lower())
 		
 		for child in lewd_pic_container.get_children():
 			child.lewd_pic_pressed.disconnect(display_big_pic)
@@ -519,6 +546,15 @@ func activate_menu_bar(id_button: int) -> void:
 	
 	elif id_button == 4: # Reload page
 		search_for_tag(name_line.text)
+	elif  id_button == 5: # Delete picture folder on deletion
+		var is_enabled: bool = not review_menu.is_item_checked(
+				review_menu.get_item_index(5))
+		
+		review_menu.set_item_checked(
+				review_menu.get_item_index(5),
+				is_enabled)
+			
+		Tagger.settings.delete_with_pictures = is_enabled
 
 
 func clear_and_disable() -> void:
@@ -791,6 +827,7 @@ func create_download_textures() -> void:
 
 
 func display_big_pic(texture_to_load: Texture2D) -> void:
+	pause_all_gifs()
 	full_screen_display.show_picture(texture_to_load)
 
 
@@ -836,6 +873,16 @@ func next_in_samples_queue() -> void:
 	else:
 		await get_tree().create_timer(10.0).timeout
 		download_samples()
+
+
+func pause_all_gifs() -> void:
+	for child in lewd_pic_container.get_children():
+		child.pause_texture(true)
+
+
+func play_all_gifs() -> void:
+	for child in lewd_pic_container.get_children():
+		child.pause_texture(false)
 
 "
 
@@ -1745,7 +1792,8 @@ item_6/id = 3
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
-size = Vector2i(280, 116)
+size = Vector2i(280, 143)
+hide_on_checkable_item_selection = false
 item_count = 4
 item_0/text = "Conflicts"
 item_0/id = 2
@@ -1760,9 +1808,9 @@ item_3/checked = true
 item_3/id = 1
 
 [node name="Review" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(175, 116)
+size = Vector2i(274, 197)
 hide_on_checkable_item_selection = false
-item_count = 5
+item_count = 7
 item_0/text = "Tags"
 item_0/id = 0
 item_0/separator = true
@@ -1778,6 +1826,13 @@ item_3/disabled = true
 item_4/text = "Delete Tag"
 item_4/id = 1
 item_4/disabled = true
+item_5/text = "Settings"
+item_5/id = 6
+item_5/disabled = true
+item_5/separator = true
+item_6/text = "Delete images"
+item_6/checkable = 1
+item_6/id = 5
 
 [node name="Settings" type="PopupMenu" parent="MenuBar"]
 item_count = 1
@@ -1785,6 +1840,7 @@ item_0/text = "API key"
 item_0/id = 0
 
 [node name="Tagger" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -2662,7 +2718,6 @@ wait_time = 2.0
 one_shot = true
 
 [node name="TagReviewer" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056

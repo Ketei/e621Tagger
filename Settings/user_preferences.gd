@@ -26,6 +26,8 @@ extends Resource
 @export var load_web_gifs: bool = false
 @export var load_local_gifs: bool = true
 
+@export var delete_with_pictures: bool = false
+
 static var settings_version: String = "1.0" 
 
 
