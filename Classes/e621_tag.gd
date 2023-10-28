@@ -48,7 +48,7 @@ func set_related_tags(set_tags: String) -> void:
 		related_tags[_weights[index]].append(_tags[index])
 		
 
-func get_tags_with_strenght() -> PackedStringArray:
+func get_tags_with_strength() -> PackedStringArray:
 	var _return_list: PackedStringArray = []
 	
 	var target_strenght = highest_tag_strenght * (Tagger.settings.suggestion_strength / 100.0)
@@ -58,4 +58,17 @@ func get_tags_with_strenght() -> PackedStringArray:
 			_return_list.append_array(related_tags[strenght])
 	
 	return _return_list
+
+
+func translate_category() -> Tagger.Categories:
+	if category == Category.ARTIST:
+		return Tagger.Categories.ARTIST
+	elif category == Category.COPYRIGHT:
+		return Tagger.Categories.COPYRIGHT
+	elif category == Category.CHARACTER:
+		return Tagger.Categories.CHARACTER
+	elif category == Category.SPECIES:
+		return Tagger.Categories.SPECIES
+	else:
+		return Tagger.Categories.GENERAL
 
