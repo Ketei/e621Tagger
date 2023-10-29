@@ -1,6 +1,8 @@
 class_name FullScreenDisplay
 extends Control
 
+signal display_hidden
+
 @onready var lewd_texture: TextureRect = $ScrollContainer/LewdTexture
 
 
@@ -18,8 +20,12 @@ func show_picture(texture_for_rect: Texture2D) -> void:
 	
 	if lewd_texture.expand_mode != TextureRect.EXPAND_IGNORE_SIZE:
 		lewd_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	
+	if lewd_texture.texture is AnimatedTexture:
+		lewd_texture.texture.pause = false
 	show()
 
 
 func hide_window() -> void:
+	display_hidden.emit()
 	self.visible = false

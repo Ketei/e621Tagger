@@ -31,7 +31,7 @@ enum Sites {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/0.5.1 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.5.2 (by Ketei)",
 }
 
 
@@ -77,3 +77,4 @@ func get_headers() -> Array:
 	for header_type in e6_headers_data.keys():
 		return_headers.append(header_type + ": " + e6_headers_data[header_type])
 	return return_headers
+

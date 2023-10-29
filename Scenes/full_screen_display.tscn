@@ -83,10 +83,7 @@ func set_vertical() -> void:
 	var max_range: int = maxi(max_v_range, 0)
 	@warning_ignore(\"narrowing_conversion\")
 	scroll_container.get_v_scroll_bar().value = clampi(target_center_pixel.y - 360, 0, max_range)
-	
-	
-	
-	
+
 "
 
 [node name="FullScreenDisplay" type="Control"]
