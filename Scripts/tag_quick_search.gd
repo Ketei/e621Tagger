@@ -200,7 +200,7 @@ func add_online_to_list(parsed_array: Array) -> void:
 				"parents": PackedStringArray(),
 				"conflicts": PackedStringArray(),
 				"post_count": temp_format.post_count,
-				"related_tags": temp_format.get_tags_with_strenght().duplicate(),
+				"related_tags": temp_format.get_tags_with_strength().duplicate(),
 				"suggested_tags": PackedStringArray(),
 				"category": tagger.translate_category(temp_format.category),
 				"is_locked": temp_format.is_locked,
@@ -210,7 +210,7 @@ func add_online_to_list(parsed_array: Array) -> void:
 		if tag_search_dictionary.has(temp_format.tag_name):
 			tag_search_dictionary[temp_format.tag_name]["id"] = temp_format.id
 			tag_search_dictionary[temp_format.tag_name]["post_count"] = temp_format.post_count
-			tag_search_dictionary[temp_format.tag_name]["related_tags"] = temp_format.get_tags_with_strenght().duplicate()
+			tag_search_dictionary[temp_format.tag_name]["related_tags"] = temp_format.get_tags_with_strength().duplicate()
 			tag_search_dictionary[temp_format.tag_name]["is_locked"] = temp_format.is_locked
 		else:
 			tag_search_dictionary[temp_format.tag_name] = dictionary_build

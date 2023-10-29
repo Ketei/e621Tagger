@@ -30,7 +30,7 @@ var implied_tags_array: Array[String] = []
 
 var final_tag_list_array: Array[String] = []
 
-var suggestion_timer: Timer
+@onready var suggestion_timer: Timer = $SuggestionTimer
 var copy_timer: Timer
 
 var context_menu_item_index: int = -1
@@ -167,14 +167,20 @@ func append_online_data(array_with_resource: Array) -> void: # Connect tag reque
 	if tags_inputed.has(tag_resource.tag_name):
 		tags_inputed[tag_resource.tag_name]["id"] = tag_resource.id
 		tags_inputed[tag_resource.tag_name]["post_count"] = tag_resource.post_count
-		tags_inputed[tag_resource.tag_name]["related_tags"] = tag_resource.get_tags_with_strenght()
+		tags_inputed[tag_resource.tag_name]["related_tags"] = tag_resource.get_tags_with_strength()
 		tags_inputed[tag_resource.tag_name]["is_locked"] = tag_resource.is_locked
 		
 		if tags_inputed[tag_resource.tag_name]["category"] == Tagger.Categories.GENERAL and translate_category(tag_resource.category) != Tagger.Categories.GENERAL:
 			tags_inputed[tag_resource.tag_name]["category"] = translate_category(tag_resource.category)
 			add_to_category(translate_category(tag_resource.category))
-		for tag in tag_resource.get_tags_with_strenght():
+		for tag in tag_resource.get_tags_with_strength():
 			add_suggested_tag(tag)
+			
+	
+	if not tag_queue.is_empty():
+		suggestion_timer.start()
+	else:
+		is_searching_tags = false
 
 
 func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: bool = true, suggested_tags: Array = [], tag_category := Tagger.Categories.GENERAL) -> void: # Connect line submit here
@@ -195,8 +201,9 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		return
 
 	if Tagger.settings_lists.invalid_tags.has(tag_name): # Lastly, check if invalid
-		item_list.add_item(tag_name, load("res://Textures/bad.png"))
+		var invalid_index:int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		full_tag_list.append(tag_name)
+		item_list.set_item_tooltip(invalid_index, "Invalid tag")
 		if add_from_signal:
 			line_edit.clear()
 		return
@@ -207,8 +214,14 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		zero_pictured = true
 	
 	if Tagger.tag_manager.has_tag(tag_name):
-		append_registered_tag(Tagger.tag_manager.get_tag(tag_name))
-		item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
+		var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
+		append_registered_tag(tag_load)
+		
+		var add_index: int = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
+		if not tag_load.tooltip.is_empty():
+			item_list.set_item_tooltip(add_index, tag_load.tooltip)
+		
+		item_list.select(add_index)
 	else:
 		append_empty_tag(tag_name)
 		
@@ -449,6 +462,7 @@ func clear_all_tags() -> void: # Connect to clear all dropdown menu
 
 
 func clear_inputted_tags() -> void: # Connect to clear tags button
+	tags_inputed.clear()
 	full_tag_list.clear()
 	implied_tags_array.clear()
 	
@@ -456,6 +470,7 @@ func clear_inputted_tags() -> void: # Connect to clear tags button
 	implied_list.clear()
 	
 	final_tag_list_array.clear()
+	final_tag_list.clear()
 	
 	species_added = 0
 	genders_added = 0
@@ -522,12 +537,7 @@ func _ready():
 	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
 	clean_suggestions_button.pressed.connect(clean_suggestions)
 	
-	suggestion_timer = Timer.new()
-	suggestion_timer.wait_time = 1.0
-	suggestion_timer.one_shot = true
-	suggestion_timer.autostart = false
 	suggestion_timer.timeout.connect(search_suggested)
-	add_child(suggestion_timer)
 	
 	copy_timer = Timer.new()
 	copy_timer.wait_time = 2.0
@@ -570,10 +580,8 @@ func tagger_menu_pressed(option_id: int) -> void:
 	var item_index: int = tagger_menu_bar.get_item_index(option_id)
 	
 	if option_id == 0:
-#		clear_tags()
 		clear_all_tags()
 	elif option_id == 1:
-#		clear_suggestion_box()
 		clear_suggestion_tags()
 	elif option_id == 2:
 		tagger_menu_bar.toggle_item_checked(item_index)
@@ -606,22 +614,22 @@ func search_suggested() -> void:
 	e_621_requester.match_name.append(tag_queue.pop_front())
 	e_621_requester.get_tags()
 	
-
-func suggestions_found(e621_data_array: Array) -> void:
-	var e621_tag_data: e621Tag = e621_data_array.front()
-	
-	for item in e621_tag_data.get_tags_with_strenght():
-		if suggestion_tags_array.has(item) or full_tag_list.has(item):
-			continue
-		
-		if not suggestion_tags_array.has(item) and not Tagger.settings_lists.suggestion_blacklist.has(item):
-			suggestion_tags_array.append(item)
-			suggested_list.add_item(item)
-	
-	if not tag_queue.is_empty():
-		suggestion_timer.start()
-	else:
-		is_searching_tags = false
+#
+#func suggestions_found(e621_data_array: Array) -> void: # Unused
+#	var e621_tag_data: e621Tag = e621_data_array.front()
+#
+#	for item in e621_tag_data.get_tags_with_strength():
+#		if suggestion_tags_array.has(item) or full_tag_list.has(item):
+#			continue
+#
+#		if not suggestion_tags_array.has(item) and not Tagger.settings_lists.suggestion_blacklist.has(item):
+#			suggestion_tags_array.append(item)
+#			suggested_list.add_item(item)
+#
+#	if not tag_queue.is_empty():
+#		suggestion_timer.start()
+#	else:
+#		is_searching_tags = false
 
 
 func generate_tag_list() -> void:
