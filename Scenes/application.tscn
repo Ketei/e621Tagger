@@ -126,6 +126,7 @@ signal tag_created(tag_name)
 @onready var download_samples_check_box: CheckBox = $DownloadSamplesCheckBox
 @onready var e621_samples_downloader = $e621SamplesDownloader
 @onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
+@onready var tooltip_line_edit: LineEdit = $TooltipLineEdit
 
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
@@ -256,7 +257,17 @@ func create_tag() -> void:
 		clear_menu_items(\"Tag already exists!!!\")
 		return
 
-	var _tag_path: String = TagMaker.make_tag(target_tag, parent_tags, categories_menu.selected, wiki_info.text, int(tag_prio_box.value), tag_suggestion_array, has_images_check_box.button_pressed, conflicts_array)
+	var _tag_path: String = TagMaker.make_tag(
+			target_tag,
+			parent_tags,
+			categories_menu.selected,
+			wiki_info.text,
+			int(tag_prio_box.value),
+			tag_suggestion_array,
+			has_images_check_box.button_pressed,
+			conflicts_array,
+			tooltip_line_edit.text.strip_edges()
+			)
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
@@ -380,6 +391,7 @@ signal tag_updated
 @onready var add_conflict_line_edit: LineEdit = $ConflictWindow/AddConflictLineEdit
 @onready var conflicts_item_list: ItemList = $ConflictWindow/ConflictsItemList
 @onready var conflict_window = $ConflictWindow
+@onready var tag_tooltip_line_edit: LineEdit = $TagTooltipLineEdit
 
 var lewd_display = preload(\"res://Scenes/lewd_pic_display.tscn\")
 var conflicts_array: Array[String] = []
@@ -463,6 +475,7 @@ func update_tag() -> void:
 	_tag.suggestions = suggestions_array.duplicate()
 	_tag.has_pictures = has_images_check_box.button_pressed
 	_tag.conflicts = conflicts_array.duplicate()
+	_tag.tooltip = tag_tooltip_line_edit.text.strip_edges()
 	_tag.save()
 	
 	tag_updated.emit(_tag.tag)
@@ -558,6 +571,8 @@ func activate_menu_bar(id_button: int) -> void:
 
 
 func clear_and_disable() -> void:
+	tag_tooltip_line_edit.clear()
+	tag_tooltip_line_edit.editable = false
 	conflicts_array.clear()
 	conflicts_item_list.clear()
 	add_conflict_line_edit.editable = false
@@ -640,6 +655,9 @@ func search_for_tag(new_text: String) -> void:
 	wiki_edit.text = _tag.wiki_entry
 	tag_prio_box.set_value_no_signal(_tag.tag_priority)
 	
+	tag_tooltip_line_edit.clear()
+	tag_tooltip_line_edit.text = _tag.tooltip
+	
 	has_images_check_box.button_pressed = _tag.has_pictures
 	
 	if has_images_check_box.button_pressed:
@@ -652,6 +670,7 @@ func search_for_tag(new_text: String) -> void:
 	add_parent_line_edit.editable = true
 	categories_menu.disabled = false
 	wiki_edit.editable = true
+	tag_tooltip_line_edit.editable = true
 	tag_update_button.disabled = false
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
@@ -2383,6 +2402,9 @@ offset_right = 376.0
 offset_bottom = 39.0
 text = "X"
 
+[node name="SuggestionTimer" type="Timer" parent="Tagger"]
+one_shot = true
+
 [node name="ListLoader" type="Control" parent="."]
 visible = false
 layout_mode = 1
@@ -2592,14 +2614,24 @@ placeholder_text = "Suggestions"
 metadata/_edit_use_anchors_ = true
 
 [node name="WikiInfo" type="TextEdit" parent="TagCreator"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.40625
 anchor_right = 0.98125
-anchor_bottom = 0.878049
+anchor_bottom = 0.804878
 placeholder_text = "Wiki Info"
 wrap_mode = 1
 scroll_smooth = true
 metadata/_edit_use_anchors_ = true
+
+[node name="TooltipLineEdit" type="LineEdit" parent="TagCreator"]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 536.0
+offset_right = 1256.0
+offset_bottom = 576.0
+tooltip_text = "Short description to be shown when hoverin on the tag on the Tagger window (Like this one!)"
+placeholder_text = "Tag tooltip description"
 
 [node name="CreateTagsButton" type="Button" parent="TagCreator"]
 layout_mode = 0
@@ -2910,15 +2942,25 @@ vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="WikiEdit" type="TextEdit" parent="TagReviewer"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.329688
 anchor_top = 0.0352941
 anchor_right = 0.699219
-anchor_bottom = 0.976471
+anchor_bottom = 0.917647
 placeholder_text = "Wiki Info"
 editable = false
 wrap_mode = 1
 metadata/_edit_use_anchors_ = true
+
+[node name="TagTooltipLineEdit" type="LineEdit" parent="TagReviewer"]
+layout_mode = 0
+offset_left = 423.0
+offset_top = 632.0
+offset_right = 895.0
+offset_bottom = 664.0
+placeholder_text = "Tag tooltip text"
+editable = false
 
 [node name="TagUpdate" type="Button" parent="TagReviewer"]
 layout_mode = 0

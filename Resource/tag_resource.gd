@@ -40,6 +40,9 @@ class_name Tag
 ## Unused for now. Planed for different sites but will likely be removed.
 @export var variants: Dictionary = {}
 
+## A short description to be showed on hovering the tag on the tagger window.
+@export var tooltip: String = ""
+
 ## Information about the tag. This is for people to read at review.
 @export var wiki_entry: String = ""
 

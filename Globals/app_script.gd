@@ -137,7 +137,6 @@ func go_to_edit_tag(tag_to_edit: String) -> void:
 
 
 func load_tags(tags_array: Array, replace: bool) -> void:
-#	tagger.load_tags(tags_array, replace)
 	tagger.load_tag_list(tags_array, replace)
 
 
