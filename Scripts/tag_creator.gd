@@ -12,7 +12,7 @@ signal tag_created(tag_name)
 @onready var suggestion_item_list: ItemList = $SuggestionItemList
 @onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
 @onready var has_images_check_box: CheckBox = $HasImagesCheckBox
-@onready var tag_creator_menu: PopupMenu = $"../MenuBar/Tag Editor"
+@onready var tag_creator_menu: PopupMenu = $"../MenuBar/Tag Creator"
 @onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
 @onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
 @onready var conflict_window = $ConflictWindow
@@ -95,7 +95,7 @@ func remove_from_conflict(conflict_index: int) -> void:
 
 
 func tag_creator_menu_changed(id_selected: int) -> void:
-	if id_selected == 1:
+	if id_selected == 1: # Open folder
 		var tag_index: int = tag_creator_menu.get_item_index(1)
 		tag_creator_menu.set_item_checked(tag_index, not tag_creator_menu.is_item_checked(tag_index))
 		Tagger.settings.open_tag_folder_on_creation = tag_creator_menu.is_item_checked(tag_index)
