@@ -18,8 +18,16 @@ func _ready():
 
 
 func tagger_menu_activated(id_selected: int) -> void:
+	var item_index: int = tagger_popup_menu.get_item_index(id_selected)
+	
 	if id_selected == 7:
 		new_instance_window.show()
+	elif id_selected == 2: # Online Suggestions
+		tagger_popup_menu.toggle_item_checked(item_index)
+		Tagger.settings.search_suggested = tagger_popup_menu.is_item_checked(item_index)
+	elif id_selected == 3:
+		tagger_popup_menu.toggle_item_checked(item_index) # Offline Suggestions
+		Tagger.settings.load_suggested = tagger_popup_menu.is_item_checked(item_index)
 
 
 func switch_active_instance(tab_int: int) -> void:

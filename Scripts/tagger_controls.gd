@@ -638,12 +638,6 @@ func tagger_menu_pressed(option_id: int) -> void:
 		clear_all_tags()
 	elif option_id == 1:
 		clear_suggestion_tags()
-	elif option_id == 2: # Online Suggestions
-		tagger_menu_bar.toggle_item_checked(item_index)
-		Tagger.settings.search_suggested = tagger_menu_bar.is_item_checked(item_index)
-	elif option_id == 3:
-		tagger_menu_bar.toggle_item_checked(item_index) # Offline Suggestions
-		Tagger.settings.load_suggested = tagger_menu_bar.is_item_checked(tagger_menu_bar.get_item_index(option_id))
 	elif option_id == 4:
 		show_conflicting_tags()
 	elif option_id == 8:
