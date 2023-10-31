@@ -11,13 +11,18 @@ extends Control
 @onready var whitespace: TextEdit = %Whitespace
 @onready var separator: TextEdit = %Separator
 @onready var text_timer = $TextTimer
+@onready var list_namer = $ListNamer
 
 
 func _ready():
-	transfer_tags.pressed.connect(send_tags)
+	transfer_tags.pressed.connect(show_list_namer)
 	preview_tags.pressed.connect(generate_preview)
 	text_timer.timeout.connect(_timer_timeout)
 
+
+func show_list_namer() -> void:
+	if not input_tags.text.replace("\n", " ").replace(whitespace.text, " ").strip_edges().strip_escapes().is_empty():
+		list_namer.show()
 
 
 func generate_tags_array(input_string: String, split_char: String = "", whitespace_char: String = "") -> PackedStringArray:
