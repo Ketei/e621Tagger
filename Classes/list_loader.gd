@@ -10,23 +10,14 @@ extends Control
 
 @onready var whitespace: TextEdit = %Whitespace
 @onready var separator: TextEdit = %Separator
-
-@onready var check_box = %CheckBox
-
-
-var timer_text: Timer
+@onready var text_timer = $TextTimer
 
 
 func _ready():
-	hide()
 	transfer_tags.pressed.connect(send_tags)
 	preview_tags.pressed.connect(generate_preview)
-	timer_text = Timer.new()
-	timer_text.autostart = false
-	timer_text.wait_time = 2.0
-	timer_text.one_shot = true
-	timer_text.timeout.connect(_timer_timeout)
-	add_child(timer_text)
+	text_timer.timeout.connect(_timer_timeout)
+
 
 
 func generate_tags_array(input_string: String, split_char: String = "", whitespace_char: String = "") -> PackedStringArray:
@@ -54,7 +45,7 @@ func generate_preview() -> void:
 	preview_list.clear()
 
 	for item in generate_tags_array(input_tags.text.replace("\n", " ").strip_escapes().strip_edges(), separator.text, whitespace.text):
-		preview_list.add_item(item)
+		preview_list.add_item(Tagger.alias_database.get_alias(item))
 
 
 func send_tags() -> void:	
@@ -63,11 +54,10 @@ func send_tags() -> void:
 			generate_tags_array(
 					input_tags.text.replace("\n", " ").strip_escapes().strip_edges(),
 					separator.text,
-					whitespace.text),
-			check_box.button_pressed)
+					whitespace.text))
 	
 	transfer_tags.text = "Success!"
-	timer_text.start()
+	text_timer.start()
 	clear_boxes()
 
 
@@ -80,3 +70,4 @@ func clear_boxes() -> void:
 
 func _timer_timeout():
 	transfer_tags.text = "Transfer tags"
+
