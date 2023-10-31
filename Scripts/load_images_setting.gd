@@ -79,7 +79,9 @@ func e6_spinbox_value_changed(new_value: float) -> void:
 
 func toggle_sub_buttons(toggle_state: bool) -> void:
 	Tagger.settings.load_review_images = toggle_state
-
+	
+	columns_spin_box.editable = toggle_state
+	
 	e621_load_button.disabled = not toggle_state
 	local_load_button.disabled = not toggle_state
 	

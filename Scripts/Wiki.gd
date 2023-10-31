@@ -159,6 +159,7 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 				preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
 		else:
 			var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + "/" + file_name)
+			_new_image.generate_mipmaps()
 			var _new_texture := ImageTexture.create_from_image(_new_image)
 			display_image.call_deferred(_new_texture)
 		

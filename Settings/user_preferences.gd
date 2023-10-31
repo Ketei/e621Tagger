@@ -31,7 +31,7 @@ extends Resource
 
 @export var category_color_code: Dictionary = {
 	"GENERAL": "cccccc",
-	"ARTIST": "cb8659",
+	"ARTIST": "f2ac08",
 	"COPYRIGHT": "e769e6",
 	"CHARACTER": "00b900",
 	"SPECIES": "ed5d1f",
