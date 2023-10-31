@@ -25,8 +25,32 @@ extends Resource
 
 @export var load_web_gifs: bool = false
 @export var load_local_gifs: bool = true
+@export_range(1, 3, 1) var picture_columns_to_search: int = 3
 
 @export var delete_with_pictures: bool = false
+
+@export var category_color_code: Dictionary = {
+	"GENERAL": "cccccc",
+	"ARTIST": "cb8659",
+	"COPYRIGHT": "e769e6",
+	"CHARACTER": "00b900",
+	"SPECIES": "ed5d1f",
+	"GENDER": "d865a7",
+	"BODY_TYPES": "cccccc",
+	"ANATOMY": "cccccc",
+	"MARKINGS": "cccccc",
+	"POSES_AND_STANCES": "cccccc",
+	"ACTIONS_AND_INTERACTIONS": "cccccc",
+	"SEX_AND_POSITIONS": "66e6ff",
+	"PENETRATION": "cccccc",
+	"FLUIDS": "cccccc",
+	"EXPRESSIONS": "cccccc",
+	"COLORS": "cccccc",
+	"OBJECTS": "cccccc",
+	"CLOTHING": "cccccc",
+	"ACCESSORIES": "cccccc",
+	"PROFESSION": "cccccc",
+}
 
 static var settings_version: String = "1.0" 
 
@@ -46,6 +70,7 @@ static func load_settings() -> UserSettings:
 		var quick_load = ResourceLoader.load("user://user_settings.tres")
 		if quick_load.file_version != UserSettings.settings_version:
 			settings_load = UserSettings.new()
+			settings_load.file_version = settings_version
 		else:
 			settings_load = quick_load
 	else:
@@ -56,4 +81,4 @@ static func load_settings() -> UserSettings:
 
 func save() -> void:
 	ResourceSaver.save(self, "user://user_settings.tres")
-
+	
