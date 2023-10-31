@@ -240,6 +240,10 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		item_list.set_item_custom_fg_color(add_index, Color.html("cccccc"))
 		item_list.select(add_index)
 	
+	if implied_tags_array.has(tag_name):
+		implied_list.remove_item(implied_tags_array.find(tag_name))
+		implied_tags_array.erase(tag_name)
+	
 	for suggested_tag in suggested_tags:
 		add_suggested_tag(suggested_tag)
 	
