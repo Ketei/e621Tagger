@@ -155,13 +155,16 @@ fixed_icon_size = Vector2i(10, 10)
 
 [node name="TaggerContextMenu" type="PopupMenu" parent="."]
 size = Vector2i(122, 116)
-item_count = 3
-item_0/text = "Create Tag"
-item_0/id = 0
-item_1/text = "Edit Tag"
-item_1/id = 1
-item_2/text = "Remove Tag"
-item_2/id = 2
+visible = true
+item_count = 4
+item_0/text = "Wiki"
+item_0/id = 3
+item_1/text = "Create Tag"
+item_1/id = 0
+item_2/text = "Edit Tag"
+item_2/id = 1
+item_3/text = "Remove Tag"
+item_3/id = 2
 
 [node name="LineEdit" type="LineEdit" parent="."]
 layout_mode = 1

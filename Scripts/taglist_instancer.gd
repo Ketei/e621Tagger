@@ -117,3 +117,8 @@ func update_menus() -> void:
 func can_create_instance(instance_name: String) -> bool:
 	instance_name = instance_name.strip_edges().to_lower()
 	return (not instance_dictionary.has(instance_name) and not instance_name.is_empty())
+
+
+func update_tag(tag_to_update: String) -> void:
+	for instance in instance_dictionary:
+		instance_dictionary[instance].update_tag(tag_to_update)

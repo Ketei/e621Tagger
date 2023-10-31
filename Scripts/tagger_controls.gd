@@ -577,10 +577,11 @@ func move_left_context(index: int, item_position: Vector2, mouse_button_index: i
 		if Tagger.tag_manager.has_tag(tag_text):
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(0), true)
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(1), false)
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), false)
 		else:
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(0), false)
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(1), true)
-
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), true)
 		tagger_context_menu.show()
 
 
@@ -592,6 +593,8 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		main_application.go_to_edit_tag(item_list.get_item_text(context_menu_item_index))
 	elif id_pressed == 2:
 		remove_tag(context_menu_item_index)
+	elif id_pressed == 3:
+		main_application.go_to_wiki(item_list.get_item_text(context_menu_item_index))
 
 
 func sort_tags_by_category() -> void:
@@ -632,8 +635,6 @@ func sort_tags_by_category() -> void:
 
 
 func tagger_menu_pressed(option_id: int) -> void:
-	var item_index: int = tagger_menu_bar.get_item_index(option_id)
-	
 	if option_id == 0:
 		clear_all_tags()
 	elif option_id == 1:

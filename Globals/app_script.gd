@@ -155,6 +155,11 @@ func go_to_edit_tag(tag_to_edit: String) -> void:
 	trigger_options(5)
 
 
+func go_to_wiki(tag_to_look_for: String) -> void:
+	wiki.search_for_tag(tag_to_look_for)
+	trigger_options(7)
+
+
 func load_tags(tags_array: Array) -> void:
 	tagger.load_tags(tags_array)
 
