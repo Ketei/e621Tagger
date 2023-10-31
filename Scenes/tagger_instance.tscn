@@ -1,0 +1,609 @@
+[gd_scene load_steps=11 format=3 uid="uid://gv61ihnu4sbh"]
+
+[ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
+[ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
+[ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="3_rq6wp"]
+[ext_resource type="Texture2D" uid="uid://6b2a6r2r2br2" path="res://Textures/WarningIcon.svg" id="4_hxtr0"]
+[ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="5_vrc8r"]
+[ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="6_qh7uu"]
+[ext_resource type="Script" path="res://Scripts/tag_quick_search.gd" id="7_gh0lf"]
+[ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="8_o1hfx"]
+
+[sub_resource type="GDScript" id="GDScript_7uef3"]
+script/source = "extends Control
+
+
+func _ready():
+	hide()
+"
+
+[sub_resource type="GDScript" id="GDScript_fxb1b"]
+resource_name = "conflicted_tags_screen"
+script/source = "extends Control
+
+@onready var conflicting_tags_tree: Tree = $ConflictingTagsTree
+@onready var check_for_conflicts_button: Button = $CheckForConflictsButton
+@onready var tagger = $\"..\"
+@onready var close_conflict_button: Button = $CloseConflictButton
+
+
+func _ready():
+	hide()
+	check_for_conflicts_button.pressed.connect(check_for_conflicts)
+	close_conflict_button.pressed.connect(hide)
+
+
+func check_for_conflicts() -> void:	
+	conflicting_tags_tree.clear()
+
+	var root_tree = conflicting_tags_tree.create_item()
+
+	root_tree.set_text(0, \"Conflicts\")
+
+	var conflicts_dict: Dictionary = {}
+
+	for tag in tagger.tags_inputed.keys():
+
+#		var tag_data: Tag = tagger.valid_tags[tag]
+
+		for conflict_tag in tagger.tags_inputed[tag][\"conflicts\"]:
+			if tagger.full_tag_list.has(conflict_tag) or tagger.implied_tags_array.has(conflict_tag):
+				if not conflicts_dict.has(tag):
+					conflicts_dict[tag] = []
+
+				conflicts_dict[tag].append(conflict_tag)
+
+	for conflict_tag in conflicts_dict.keys():
+		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
+		_sub_tree_conflict.set_text(0, conflict_tag)
+		_sub_tree_conflict.collapsed = true
+
+		for conflicted_tag in conflicts_dict[conflict_tag]:
+			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
+			_conflicted_tag.set_text(0, conflicted_tag)
+
+
+
+#func check_for_conflicts() -> void:	
+#	conflicting_tags_tree.clear()
+#
+#	var root_tree = conflicting_tags_tree.create_item()
+#
+#	root_tree.set_text(0, \"Conflicts\")
+#
+#	var conflicts_dict: Dictionary = {}
+#
+#	for tag in tagger.valid_tags.keys():
+#
+#		var tag_data: Tag = tagger.valid_tags[tag]
+#
+#		for conflict_tag in tag_data.conflicts:
+#			if tagger._full_tag_list.has(conflict_tag) or tagger.implied_tags_array.has(conflict_tag):
+#				if not conflicts_dict.has(tag):
+#					conflicts_dict[tag] = []
+#
+#				conflicts_dict[tag].append(conflict_tag)
+#
+#	for conflict_tag in conflicts_dict.keys():
+#		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
+#		_sub_tree_conflict.set_text(0, conflict_tag)
+#		_sub_tree_conflict.collapsed = true
+#
+#		for conflicted_tag in conflicts_dict[conflict_tag]:
+#			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
+#			_conflicted_tag.set_text(0, conflicted_tag)
+#
+#
+"
+
+[node name="Tagger" type="Control"]
+layout_mode = 3
+anchor_top = 0.067
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -40.24
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_u1cpf")
+
+[node name="TagListGenerator" type="Node" parent="."]
+script = ExtResource("2_enrd1")
+
+[node name="WarningRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 1240.0
+offset_top = -40.0
+offset_right = 1272.0
+offset_bottom = -8.0
+tooltip_text = "- 0 character tags detected. Recommended tag: zero pictured
+- No body type specified.
+- No gender tags included.
+- No species tags added."
+theme = ExtResource("3_rq6wp")
+texture = ExtResource("4_hxtr0")
+
+[node name="ClearTagsButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 336.0
+offset_right = 385.0
+offset_bottom = 31.0
+text = "Clear"
+
+[node name="CurrentTags" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.012
+anchor_top = -0.071
+anchor_right = 0.3
+anchor_bottom = 1.0
+offset_left = 0.639999
+offset_top = 87.712
+offset_bottom = -56.0
+
+[node name="ItemList" type="ItemList" parent="CurrentTags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
+theme_override_constants/h_separation = 10
+allow_rmb_select = true
+max_columns = 2
+same_column_width = true
+fixed_icon_size = Vector2i(10, 10)
+
+[node name="TaggerContextMenu" type="PopupMenu" parent="."]
+size = Vector2i(122, 116)
+item_count = 3
+item_0/text = "Create Tag"
+item_0/id = 0
+item_1/text = "Edit Tag"
+item_1/id = 1
+item_2/text = "Remove Tag"
+item_2/id = 2
+
+[node name="LineEdit" type="LineEdit" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.012
+anchor_top = 1.0
+anchor_right = 0.262
+anchor_bottom = 1.0
+offset_left = 0.639999
+offset_top = -48.0
+offset_right = 0.639954
+offset_bottom = -17.0
+placeholder_text = "Add Tag"
+
+[node name="OpenAutoCompleteBTN" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.269
+anchor_top = 1.0
+anchor_right = 0.3
+anchor_bottom = 1.0
+offset_left = -0.320038
+offset_top = -48.0
+offset_bottom = -16.0
+tooltip_text = "Search for tags"
+icon = ExtResource("5_vrc8r")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.312
+anchor_top = -0.071
+anchor_right = 0.409
+anchor_bottom = -0.071
+offset_left = 0.639984
+offset_top = 55.712
+offset_right = -0.52002
+offset_bottom = 85.024
+text = "Suggested Tags:"
+
+[node name="Suggested" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.312
+anchor_top = -0.071
+anchor_right = 0.512
+anchor_bottom = 1.0
+offset_left = 0.639984
+offset_top = 87.712
+offset_right = 0.639954
+offset_bottom = -56.0
+metadata/_edit_group_ = true
+
+[node name="SuggestedList" type="ItemList" parent="Suggested"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
+same_column_width = true
+
+[node name="Label2" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.525
+anchor_top = -0.0114762
+anchor_right = 0.603
+anchor_bottom = -0.0114762
+offset_left = -6.10352e-05
+offset_top = 15.712
+offset_right = 0.159912
+offset_bottom = 47.712
+text = "Implied tags:"
+metadata/_edit_use_anchors_ = true
+
+[node name="ClearSuggestedButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 608.0
+offset_right = 657.0
+offset_bottom = 31.0
+text = "Clear"
+
+[node name="Implied Tags" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.525
+anchor_top = -0.071
+anchor_right = 0.725
+anchor_bottom = 1.0
+offset_top = 87.712
+offset_bottom = -56.0
+
+[node name="ImpliedList" type="ItemList" parent="Implied Tags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+same_column_width = true
+
+[node name="CleanSuggestionsButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.312
+anchor_top = 1.0
+anchor_right = 0.725
+anchor_bottom = 1.0
+offset_left = 0.639984
+offset_top = -48.0
+offset_bottom = -17.0
+tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
+text = "Clean Suggestions"
+
+[node name="FinalList" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.737
+anchor_top = -0.071
+anchor_right = 0.987
+anchor_bottom = 1.0
+offset_left = 0.640015
+offset_top = 87.712
+offset_right = 0.640015
+offset_bottom = -56.0
+
+[node name="FinalTagList" type="TextEdit" parent="FinalList"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+placeholder_text = "Final tags"
+editable = false
+wrap_mode = 1
+scroll_smooth = true
+
+[node name="GenerateList" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7375
+anchor_top = 1.0
+anchor_right = 0.85
+anchor_bottom = 1.0
+offset_top = -48.0
+offset_bottom = -17.0
+text = "Generate List"
+metadata/_edit_use_anchors_ = true
+
+[node name="CopyToClipboard" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.862
+anchor_top = 1.0
+anchor_right = 0.9875
+anchor_bottom = 1.0
+offset_left = 0.639893
+offset_top = -48.0
+offset_bottom = -17.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Copy to Clipboard"
+metadata/_edit_use_anchors_ = true
+
+[node name="Label3" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.737
+anchor_top = -0.071
+anchor_right = 0.737
+anchor_bottom = -0.071
+offset_left = 0.639893
+offset_top = 47.712
+offset_right = 128.64
+offset_bottom = 79.712
+text = "Target platform:"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="TargetPlatformButton" type="OptionButton" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.737
+anchor_top = -0.071
+anchor_right = 0.987
+anchor_bottom = -0.071
+offset_left = 136.64
+offset_top = 47.712
+offset_right = 0.639893
+offset_bottom = 79.712
+alignment = 1
+item_count = 3
+selected = 0
+popup/item_0/text = "e621/Itaku"
+popup/item_0/id = 0
+popup/item_1/text = "Postybirb"
+popup/item_1/id = 1
+popup/item_2/text = "Hydrus"
+popup/item_2/id = 2
+script = ExtResource("6_qh7uu")
+metadata/_edit_use_anchors_ = true
+
+[node name="AddAutoComplete" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchor_top = -0.071
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -0.287998
+offset_right = 1.0
+script = SubResource("GDScript_7uef3")
+
+[node name="ColorRect" type="ColorRect" parent="AddAutoComplete"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.184314, 0.184314, 0.184314, 0.588235)
+
+[node name="QuickSearch" type="Control" parent="AddAutoComplete"]
+layout_mode = 1
+anchor_left = 0.012
+anchor_top = 1.0
+anchor_right = 0.45
+anchor_bottom = 1.0
+offset_left = 0.639999
+offset_top = -368.0
+offset_bottom = -56.0
+script = ExtResource("7_gh0lf")
+tags_to_add = 35
+metadata/_edit_use_anchors_ = true
+
+[node name="QuickSearchPopupMenu" type="PopupMenu" parent="AddAutoComplete/QuickSearch"]
+size = Vector2i(108, 62)
+hide_on_checkable_item_selection = false
+item_count = 2
+item_0/text = "Create tag"
+item_0/id = 0
+item_1/text = "Edit tag"
+item_1/id = 1
+
+[node name="ColorRect" type="ColorRect" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.454902, 0.505882, 0.580392, 1)
+
+[node name="MArc" type="ColorRect" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="AutoCompleteItemList" type="ItemList" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.998
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = -22.88
+offset_bottom = -56.0
+select_mode = 1
+allow_rmb_select = true
+fixed_icon_size = Vector2i(10, 10)
+
+[node name="SomeFixOption" type="OptionButton" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 0.212
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -48.0
+offset_right = 0.279991
+offset_bottom = -17.0
+item_count = 3
+selected = 0
+popup/item_0/text = "Prefix_"
+popup/item_0/id = 0
+popup/item_1/text = "_Sufix"
+popup/item_1/id = 1
+popup/item_2/text = "_Both_"
+popup/item_2/id = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="AutoComLineEdit" type="LineEdit" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.227
+anchor_top = 1.0
+anchor_right = 0.657
+anchor_bottom = 1.0
+offset_left = 0.87999
+offset_top = -48.0
+offset_right = 0.0799866
+offset_bottom = -16.0
+placeholder_text = "Enter tag"
+metadata/_edit_use_anchors_ = true
+
+[node name="CancelAutoButton" type="Button" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.842857
+anchor_top = 1.0
+anchor_right = 0.998
+anchor_bottom = 1.0
+offset_top = -48.0
+offset_right = -22.88
+offset_bottom = -17.0
+text = "Close"
+metadata/_edit_use_anchors_ = true
+
+[node name="e621RequesterQuickSearch" parent="AddAutoComplete/QuickSearch" instance=ExtResource("8_o1hfx")]
+max_parallel_requests = 0
+timeout_time = 5.0
+post_limit = 25
+order = "count"
+
+[node name="AddSelectedButton" type="Button" parent="AddAutoComplete/QuickSearch"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.671429
+anchor_top = 1.0
+anchor_right = 0.829
+anchor_bottom = 1.0
+offset_top = -48.0
+offset_right = -0.240021
+offset_bottom = -17.0
+tooltip_text = "Adds all selected tags to the main list"
+text = "Add"
+metadata/_edit_use_anchors_ = true
+
+[node name="RequestCooldownTimer" type="Timer" parent="AddAutoComplete"]
+one_shot = true
+
+[node name="ConflictingTags" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -192.0
+offset_top = -304.0
+offset_right = 192.0
+offset_bottom = 208.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_fxb1b")
+
+[node name="BGRect" type="ColorRect" parent="ConflictingTags"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.643
+anchor_top = -0.7
+anchor_right = -0.643
+anchor_bottom = -0.7
+offset_left = -201.088
+offset_top = 278.4
+offset_right = 1078.91
+offset_bottom = 998.4
+color = Color(0.160784, 0.172549, 0.196078, 0.392157)
+
+[node name="ColorRect" type="ColorRect" parent="ConflictingTags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.454902, 0.478431, 0.52549, 1)
+
+[node name="ColorRect2" type="ColorRect" parent="ConflictingTags"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25, 0.28125, 0.339844, 1)
+
+[node name="Label" type="Label" parent="ConflictingTags"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 184.0
+offset_bottom = 42.0
+text = "Conflicting tags:"
+vertical_alignment = 1
+
+[node name="ConflictingTagsTree" type="Tree" parent="ConflictingTags"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 48.0
+offset_right = 360.0
+offset_bottom = 456.0
+
+[node name="CheckForConflictsButton" type="Button" parent="ConflictingTags"]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 464.0
+offset_right = 367.0
+offset_bottom = 495.0
+text = "Check for conflicts"
+
+[node name="CloseConflictButton" type="Button" parent="ConflictingTags"]
+layout_mode = 0
+offset_left = 328.0
+offset_top = 8.0
+offset_right = 376.0
+offset_bottom = 39.0
+text = "X"
+
+[node name="SuggestionTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="CopyTimer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[node name="e621Requester" parent="." instance=ExtResource("8_o1hfx")]
