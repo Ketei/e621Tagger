@@ -15,7 +15,8 @@ func _ready():
 
 
 func text_changed(new_text: String) -> void:
-	create_instance_button.disabled = (tagger_holder.instance_dictionary.has(new_text.to_lower()) or new_text.is_empty())
+	new_text = new_text.strip_edges().to_lower()
+	create_instance_button.disabled = (tagger_holder.instance_dictionary.has(new_text) or new_text.is_empty())
 
 
 func submit_button_press() -> void:

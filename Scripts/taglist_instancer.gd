@@ -10,6 +10,7 @@ var instance_dictionary: Dictionary = {}
 
 var active_instance: String = ""
 
+
 func _ready():
 	tagger_popup_menu.id_pressed.connect(tagger_menu_activated)
 	instances_tab_bar.tab_changed.connect(switch_active_instance)
@@ -47,16 +48,20 @@ func create_new_tagger(unique_name: String) -> void:
 	update_menus()
 
 
-func load_tags(tags_array: Array) -> void:
-	var new_tab_name: String = "Loaded_"
-	var int_value: String = str(randi_range(0, 9999))
-	
-	while instance_dictionary.has(new_tab_name + int_value):
-		int_value = str(randi_range(0, 9999))
-	
-	create_new_tagger(new_tab_name + int_value)
-	instance_dictionary[new_tab_name + int_value].load_tag_list(tags_array, true)
-	
+func load_tags(tags_array: Array, tagger_name: String = "") -> void:
+	if tagger_name.is_empty():
+		var new_tab_name: String = "Loaded_"
+		var int_value: String = str(randi_range(0, 9999))
+		
+		while instance_dictionary.has(new_tab_name + int_value):
+			int_value = str(randi_range(0, 9999))
+		
+		create_new_tagger(new_tab_name + int_value)
+		instance_dictionary[new_tab_name + int_value].load_tag_list(tags_array, true)
+	else:
+		create_new_tagger(tagger_name)
+		instance_dictionary[tagger_name].load_tag_list(tags_array, true)
+
 
 func close_new_tagger(tab_id: int) -> void:
 	var instance_name: String = instances_tab_bar.get_tab_title(tab_id)
@@ -100,3 +105,7 @@ func update_menus() -> void:
 			tagger_popup_menu.get_item_index(4),
 			false)
 
+
+func can_create_instance(instance_name: String) -> bool:
+	instance_name = instance_name.strip_edges().to_lower()
+	return (not instance_dictionary.has(instance_name) and not instance_name.is_empty())

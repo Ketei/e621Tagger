@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=34 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://Scripts/new_tagger_instance_maker.gd" id="2_pptx1"]
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="5_3orkp"]
+[ext_resource type="Script" path="res://Scripts/list_name_loader.gd" id="5_jy0w4"]
 [ext_resource type="Script" path="res://Scripts/tag_editor.gd" id="5_o42l3"]
 [ext_resource type="Script" path="res://Scripts/tag_creator.gd" id="5_wk1wy"]
 [ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="7_7hodc"]
@@ -36,6 +37,7 @@ script/source = "extends Control
 
 
 func _ready():
+	hide()
 	close_button.pressed.connect(hide)
 "
 
@@ -936,6 +938,7 @@ offset_right = 1280.0
 offset_bottom = 672.0
 
 [node name="NewInstanceWindow" type="Control" parent="NewTagger"]
+visible = false
 anchors_preset = 0
 offset_right = 1280.0
 offset_bottom = 720.0
@@ -1027,6 +1030,7 @@ disabled = true
 text = "Create Tagger"
 
 [node name="ListLoader" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.067
 anchor_right = 1.0
@@ -1141,12 +1145,92 @@ metadata/_edit_use_anchors_ = true
 wait_time = 2.0
 one_shot = true
 
+[node name="ListNamer" type="Control" parent="ListLoader"]
+visible = false
+anchors_preset = 0
+offset_top = 18.0
+offset_right = 40.0
+offset_bottom = 58.0
+script = ExtResource("5_jy0w4")
+
+[node name="ColorRect" type="ColorRect" parent="ListLoader/ListNamer"]
+layout_mode = 0
+offset_top = -66.0
+offset_right = 1280.0
+offset_bottom = 654.0
+color = Color(0, 0, 0, 0.588235)
+
+[node name="CenterContainer" type="CenterContainer" parent="ListLoader/ListNamer"]
+layout_mode = 0
+offset_top = -66.0
+offset_right = 1280.0
+offset_bottom = 654.0
+
+[node name="NamingWindow" type="Control" parent="ListLoader/ListNamer/CenterContainer"]
+custom_minimum_size = Vector2(400, 120)
+layout_mode = 2
+
+[node name="Edge" type="ColorRect" parent="ListLoader/ListNamer/CenterContainer/NamingWindow"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.380392, 0.423529, 0.498039, 1)
+
+[node name="Window" type="ColorRect" parent="ListLoader/ListNamer/CenterContainer/NamingWindow"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="ListLoader/ListNamer/CenterContainer/NamingWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer"]
+layout_mode = 2
+
+[node name="NameCreatorLineEdit" type="LineEdit" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(320, 32)
+layout_mode = 2
+placeholder_text = "Unique name or empty for random"
+alignment = 1
+max_length = 30
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="CancelLoadButton" type="Button" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(128, 32)
+layout_mode = 2
+text = "Cancel"
+
+[node name="LoadTagsButton" type="Button" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(128, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Tags"
+
 [node name="TagCreator" type="Control" parent="."]
 visible = false
 layout_mode = 1
-anchor_top = 0.0888889
+anchor_top = 0.0916667
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 1.00278
 script = ExtResource("5_wk1wy")
 metadata/_edit_use_anchors_ = true
 
@@ -1356,6 +1440,7 @@ text = "x"
 metadata/_edit_use_anchors_ = true
 
 [node name="PreviewBBCWindow" type="Control" parent="TagCreator"]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_top = -24.0
@@ -2148,7 +2233,6 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
