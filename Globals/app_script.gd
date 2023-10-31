@@ -2,27 +2,27 @@ class_name MainTagger
 extends Control
 
 @onready var menu = %Menu
-@onready var tagger = $Tagger
+@onready var tagger = $NewTagger
 @onready var list_loader = $ListLoader
 @onready var settings = $Settings
 @onready var tag_creator = $TagCreator
 @onready var tag_reviewer = $"TagReviewer"
 @onready var tag_category_searcher = $TagCategorySearcher
+@onready var wiki = $Wiki
 
-@onready var e_621_requester_quick_search = $Tagger/AddAutoComplete/QuickSearch/e621RequesterQuickSearch
-@onready var tag_reviewer_requester = $TagReviewer/TagReviewerRequester
+#@onready var e_621_requester_quick_search = $Tagger/AddAutoComplete/QuickSearch/e621RequesterQuickSearch
 @onready var e_621_requester = %e621Requester
 @onready var menu_bar: MenuBar = $MenuBar
 
-
-var current_menu: int = 0
+var current_menu: int = -1
 
 
 func _ready():
 	menu_bar.set_menu_hidden(1, false) # Tagger
 	menu_bar.set_menu_hidden(2, true) # Tag Creator
 	menu_bar.set_menu_hidden(3, true) # Review
-	menu_bar.set_menu_hidden(4, true) # Settings
+	menu_bar.set_menu_hidden(4, true) # Review
+	menu_bar.set_menu_hidden(5, true) # Settings
 	
 	tag_reviewer.tag_updated.connect(load_tag_if_added)
 	tag_reviewer.parents_item_list.create_tag.connect(go_to_create_tag)
@@ -31,12 +31,7 @@ func _ready():
 	
 	menu.id_pressed.connect(trigger_options)
 	
-	list_loader.visible = false
-	tag_creator.visible = false
-	tag_reviewer.visible = false
-	settings.visible = false
-	tagger.visible = true
-	current_menu = 0
+	trigger_options(0)
 
 
 func trigger_options(id: int) -> void:
@@ -49,34 +44,52 @@ func trigger_options(id: int) -> void:
 		list_loader.visible = false
 		settings.visible = false
 		tag_creator.visible = false
-		tag_reviewer.hide_node()
+		tag_reviewer.hide()
 		tag_category_searcher.hide()
+		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, false) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Settings
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
 		tagger.visible = true
-	elif id == 2:
+	elif id == 7:
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
-		tag_reviewer.hide_node()
+		tag_reviewer.hide()
 		tag_category_searcher.hide()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Settings
+		menu_bar.set_menu_hidden(4, false) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
+		wiki.show_node()
+	elif id == 2:
+		tagger.visible = false
+		settings.visible = false
+		tag_creator.visible = false
+		tag_reviewer.hide()
+		tag_category_searcher.hide()
+		wiki.hide_node()
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
 		list_loader.visible = true
 	elif id == 3:
 		tagger.visible = false
 		list_loader.visible = false
 		tag_creator.visible = false
-		tag_reviewer.hide_node()
+		tag_reviewer.hide()
 		tag_category_searcher.hide()
+		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, false) # Settings
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, false) # Settings
 		settings.visible = true
 	elif id == 5:
 		tagger.visible = false
@@ -84,33 +97,39 @@ func trigger_options(id: int) -> void:
 		tag_creator.visible = false
 		settings.visible = false
 		tag_category_searcher.hide()
+		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, false) # Review
-		menu_bar.set_menu_hidden(4, true) # Settings
-		tag_reviewer.show_node()
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
+		tag_reviewer.show()
 	elif  id == 6:
 		tagger.hide()
 		list_loader.hide()
 		tag_creator.hide()
 		settings.hide()
-		tag_reviewer.hide_node()
+		tag_reviewer.hide()
+		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Settings
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
 		tag_category_searcher.show()
 		
 	elif id == 4:
 		tagger.visible = false
 		list_loader.visible = false
 		settings.visible = false
-		tag_reviewer.hide_node()
+		tag_reviewer.hide()
 		tag_category_searcher.hide()
+		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, false) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Settings
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
 		tag_creator.visible = true
 		
 	elif id == 1:
@@ -136,8 +155,8 @@ func go_to_edit_tag(tag_to_edit: String) -> void:
 	trigger_options(5)
 
 
-func load_tags(tags_array: Array, replace: bool) -> void:
-	tagger.load_tag_list(tags_array, replace)
+func load_tags(tags_array: Array) -> void:
+	tagger.load_tags(tags_array)
 
 
 func load_tag_if_added(tag_to_add: String) -> void:
@@ -150,17 +169,17 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		e_621_requester_quick_search.cancel_main_request()
-		e_621_requester_quick_search.cancel_side_requests()
+#		e_621_requester_quick_search.cancel_main_request()
+#		e_621_requester_quick_search.cancel_side_requests()
 		
 		tag_creator.e621_samples_downloader.cancel_main_request()
 		tag_creator.e621_samples_downloader.cancel_side_requests()
 		
-		tag_reviewer.e_621_samples_dl_review.cancel_main_request()
-		tag_reviewer.e_621_samples_dl_review.cancel_side_requests()
+		tag_reviewer.e621_samples_dl_review.cancel_main_request()
+		tag_reviewer.e621_samples_dl_review.cancel_side_requests()
 		
-		tag_reviewer_requester.cancel_main_request()
-		tag_reviewer_requester.cancel_side_requests()
+		wiki.wiki_image_requester.cancel_main_request()
+		wiki.wiki_image_requester.cancel_side_requests()
 		
 		e_621_requester.cancel_main_request()
 		e_621_requester.cancel_side_requests()
@@ -170,9 +189,9 @@ func _notification(what):
 		Tagger.settings_lists.save()
 		Tagger.alias_database.save()
 		
-		if is_instance_valid(tag_reviewer.thread) and tag_reviewer.thread.is_started():
-			tag_reviewer.thread_interrupt = true
-			tag_reviewer.thread.wait_to_finish()
+		if is_instance_valid(wiki.thread) and wiki.thread.is_started():
+			wiki.thread_interrupt = true
+			wiki.thread.wait_to_finish()
 		
 		get_tree().quit()
 
