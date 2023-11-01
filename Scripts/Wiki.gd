@@ -17,7 +17,7 @@ var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
 
 var images_to_display: Array[ImageTexture] = []
 
-var thread: Thread
+#var thread: Thread
 
 var thread_interrupt: bool = false
 
@@ -162,20 +162,17 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 			_new_image.generate_mipmaps()
 			var _new_texture := ImageTexture.create_from_image(_new_image)
 			display_image.call_deferred(_new_texture)
-		
-	display_images.call_deferred()
 
 
 func get_local_images(folder_name: String, file_name_array: Array) -> void:
-	if is_instance_valid(thread) and thread.is_started():
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 		thread_interrupt = true
-		thread.wait_to_finish()
+		Tagger.common_thread.wait_to_finish()
 	
 	if thread_interrupt:
 		thread_interrupt = false
 	
-	thread = Thread.new()
-	thread.start(load_local_images.bind(file_name_array, folder_name))
+	Tagger.common_thread.start(load_local_images.bind(file_name_array, folder_name))
 
 
 func increase_progress() -> void:
@@ -199,13 +196,15 @@ func display_image(image_texture: Texture2D):
 	
 	new_child_thumb.custom_minimum_size = Vector2(amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)], new_heigth)
 	
+	new_child_thumb.pause_texture(not self.visible)
+	
 	lewd_pic_container.add_child(new_child_thumb)
 	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
 
 
-func display_images():
-	thread.wait_to_finish()
-	thread = null
+#func display_images():
+#	thread.wait_to_finish()
+#	thread = null
 
 
 func search_web_images(tag_names: String) -> void:
