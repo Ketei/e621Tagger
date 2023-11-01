@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=36 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -14,9 +14,17 @@
 [ext_resource type="Script" path="res://Scripts/review_rmb_context_menu.gd" id="7_rbsko"]
 [ext_resource type="Script" path="res://Scripts/review_rmb_suggestion_menu.gd" id="8_q7svj"]
 [ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
-[ext_resource type="Script" path="res://Scripts/sample_blacklist_loader.gd" id="10_mi6fl"]
 [ext_resource type="Script" path="res://Scripts/Wiki.gd" id="10_nr3xk"]
-[ext_resource type="Script" path="res://Scripts/load_images_setting.gd" id="13_m7veq"]
+[ext_resource type="Script" path="res://Scripts/invalid_tags_script.gd" id="14_aa6rg"]
+[ext_resource type="Script" path="res://Scripts/default_site_setting_script.gd" id="14_budhs"]
+[ext_resource type="PackedScene" uid="uid://dk57p5vppoe0a" path="res://Scenes/site_option_btn.tscn" id="14_ns2kj"]
+[ext_resource type="Script" path="res://Scenes/sugg_strength_script.gd" id="15_qm1be"]
+[ext_resource type="Script" path="res://Scripts/suggestion_blacklist_script.gd" id="15_sobiw"]
+[ext_resource type="Script" path="res://Scripts/settings_load_images.gd" id="16_c3trt"]
+[ext_resource type="Script" path="res://Scripts/constant_list_script.gd" id="16_msuae"]
+[ext_resource type="Script" path="res://Scripts/aliases_script.gd" id="16_ojscj"]
+[ext_resource type="Script" path="res://Scripts/review_blacklist_script.gd" id="17_g6q24"]
+[ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
 
 [sub_resource type="GDScript" id="GDScript_plco6"]
 resource_name = "conflict_window_creator"
@@ -122,8 +130,8 @@ func search_threaded_category() -> void:
 	results_item_list.clear()
 	search_with_cat_button.disabled = true
 	search_with_prio_button.disabled = true
-#	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
-#		Tagger.common_thread.wait_to_finish()
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+		Tagger.common_thread.wait_to_finish()
 	Tagger.common_thread.start(search_with_category.bind(Tagger.tag_manager.duplicate(false), category_opt_button.selected))
 
 
@@ -131,8 +139,8 @@ func search_threaded_priority() -> void:
 	results_item_list.clear()
 	search_with_cat_button.disabled = true
 	search_with_prio_button.disabled = true
-#	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
-#		Tagger.common_thread.wait_to_finish()
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+		Tagger.common_thread.wait_to_finish()
 	Tagger.common_thread.start(search_with_priority.bind(Tagger.tag_manager.duplicate(false), priority_spin_box.value))
 
 
@@ -142,6 +150,9 @@ func add_results_to_itemlist(result_array: Array):
 	search_with_cat_button.disabled = false
 	search_with_prio_button.disabled = false
 	
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+		Tagger.common_thread.wait_to_finish()
+
 
 func search_with_category(tag_manager: TagManager, category_selected: int) -> void: # Made for separate thread
 	var category_array: Array = []
@@ -220,13 +231,12 @@ func deselect_all_items() -> void:
 resource_name = "settings_set_up"
 script/source = "extends Control
 
-@onready var h_slider = %HSlider
-@onready var black_list: ItemList = %BlackList
-@onready var recreate_database_btn = %RecreateDatabaseBtn
-@onready var line_edit = %LineEdit
+@onready var strength_slider = $SettingsContainer/SettingsSets/SuggestionStrength/HSlider
+@onready var recreate_database_btn = $SettingsContainer/SettingsSets/UtilityButtons/RecreateDatabaseBtn
+@onready var str_percentage_spinbox: SpinBox = $SettingsContainer/SettingsSets/SuggestionStrength/PercentageSpinBox
 
-@onready var open_tags_button = $OpenTagsButton
-@onready var settings_bar: PopupMenu = $\"../MenuBar/Settings\"
+@onready var open_tags_button = $SettingsContainer/SettingsSets/UtilityButtons/OpenTagsButton
+@onready var settings_bar: PopupMenu = $\"../MenuBar/API\"
 
 @onready var api_loader = $APILoader
 
@@ -238,8 +248,8 @@ func _ready():
 	settings_bar.id_pressed.connect(settings_menu_press)
 	
 	open_tags_button.pressed.connect(open_tags_folder)
-	h_slider.value = Tagger.settings.suggestion_strength
-	line_edit.text = str(Tagger.settings.suggestion_strength)
+	strength_slider.value = Tagger.settings.suggestion_strength
+	str_percentage_spinbox.value = Tagger.settings.suggestion_strength
 	recreate_database_btn.pressed.connect(__recreate_database)
 	
 	timer = Timer.new()
@@ -273,168 +283,6 @@ func on_timer_timeout() -> void:
 	recreate_database_btn.text = \"Recreate tag database\"
 "
 
-[sub_resource type="GDScript" id="GDScript_y3wef"]
-script/source = "extends Control
-
-@onready var h_slider: HSlider = $HSlider
-@onready var line_edit: LineEdit = $LineEdit
-
-
-func _ready():
-	h_slider.drag_ended.connect(_drag_ended)
-	h_slider.value_changed.connect(_display_update)
-	#percentage_display.text_changed.connect(_text_set)
-	line_edit.text_submitted.connect(_update_percentage)
-
-
-func _update_percentage(new_text: String) -> void:
-	h_slider.value = int(new_text)
-	Tagger.settings.suggestion_strength = h_slider.value
-#	Tagger.settings.save()
-
-
-func _drag_ended(value_changed: bool) -> void:
-	if value_changed:
-		Tagger.settings.suggestion_strength = h_slider.value
-#		Tagger.settings.save()
-
-
-func _display_update(value) -> void:
-	if str(value) != line_edit.text:
-		line_edit.text = str(value)
-
-"
-
-[sub_resource type="GDScript" id="GDScript_jmlhj"]
-resource_name = "aliases_menu"
-script/source = "extends Control
-
-@onready var aliases_tree: Tree = $Aliases
-@onready var old_alias: LineEdit = $OldAlias
-@onready var new_alias: LineEdit = $NewAlias
-@onready var remove_alias_button: Button = $RemoveAliasButton
-@onready var add_alias_button: Button = $AddAliasButton
-
-
-func _ready():
-	old_alias.text_changed.connect(old_alias_update)
-	new_alias.text_changed.connect(new_alias_update)
-	remove_alias_button.pressed.connect(remove_alias)
-	add_alias_button.pressed.connect(add_alias)
-	
-	old_alias.text_submitted.connect(submit_old_alias)
-	new_alias.text_submitted.connect(submit_new_alias)
-
-
-func submit_new_alias(_text_submitted: String) -> void:
-	if not add_alias_button.disabled:
-		add_alias()
-
-
-func submit_old_alias(_text_submitted: String) -> void:
-	if not remove_alias_button.disabled:
-		remove_alias()
-
-
-func old_alias_update(new_text: String) -> void:
-	if new_text != \"\":
-		if remove_alias_button.disabled:
-			remove_alias_button.disabled = false
-		if new_alias.text != \"\" and add_alias_button.disabled:
-			add_alias_button.disabled = false
-	elif new_text == \"\":
-		if not remove_alias_button.disabled:
-			remove_alias_button.disabled = true
-		if not add_alias_button.disabled:
-			add_alias_button.disabled = true
-		
-
-func new_alias_update(new_text: String) -> void:
-	if old_alias.text != \"\" and new_text != \"\" and add_alias_button.disabled:
-		add_alias_button.disabled = false
-	elif (old_alias.text == \"\" or new_text == \"\") and not add_alias_button.disabled:
-		add_alias_button.disabled = true
-
-
-func add_alias() -> void:
-	var _old_string: String = old_alias.text.strip_edges().to_lower()
-	var _new_string: String = new_alias.text.strip_edges().to_lower()
-	
-	if _old_string.is_empty() or _new_string.is_empty():
-		old_alias.clear()
-		new_alias.clear()
-		return
-	
-	_old_string = _old_string.strip_edges().to_lower().replace(\"_\", \" \")
-	_new_string = _new_string.strip_edges().to_lower().replace(\"_\", \" \")
-	
-	if Tagger.alias_database.alias_exitst(_old_string, _new_string):
-		old_alias.clear()
-		new_alias.clear()
-		return
-	
-	if Tagger.alias_database.aliases.values().has(_new_string): # Level exists
-		var _target_branch = _new_string
-		
-		var _root: TreeItem = aliases_tree.get_root()
-		var _current_branch: TreeItem = _root.get_first_child()
-		
-		for ignored in range(_root.get_child_count()):
-			if _target_branch == _current_branch.get_text(0):
-				aliases_tree.create_tree_item(_old_string, _current_branch)
-				break
-			else:
-				_current_branch = _current_branch.get_next()
-	else: # Level doesn't exist
-		aliases_tree.create_item_and_subitem(_new_string, aliases_tree.get_root(), _old_string)
-	
-	Tagger.alias_database.add_alias(_old_string, _new_string)
-#	Tagger.alias_database.save()
-	old_alias.clear()
-	new_alias.clear()
-
-
-func remove_alias() -> void:
-	var _old_string: String = old_alias.text.strip_edges()
-	
-	if _old_string.is_empty():
-		old_alias.clear()
-		return
-	
-	
-	_old_string = _old_string.strip_edges().to_lower()
-	
-	
-	if not Tagger.alias_database.has_alias(_old_string):
-		old_alias.clear()
-		return
-	
-	var _target_branch = Tagger.alias_database.get_alias(_old_string)
-	var _root: TreeItem = aliases_tree.get_root()
-	var _level: TreeItem = _root.get_first_child()
-	
-	for index in range(_root.get_child_count()):
-		if _target_branch == _level.get_text(0):
-			var _aliases_list = _level.get_first_child()
-			
-			for ignore in range(_level.get_child_count()):
-				if _aliases_list.get_text(0) == _old_string:
-					_aliases_list.free()
-					if _level.get_child_count() == 0:
-						_level.free()
-					break
-				else:
-					_aliases_list = _aliases_list.get_next()
-			break
-		else:
-			_level = _level.get_next()
-	
-	Tagger.alias_database.remove_alias(_old_string)
-#	Tagger.alias_database.save()
-	old_alias.clear()
-
-"
-
 [sub_resource type="GDScript" id="GDScript_hr4cx"]
 resource_name = "test_script"
 script/source = "extends Tree
@@ -465,154 +313,6 @@ func create_item_and_subitem(item_text: String, _parent_item, subitem_string: St
 	
 	var sub_item = create_item(parent_item)
 	sub_item.set_text(0, subitem_string)
-
-"
-
-[sub_resource type="GDScript" id="GDScript_i3qtj"]
-script/source = "extends Control
-
-@onready var invalid_tags_line_edit = $InvalidTagsLineEdit
-@onready var invalid_tag_list = $InvalidItemList
-
-
-func _ready() -> void:
-	for invalid_tag in Tagger.settings_lists.invalid_tags:
-		invalid_tag_list.add_item(invalid_tag)
-	
-	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
-	invalid_tag_list.item_activated.connect(remove_from_invalids)
-	
-
-func add_to_invalid_tags(tag_to_add: String) -> void:
-	tag_to_add = tag_to_add.strip_edges().to_lower()
-	if tag_to_add.is_empty():
-		return
-	if not Tagger.settings_lists.invalid_tags.has(tag_to_add):
-		invalid_tag_list.add_item(tag_to_add)
-		Tagger.settings_lists.invalid_tags.append(tag_to_add)
-	invalid_tags_line_edit.clear()
-
-
-func remove_from_invalids(tag_id: int) -> void:
-	var tag_text: String = invalid_tag_list.get_item_text(tag_id)
-	invalid_tag_list.remove_item(tag_id)
-	Tagger.settings_lists.remove_from_invalids(tag_text)
-"
-
-[sub_resource type="GDScript" id="GDScript_dvmq4"]
-resource_name = "constants_tags_script"
-script/source = "extends Control
-
-
-var constant_tags: Array[String] = []
-
-@onready var constants_line_edit = $ConstantsLineEdit
-@onready var constants_item_list = $TagList/ConstantsItemList
-
-
-func _ready():
-	for item in Tagger.settings_lists.constant_tags:
-		constants_item_list.add_item(item)
-		constant_tags.append(item)
-	
-	constants_item_list.item_activated.connect(remove_constant)
-	constants_line_edit.text_submitted.connect(add_constant)
-
-
-func add_constant(new_constant: String) -> void:
-	new_constant = new_constant.to_lower().strip_edges()
-	
-	if new_constant.is_empty():
-		return
-	
-	if constant_tags.has(new_constant):
-		constants_line_edit.clear()
-		return
-	
-	constants_item_list.add_item(new_constant)
-	constant_tags.append(new_constant)
-	Tagger.settings_lists.constant_tags.append(new_constant)
-	constants_line_edit.clear()
-
-
-func remove_constant(constant_id: int) -> void:
-	var constant_name: String = constants_item_list.get_item_text(constant_id)
-	constant_tags.remove_at(constant_id)
-	constants_item_list.remove_item(constant_id)
-	Tagger.settings_lists.remove_from_constant_tags(constant_name)
-
-"
-
-[sub_resource type="GDScript" id="GDScript_4yj0t"]
-resource_name = "suggestion_blacklist_script"
-script/source = "extends Control
-
-@onready var sugg_blacklist_line_edit = $SuggBlacklistLineEdit
-@onready var sugg_blacklist_item_list = $SuggBlacklistItemList
-
-
-func _ready():
-	for blacktag in Tagger.settings_lists.suggestion_review_blacklist:
-		sugg_blacklist_item_list.add_item(blacktag)
-	
-	sugg_blacklist_line_edit.text_submitted.connect(add_to_sugg_blacklist)
-	sugg_blacklist_item_list.item_activated.connect(remove_from_sugg_blacklist)
-
-
-func add_to_sugg_blacklist(new_tag: String) -> void:
-	new_tag = new_tag.strip_edges().to_lower()
-	
-	if new_tag.is_empty():
-		sugg_blacklist_line_edit.clear()
-		return
-	
-	Tagger.settings_lists.suggestion_review_blacklist.append(new_tag)
-	sugg_blacklist_item_list.add_item(new_tag)
-	sugg_blacklist_line_edit.clear()
-
-
-func remove_from_sugg_blacklist(item_index: int) -> void:
-	var tag_name: String = sugg_blacklist_item_list.get_item_text(item_index)
-	Tagger.settings_lists.remove_from_suggestion_review_blacklist(tag_name)
-	sugg_blacklist_item_list.remove_item(item_index)
-	
-	
-"
-
-[sub_resource type="GDScript" id="GDScript_mqjmn"]
-resource_name = "blacklist_control"
-script/source = "extends Control
-
-@onready var black_list = %BlackList
-@onready var add_to_black = %AddToBlack
-
-
-func _ready():
-	add_to_black.text_submitted.connect(add_to_blacklist)
-	black_list.item_activated.connect(remove_from_blacklist)
-	
-	for item in Tagger.settings_lists.suggestion_blacklist:
-		black_list.add_item(item)
-
-
-func add_to_blacklist(new_item: String) -> void:
-	new_item = new_item.to_lower().strip_edges()
-	
-	if new_item.is_empty():
-		return
-	
-	if Tagger.settings_lists.suggestion_blacklist.has(new_item):
-		return
-	
-	black_list.add_item(new_item)
-	Tagger.settings_lists.add_to_blacklist(new_item)
-	add_to_black.clear()
-
-
-func remove_from_blacklist(index_id) -> void:
-	var _target = black_list.get_item_text(index_id)
-	black_list.remove_item(index_id)
-	Tagger.settings_lists.remove_from_blacklist(_target)
 
 "
 
@@ -849,7 +549,7 @@ item_4/text = "Edit Tag"
 item_4/id = 5
 item_5/text = "Mass Editor"
 item_5/id = 6
-item_6/text = "Preferences"
+item_6/text = "Settings"
 item_6/id = 3
 item_7/text = "Exit"
 item_7/id = 1
@@ -938,7 +638,7 @@ item_count = 1
 item_0/text = "Refresh Wiki"
 item_0/id = 0
 
-[node name="Settings" type="PopupMenu" parent="MenuBar"]
+[node name="API" type="PopupMenu" parent="MenuBar"]
 item_count = 1
 item_0/text = "API key"
 item_0/id = 0
@@ -1225,6 +925,8 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer"]
 layout_mode = 2
@@ -2256,358 +1958,305 @@ offset_right = 1280.0
 offset_bottom = 720.0
 script = SubResource("GDScript_chh5e")
 
-[node name="Strength" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 32.0
-offset_top = 32.0
-offset_right = 552.0
-offset_bottom = 64.0
-script = SubResource("GDScript_y3wef")
-
-[node name="HSlider" type="HSlider" parent="Settings/Strength"]
-unique_name_in_owner = true
+[node name="SettingsContainer" type="HBoxContainer" parent="Settings"]
 layout_mode = 0
-offset_left = 168.0
-offset_right = 384.0
-offset_bottom = 32.0
+offset_left = 8.0
+offset_right = 1272.0
+offset_bottom = 656.0
+theme_override_constants/separation = 16
+alignment = 1
 
-[node name="Label" type="Label" parent="Settings/Strength/HSlider"]
-layout_mode = 0
-offset_left = -168.0
-offset_right = -8.0
-offset_bottom = 32.0
+[node name="SettingsSets" type="VBoxContainer" parent="Settings/SettingsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="DefaultSiteHBox" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 1
+script = ExtResource("14_budhs")
+
+[node name="Label2" type="Label" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox"]
+layout_mode = 2
+text = "Default site:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="OptionButton" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox" instance=ExtResource("14_ns2kj")]
+custom_minimum_size = Vector2(250, 32)
+layout_mode = 2
+
+[node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+alignment = 1
+script = ExtResource("15_qm1be")
+
+[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+layout_mode = 2
 text = "Suggestion Strength:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LineEdit" type="LineEdit" parent="Settings/Strength"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 408.0
-offset_right = 475.063
-offset_bottom = 31.0
-placeholder_text = "100"
+[node name="HSlider" type="HSlider" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="PercentageSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+layout_mode = 2
 alignment = 1
-max_length = 3
-middle_mouse_paste_enabled = false
-select_all_on_focus = true
+suffix = "%"
 
-[node name="Percentage" type="Label" parent="Settings/Strength/LineEdit"]
-layout_mode = 0
-offset_left = 72.0
-offset_right = 96.0
-offset_bottom = 32.0
-theme_override_font_sizes/font_size = 20
-text = "%"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="LoadImages" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+alignment = 1
+script = ExtResource("16_c3trt")
 
-[node name="LoadImagesButton" type="CheckButton" parent="Settings"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 80.0
-offset_right = 217.0
-offset_bottom = 120.0
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages"]
+layout_mode = 2
+alignment = 1
+
+[node name="LoadImagesButton" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/LoadImages/VBoxContainer"]
+layout_mode = 2
 text = "Load review images"
-script = ExtResource("13_m7veq")
 
-[node name="ColorRect" type="ColorRect" parent="Settings/LoadImagesButton"]
-layout_mode = 0
-offset_left = 224.0
-offset_right = 496.0
-offset_bottom = 104.0
-color = Color(0.188235, 0.215686, 0.258824, 1)
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Settings/LoadImagesButton"]
-layout_mode = 0
-offset_left = 224.0
-offset_right = 496.0
-offset_bottom = 104.0
-
-[node name="ToggleButtons" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
+[node name="ColumnsSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/VBoxContainer"]
 layout_mode = 2
-alignment = 1
-
-[node name="e621LoadButton" type="CheckButton" parent="Settings/LoadImagesButton/VBoxContainer/ToggleButtons"]
-layout_mode = 2
-size_flags_horizontal = 6
-disabled = true
-text = "e621"
-
-[node name="LocalLoadButton" type="CheckButton" parent="Settings/LoadImagesButton/VBoxContainer/ToggleButtons"]
-layout_mode = 2
-size_flags_horizontal = 6
-disabled = true
-text = "Local"
-
-[node name="AmountToLoad" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="e621SpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
-layout_mode = 2
-size_flags_horizontal = 6
-max_value = 10.0
-editable = false
-
-[node name="LocalSpinBox" type="SpinBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad"]
-layout_mode = 2
-size_flags_horizontal = 6
-max_value = 50.0
-editable = false
-
-[node name="AmountToLoad2" type="HBoxContainer" parent="Settings/LoadImagesButton/VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="LoadGife6CheckBox" type="CheckBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad2"]
-layout_mode = 2
-size_flags_horizontal = 6
-disabled = true
-text = "Load GIFs"
-
-[node name="LoadGifLocalCheckBox2" type="CheckBox" parent="Settings/LoadImagesButton/VBoxContainer/AmountToLoad2"]
-layout_mode = 2
-size_flags_horizontal = 6
-disabled = true
-text = "Load GIFs"
-
-[node name="ColumnsSpinBox" type="SpinBox" parent="Settings/LoadImagesButton"]
-layout_mode = 0
-offset_left = 128.0
-offset_top = 56.0
-offset_right = 211.063
-offset_bottom = 87.0
 min_value = 1.0
 max_value = 3.0
 value = 1.0
 alignment = 1
 editable = false
+suffix = "Column"
 
-[node name="Label" type="Label" parent="Settings/LoadImagesButton/ColumnsSpinBox"]
-layout_mode = 0
-offset_left = -128.0
-offset_bottom = 32.0
-text = "Image Columns"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="ReviewImagesOptions" type="Control" parent="Settings/SettingsContainer/SettingsSets/LoadImages"]
+custom_minimum_size = Vector2(272, 104)
+layout_mode = 2
 
-[node name="OpenTagsButton" type="Button" parent="Settings"]
+[node name="ColorRect" type="ColorRect" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.188235, 0.215686, 0.258824, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions"]
 layout_mode = 0
-offset_left = 32.0
-offset_top = 200.0
-offset_right = 208.0
-offset_bottom = 248.0
+offset_right = 272.0
+offset_bottom = 104.0
+
+[node name="ToggleButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="e621LoadButton" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/ToggleButtons"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "e621"
+
+[node name="LocalLoadButton" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/ToggleButtons"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Local"
+
+[node name="AmountToLoad" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="e621SpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/AmountToLoad"]
+layout_mode = 2
+size_flags_horizontal = 6
+max_value = 10.0
+editable = false
+
+[node name="LocalSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/AmountToLoad"]
+layout_mode = 2
+size_flags_horizontal = 6
+max_value = 50.0
+editable = false
+
+[node name="LoadGifs" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="LoadGife6CheckBox" type="CheckBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/LoadGifs"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
+
+[node name="LoadGifLocalCheckBox" type="CheckBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/LoadGifs"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
+
+[node name="UtilityButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="OpenTagsButton" type="Button" parent="Settings/SettingsContainer/SettingsSets/UtilityButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Open tags folder"
 
-[node name="RecreateDatabaseBtn" type="Button" parent="Settings"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 216.0
-offset_top = 200.0
-offset_right = 512.0
-offset_bottom = 248.0
+[node name="RecreateDatabaseBtn" type="Button" parent="Settings/SettingsContainer/SettingsSets/UtilityButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
 tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
 text = "Recreate tag impliactions"
 
-[node name="Aliases" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 32.0
-offset_top = 264.0
-offset_right = 512.0
-offset_bottom = 584.0
-script = SubResource("GDScript_jmlhj")
+[node name="Aliases" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+script = ExtResource("16_ojscj")
 
-[node name="Aliases" type="Tree" parent="Settings/Aliases"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -8.0
-offset_bottom = -48.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="AliasesTree" type="Tree" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
+layout_mode = 2
+size_flags_vertical = 3
 script = SubResource("GDScript_hr4cx")
 
-[node name="OldAlias" type="LineEdit" parent="Settings/Aliases"]
-layout_mode = 0
-offset_top = 280.0
-offset_right = 232.0
-offset_bottom = 320.0
+[node name="AliasesLineEdits" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="OldAlias" type="LineEdit" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesLineEdits"]
+layout_mode = 2
+size_flags_horizontal = 3
 placeholder_text = "Old name"
 alignment = 1
 
-[node name="NewAlias" type="LineEdit" parent="Settings/Aliases"]
-layout_mode = 0
-offset_left = 248.0
-offset_top = 280.0
-offset_right = 480.0
-offset_bottom = 320.0
+[node name="NewAlias" type="LineEdit" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesLineEdits"]
+layout_mode = 2
+size_flags_horizontal = 3
 placeholder_text = "New name"
 alignment = 1
 
-[node name="RemoveAliasButton" type="Button" parent="Settings/Aliases"]
-layout_mode = 0
-offset_top = 344.0
-offset_right = 232.0
-offset_bottom = 384.0
+[node name="AliasesButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="RemoveAliasButton" type="Button" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
 disabled = true
 text = "Remove Alias"
 
-[node name="AddAliasButton" type="Button" parent="Settings/Aliases"]
-layout_mode = 0
-offset_left = 248.0
-offset_top = 344.0
-offset_right = 480.0
-offset_bottom = 384.0
+[node name="AddAliasButton" type="Button" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
 disabled = true
 text = "Add alias"
 
-[node name="Label" type="Label" parent="Settings/Aliases"]
-layout_mode = 0
-offset_left = 920.0
-offset_top = -312.0
-offset_right = 1080.0
-offset_bottom = -280.0
-text = "Suggestion Blacklist"
-horizontal_alignment = 2
-vertical_alignment = 2
+[node name="SettingsLists" type="VBoxContainer" parent="Settings/SettingsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
 
-[node name="InvalidTags" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 576.0
-offset_top = 32.0
-offset_right = 960.0
-offset_bottom = 400.0
-script = SubResource("GDScript_i3qtj")
+[node name="TopBlacklists" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsLists"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
 
-[node name="InvalidTagsLabel" type="Label" parent="Settings/InvalidTags"]
-layout_mode = 0
-offset_top = -72.0
-offset_right = 91.0
-offset_bottom = -46.0
-text = "Invalid Tags"
+[node name="InvalidTags" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("14_aa6rg")
 
-[node name="InvalidTagsLineEdit" type="LineEdit" parent="Settings/InvalidTags"]
-layout_mode = 0
-offset_top = -40.0
-offset_right = 256.0
-offset_bottom = -9.0
+[node name="InvalidTagsLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
+layout_mode = 2
 placeholder_text = "Add to invalid tags"
 
-[node name="InvalidItemList" type="ItemList" parent="Settings/InvalidTags"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="InvalidItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
+layout_mode = 2
+size_flags_vertical = 3
+tooltip_text = "These tags are invalid tags and won't get added to a final tag list. It'll be displayed red"
 max_columns = 2
 
-[node name="Constants" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-script = SubResource("GDScript_dvmq4")
+[node name="SuggestionBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("15_sobiw")
 
-[node name="ConstantsLineEdit" type="LineEdit" parent="Settings/Constants"]
-layout_mode = 0
-offset_left = 576.0
-offset_top = 424.0
-offset_right = 800.0
-offset_bottom = 455.0
+[node name="AddToBlack" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
+layout_mode = 2
+placeholder_text = "Add to suggestion blacklist"
+
+[node name="BlackList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
+layout_mode = 2
+size_flags_vertical = 3
+tooltip_text = "These tags wont appear on the suggested tags in the tagger window."
+max_columns = 2
+same_column_width = true
+
+[node name="SmallLists" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsLists"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="ConstantList" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/SmallLists"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("16_msuae")
+
+[node name="ConstantsLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
+layout_mode = 2
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
 placeholder_text = "Add to constants"
 
-[node name="TagList" type="Control" parent="Settings/Constants"]
-anchors_preset = 0
-offset_left = 576.0
-offset_top = 464.0
-offset_right = 800.0
-offset_bottom = 648.0
+[node name="ConstantsItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
+layout_mode = 2
+size_flags_vertical = 3
+tooltip_text = "These tags will always be added at the end of a tag list."
 
-[node name="ConstantsItemList" type="ItemList" parent="Settings/Constants/TagList"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="BlacklistReview" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/SmallLists"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("17_g6q24")
 
-[node name="SuggestionBlackList" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 72.0
-offset_right = 112.0
-offset_bottom = 40.0
-script = SubResource("GDScript_4yj0t")
+[node name="SuggBlacklistLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/BlacklistReview"]
+layout_mode = 2
+placeholder_text = "Review blacklist"
 
-[node name="SuggBlacklistLineEdit" type="LineEdit" parent="Settings/SuggestionBlackList"]
-layout_mode = 0
-offset_left = 744.0
-offset_top = 424.0
-offset_right = 960.0
-offset_bottom = 455.0
-placeholder_text = "Suggestion blacklist"
+[node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/BlacklistReview"]
+layout_mode = 2
+size_flags_vertical = 3
+tooltip_text = "When loading pictures from e621 on Wiki, the posts with these tags won't be displayed unless the wiki search is the tag in the blacklist."
 
-[node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SuggestionBlackList"]
-layout_mode = 0
-offset_left = 744.0
-offset_top = 464.0
-offset_right = 960.0
-offset_bottom = 648.0
+[node name="ImgDownloadBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/SmallLists"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("18_aw7pf")
 
-[node name="DownloadSampleBlacklist" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 1048.0
-offset_top = 464.0
-offset_right = 1264.0
-offset_bottom = 648.0
-script = ExtResource("10_mi6fl")
-
-[node name="SampleBlacklistItemList" type="ItemList" parent="Settings/DownloadSampleBlacklist"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-tooltip_text = "Tags to be blacklisted when downloading samples on tag creation. If the tag being created is blacklisted then that tag in the blacklist will be ignored"
-
-[node name="SampleBlacklistLineEdit" type="LineEdit" parent="Settings/DownloadSampleBlacklist"]
-layout_mode = 0
-offset_top = -40.0
-offset_right = 216.0
-offset_bottom = -9.0
+[node name="SampleBlacklistLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ImgDownloadBlacklist"]
+layout_mode = 2
 tooltip_text = "Add a tag to be blacklisted when downloading samples on tag creation"
 placeholder_text = "Sample Blacklist"
 
-[node name="BlackListControl" type="Control" parent="Settings"]
-anchors_preset = 0
-offset_left = 984.0
-offset_top = 32.0
-offset_right = 1256.0
-offset_bottom = 400.0
-script = SubResource("GDScript_mqjmn")
+[node name="SampleBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ImgDownloadBlacklist"]
+layout_mode = 2
+size_flags_vertical = 3
+tooltip_text = "When dowloading samples, the posts with these tags won't be downloaded."
 
-[node name="AddToBlack" type="LineEdit" parent="Settings/BlackListControl"]
-unique_name_in_owner = true
+[node name="VersionLabel" type="Label" parent="Settings"]
+modulate = Color(0.113725, 0.133333, 0.164706, 0.643137)
 layout_mode = 0
-offset_left = 1.0
-offset_top = -40.0
-offset_right = 272.0
-offset_bottom = -9.0
-placeholder_text = "Add to blacklist"
-
-[node name="BlackList" type="ItemList" parent="Settings/BlackListControl"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-max_columns = 2
-same_column_width = true
+offset_left = 1192.0
+offset_top = -48.0
+offset_right = 1273.0
+offset_bottom = -10.0
+theme_override_font_sizes/font_size = 25
+text = "v 0.5.3"
+horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="APILoader" type="Control" parent="Settings"]
 visible = false
@@ -2812,18 +2461,6 @@ offset_top = 8.0
 offset_right = 888.0
 offset_bottom = 40.0
 text = "X"
-
-[node name="VersionLabel" type="Label" parent="Settings"]
-modulate = Color(0.113725, 0.133333, 0.164706, 0.643137)
-layout_mode = 0
-offset_left = 1192.0
-offset_top = -48.0
-offset_right = 1273.0
-offset_bottom = -10.0
-theme_override_font_sizes/font_size = 25
-text = "v 0.5.3"
-horizontal_alignment = 2
-vertical_alignment = 1
 
 [node name="e621Requester" parent="." instance=ExtResource("2_4gepn")]
 unique_name_in_owner = true
