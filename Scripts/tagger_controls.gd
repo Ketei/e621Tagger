@@ -553,9 +553,6 @@ func _ready():
 	
 	add_auto_complete.visible = false
 	open_auto_complete_btn.pressed.connect(add_auto_complete.show)
-	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(2), Tagger.settings.search_suggested)
-	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(3), Tagger.settings.load_suggested)
-	
 	tagger_menu_bar.id_pressed.connect(tagger_menu_pressed)
 	
 	generate_list.pressed.connect(generate_tag_list)
