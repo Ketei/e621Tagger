@@ -37,7 +37,7 @@ var suggestions_array: Array[String] = []
 @onready var downloading_samples_label: Label = $DownloadingSamplesLabel
 @onready var e621_samples_dl_review = $e621SamplesDLReview
 @onready var preview_bbc_button: Button = $PreviewBBCButton
-@onready var rich_text_label = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/Control/RichTextLabel
+@onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
 @onready var preview_bbc_window = $PreviewBBCWindow
 
 func preview_bcc() -> void:

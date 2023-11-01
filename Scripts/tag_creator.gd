@@ -23,7 +23,7 @@ signal tag_created(tag_name)
 
 @onready var bbc_preview_button: Button = $BBCPreviewButton
 @onready var preview_bbc_window = $PreviewBBCWindow
-@onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/Control/RichTextLabel
+@onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
 
 
 
