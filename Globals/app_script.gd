@@ -57,6 +57,7 @@ func trigger_options(id: int) -> void:
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
+		list_loader.hide()
 		tag_reviewer.hide()
 		tag_category_searcher.hide()
 		menu_bar.set_menu_hidden(1, true) # Tagger
