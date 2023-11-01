@@ -12,6 +12,9 @@ var active_instance: String = ""
 
 
 func _ready():
+	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(2), Tagger.settings.search_suggested)
+	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(3), Tagger.settings.load_suggested)
+	
 	tagger_popup_menu.id_pressed.connect(tagger_menu_activated)
 	instances_tab_bar.tab_changed.connect(switch_active_instance)
 	instances_tab_bar.tab_close_pressed.connect(close_new_tagger)
