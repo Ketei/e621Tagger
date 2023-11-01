@@ -57,6 +57,13 @@ func load_tags_button_pressed() -> void:
 
 func submit_instance_name(new_instance_name: String) -> void:
 	if new_tagger.can_create_instance(new_instance_name) or new_instance_name.is_empty():
+		if name_creator_line_edit.has_focus():
+			name_creator_line_edit.call_deferred("release_focus")
+		elif cancel_load_button.has_focus():
+			cancel_load_button.call_deferred("release_focus")
+		elif load_tags_button.has_focus():
+			load_tags_button.call_deferred("release_focus")
+		
 		new_tagger.load_tags(
 				generate_tags_array(
 						input_tags.text,
@@ -78,4 +85,7 @@ func cancel_load_pressed() -> void:
 	hide()
 
 
+func show_and_focus() -> void:
+	show()
+	name_creator_line_edit.call_deferred("grab_focus")
 

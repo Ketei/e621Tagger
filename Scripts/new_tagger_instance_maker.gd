@@ -48,6 +48,16 @@ func clear_text() -> void:
 
 
 func close_window() -> void:
+	if instance_name_line_edit.has_focus():
+		instance_name_line_edit.call_deferred("release_focus")
+	elif create_instance_button.has_focus():
+		instance_name_line_edit.call_deferred("release_focus")
+	elif close_button.has_focus():
+		close_button.call_deferred("release_focus")
 	clear_text()
 	hide()
 
+
+func show_and_focus() -> void:
+	show()
+	instance_name_line_edit.call_deferred("grab_focus")

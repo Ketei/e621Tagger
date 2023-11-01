@@ -11,6 +11,7 @@ func _ready():
 
 func button_pressed() -> void:
 	lewd_pic_pressed.emit(self.texture)
+	button.call_deferred("release_focus")
 
 
 func pause_texture(is_paused: bool) -> void:
