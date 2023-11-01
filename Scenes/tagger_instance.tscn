@@ -400,7 +400,7 @@ offset_left = 0.639999
 offset_top = -368.0
 offset_bottom = -56.0
 script = ExtResource("7_gh0lf")
-tags_to_add = 35
+tags_to_get = 50
 metadata/_edit_use_anchors_ = true
 
 [node name="QuickSearchPopupMenu" type="PopupMenu" parent="AddAutoComplete/QuickSearch"]
