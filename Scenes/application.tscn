@@ -105,8 +105,10 @@ script/source = "extends Control
 func _ready():
 	hide()
 	
-	search_with_prio_button.pressed.connect(search_with_priority)
-	search_with_cat_button.pressed.connect(search_with_category)
+	search_with_prio_button.pressed.connect(search_threaded_priority)
+#	search_with_cat_button.pressed.connect(search_with_category)
+	search_with_cat_button.pressed.connect(search_threaded_category)
+	
 	replace_cat_checkbox.toggled.connect(replace_category_toggled)
 	replace_prio_checkbox.toggled.connect(replace_priority_toggled)
 	replace_has_img_checkbox.toggled.connect(replace_has_pic_toggled)
@@ -116,22 +118,47 @@ func _ready():
 	select_all_button.pressed.connect(select_all_items)
 
 
-func search_with_category() -> void:
+func search_threaded_category() -> void:
 	results_item_list.clear()
-	
-	var all_tags: Array = Tagger.tag_manager.get_all_tags()
+	search_with_cat_button.disabled = true
+	search_with_prio_button.disabled = true
+#	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+#		Tagger.common_thread.wait_to_finish()
+	Tagger.common_thread.start(search_with_category.bind(Tagger.tag_manager.duplicate(false), category_opt_button.selected))
 
+
+func search_threaded_priority() -> void:
+	results_item_list.clear()
+	search_with_cat_button.disabled = true
+	search_with_prio_button.disabled = true
+#	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+#		Tagger.common_thread.wait_to_finish()
+	Tagger.common_thread.start(search_with_priority.bind(Tagger.tag_manager.duplicate(false), priority_spin_box.value))
+
+
+func add_results_to_itemlist(result_array: Array):
+	for item in result_array:
+		results_item_list.add_item(item)
+	search_with_cat_button.disabled = false
+	search_with_prio_button.disabled = false
+	
+
+func search_with_category(tag_manager: TagManager, category_selected: int) -> void: # Made for separate thread
+	var category_array: Array = []
+	var all_tags = tag_manager.get_all_tags()
 	for tag_string in all_tags:
-		if Tagger.tag_manager.get_tag(tag_string).category == category_opt_button.selected:
-			results_item_list.add_item(tag_string)
+		if tag_manager.get_tag(tag_string).category == category_selected: #category_opt_button.selected:
+			category_array.append(tag_string)
+	add_results_to_itemlist.call_deferred(category_array)
 
 
-func search_with_priority() -> void:
-	results_item_list.clear()
-	
-	for tag_string in Tagger.tag_manager.get_all_tags():
-		if Tagger.tag_manager.get_tag(tag_string).tag_priority == priority_spin_box.value:
-			results_item_list.add_item(tag_string)
+func search_with_priority(tag_manager: TagManager, priority_selected: int) -> void: # made for separate thread
+	var internal_array: Array = []
+	var all_tags = tag_manager.get_all_tags()
+	for tag_string in all_tags:
+		if tag_manager.get_tag(tag_string).tag_priority == priority_selected: #priority_spin_box.value:
+			internal_array.append(tag_string)
+	add_results_to_itemlist.call_deferred(internal_array)
 
 
 func edit_item(item_index: int) -> void:
@@ -1706,16 +1733,6 @@ placeholder_text = "Add new suggestion"
 editable = false
 metadata/_edit_use_anchors_ = true
 
-[node name="WikiLabel" type="Label" parent="TagReviewer"]
-layout_mode = 0
-anchor_left = 0.329688
-anchor_top = -0.0117647
-anchor_right = 0.417188
-anchor_bottom = 0.0352941
-text = "Wiki Entry:"
-vertical_alignment = 1
-metadata/_edit_use_anchors_ = true
-
 [node name="WikiEdit" type="TextEdit" parent="TagReviewer"]
 layout_mode = 1
 anchors_preset = -1
@@ -2019,7 +2036,6 @@ anchor_top = -0.0588235
 [node name="WikiImageRequester" parent="Wiki" instance=ExtResource("2_4gepn")]
 
 [node name="TagCategorySearcher" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.089
 anchor_right = 1.0
