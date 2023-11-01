@@ -4,7 +4,7 @@ signal _finished_loading_local()
 signal tag_updated
 
 @onready var tag_search_line_edit: LineEdit = $VBoxContainer/HBoxContainer/VBoxContainer/TagSearcher
-@onready var wiki_edit: RichTextLabel = $VBoxContainer/HBoxContainer/VBoxContainer/WikiDisplay/WikiRichTextLabel
+@onready var wiki_edit: RichTextLabel = $VBoxContainer/HBoxContainer/VBoxContainer/WikiDisplayRTLabel
 
 @onready var lewd_pic_container: GridContainer = $VBoxContainer/HBoxContainer/Imeges/ScrollContainer/LewdPicsContainer
 @onready var preview_progress_load: ProgressBar = $VBoxContainer/HBoxContainer/Imeges/PreviewProgressLoad
@@ -35,6 +35,11 @@ func _ready():
 	full_screen_display.display_hidden.connect(play_all_gifs)
 	tag_search_line_edit.text_submitted.connect(search_for_tag)
 	wiki_popup_menu.id_pressed.connect(activate_menu_option)
+
+
+func _unhandled_key_input(event):
+	if event.is_action_pressed("ui_cancel") and full_screen_display.visible:
+		full_screen_display.hide_window()
 
 
 func set_new_picture_columns(columns_to_display: int) -> void:
