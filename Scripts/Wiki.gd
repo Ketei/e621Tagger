@@ -31,6 +31,7 @@ var current_search: String = ""
 
 
 func _ready():
+	wiki_edit.meta_clicked.connect(wiki_link_clicked)
 	full_screen_display.display_hidden.connect(play_all_gifs)
 	tag_search_line_edit.text_submitted.connect(search_for_tag)
 	wiki_popup_menu.id_pressed.connect(activate_menu_option)
@@ -113,8 +114,21 @@ func search_for_tag(new_text: String) -> void:
 	preview_progress_load.max_value = 0
 	preview_progress_load.value = 0
 	
-	var file_names: Array = DirAccess.get_files_at(Tagger.tag_images_path + _tag.file_name.get_basename())
+	var file_names: Array = []
 	var final_file_names: Array = []
+		
+	for file_name in DirAccess.get_files_at(Tagger.tag_images_path + _tag.file_name.get_basename()):
+		
+		var file_extension: String = file_name.get_extension()
+		
+		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif":
+			continue
+		
+		if file_extension == "gif":
+			if Tagger.settings.load_local_gifs:
+				file_names.append(file_name)
+		else:
+			file_names.append(file_name)
 	
 	if _tag.has_pictures and Tagger.settings.can_load_from_local():
 		if DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
@@ -151,17 +165,15 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 			continue
 		
 		if file_extension == "gif":
-			if Tagger.settings.load_local_gifs:
-				var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + "/" + file_name, 256)
-				new_gif_display.pause = false
-				display_image.call_deferred(new_gif_display)
-			else:
-				preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
+			var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + "/" + file_name, 256)
+			new_gif_display.pause = false
+			display_image.call_deferred(new_gif_display)
 		else:
 			var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + "/" + file_name)
 			_new_image.generate_mipmaps()
 			var _new_texture := ImageTexture.create_from_image(_new_image)
 			display_image.call_deferred(_new_texture)
+	display_images.call_deferred()
 
 
 func get_local_images(folder_name: String, file_name_array: Array) -> void:
@@ -202,9 +214,8 @@ func display_image(image_texture: Texture2D):
 	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
 
 
-#func display_images():
-#	thread.wait_to_finish()
-#	thread = null
+func display_images():
+	Tagger.common_thread.wait_to_finish()
 
 
 func search_web_images(tag_names: String) -> void:
@@ -251,4 +262,13 @@ func pause_all_gifs() -> void:
 func play_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
 		child.pause_texture(false)
+
+
+func wiki_link_clicked(meta) -> void:
+	var meta_string: String = str(meta)
+	
+	if meta_string.begins_with("http://") or meta_string.begins_with("https://"):
+		OS.shell_open(meta_string)
+	elif Tagger.tag_manager.has_tag(meta_string):
+		search_for_tag(meta_string)
 
