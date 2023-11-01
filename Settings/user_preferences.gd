@@ -50,6 +50,7 @@ extends Resource
 	"CLOTHING": "cccccc",
 	"ACCESSORIES": "cccccc",
 	"PROFESSION": "cccccc",
+	"INVALID": "cccccc",
 }
 
 static var settings_version: String = "1.0" 
@@ -67,12 +68,14 @@ static func load_settings() -> UserSettings:
 	var settings_load: UserSettings
 	
 	if ResourceLoader.exists("user://user_settings.tres", "UserSettings"):
-		var quick_load = ResourceLoader.load("user://user_settings.tres")
-		if quick_load.file_version != UserSettings.settings_version:
-			settings_load = UserSettings.new()
-			settings_load.file_version = settings_version
-		else:
-			settings_load = quick_load
+		settings_load = ResourceLoader.load("user://user_settings.tres")
+		var new_compare := UserSettings.new()
+		for color_cat in new_compare.category_color_code.keys():
+			if settings_load.category_color_code.has(color_cat):
+				if not Color.html_is_valid(settings_load.category_color_code[color_cat]):
+					settings_load.category_color_code[color_cat] = new_compare.category_color_code[color_cat]
+			else:
+				settings_load.category_color_code[color_cat] = new_compare.category_color_code[color_cat]
 	else:
 		settings_load = UserSettings.new()
 	

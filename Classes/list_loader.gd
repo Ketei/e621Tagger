@@ -22,7 +22,7 @@ func _ready():
 
 func show_list_namer() -> void:
 	if not input_tags.text.replace("\n", " ").replace(whitespace.text, " ").strip_edges().strip_escapes().is_empty():
-		list_namer.show()
+		list_namer.show_and_focus()
 
 
 func generate_tags_array(input_string: String, split_char: String = "", whitespace_char: String = "") -> PackedStringArray:

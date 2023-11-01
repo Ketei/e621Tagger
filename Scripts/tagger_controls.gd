@@ -90,6 +90,7 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 		var index: int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		item_list.select(index)
 		item_list.set_item_tooltip(index, "This tag is an invalid tag")
+		item_list.set_item_custom_fg_color(index, Color.html(Tagger.settings.category_color_code["INVALID"]))
 		full_tag_list.append(tag_name)
 		return
 		
@@ -105,10 +106,18 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 		full_tag_list.append(tag_name)
 		add_to_category(tag_dict["category"])
 		
+		var add_index: int = 0
+		
 		if Tagger.tag_manager.has_tag(tag_name):
-			item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
+#			.set_item_custom_fg_color(invalid_index, Color.html(Tagger.settings.category_color_code["INVALID"]))
+			add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 		else:
-			item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
+			add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
+		
+		item_list.select(add_index)
+		item_list.set_item_custom_fg_color(
+					add_index,
+					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_dict["category"]]]))
 		
 		if character_bodytypes.has(tag_name):
 			body_types_added += 1
@@ -206,6 +215,7 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	if Tagger.settings_lists.invalid_tags.has(tag_name): # Lastly, check if invalid
 		var invalid_index:int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		full_tag_list.append(tag_name)
+		item_list.set_item_custom_fg_color(invalid_index, Color.html(Tagger.settings.category_color_code["INVALID"]))
 		item_list.set_item_tooltip(invalid_index, "Invalid tag")
 		if add_from_signal:
 			line_edit.clear()
