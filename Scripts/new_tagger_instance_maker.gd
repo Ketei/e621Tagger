@@ -4,6 +4,7 @@ extends Control
 @onready var create_instance_button: Button = $CenterContainer/Control/CreateInstanceButton
 @onready var tagger_holder = $".."
 @onready var close_button: Button = $CenterContainer/Control/CloseWindowButton
+@onready var new_tagger = $".."
 
 
 func _ready():
@@ -17,7 +18,14 @@ func _ready():
 func text_changed(new_text: String) -> void:
 	new_text = new_text.strip_edges().to_lower()
 	create_instance_button.disabled = (tagger_holder.instance_dictionary.has(new_text) or new_text.is_empty())
-
+	
+	var is_valid_instance: bool = new_tagger.can_create_instance(new_text)
+	
+	if is_valid_instance:
+		instance_name_line_edit.add_theme_color_override("font_color", Color.MEDIUM_AQUAMARINE)
+	else:
+		instance_name_line_edit.add_theme_color_override("font_color", Color.INDIAN_RED)
+	
 
 func submit_button_press() -> void:
 	create_instance(instance_name_line_edit.text)
