@@ -644,7 +644,6 @@ item_0/text = "API key"
 item_0/id = 0
 
 [node name="NewTagger" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 48.0
 offset_right = 1280.0
@@ -1636,6 +1635,7 @@ offset_bottom = -1.0
 text = "X"
 
 [node name="Wiki" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2028,7 +2028,7 @@ max_value = 3.0
 value = 1.0
 alignment = 1
 editable = false
-suffix = "Column"
+suffix = "column(s)"
 
 [node name="ReviewImagesOptions" type="Control" parent="Settings/SettingsContainer/SettingsSets/LoadImages"]
 custom_minimum_size = Vector2(272, 104)
