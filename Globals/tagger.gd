@@ -31,7 +31,7 @@ enum Sites {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/0.5.3 (by Ketei)",
+	"User-Agent": "TaglistMaker/1.0.0 (by Ketei)",
 }
 
 
