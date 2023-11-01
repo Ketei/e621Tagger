@@ -194,9 +194,9 @@ func _notification(what):
 		Tagger.settings_lists.save()
 		Tagger.alias_database.save()
 		
-		if is_instance_valid(wiki.thread) and wiki.thread.is_started():
-			wiki.thread_interrupt = true
-			wiki.thread.wait_to_finish()
+		if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+			Tagger.common_thread.wait_to_finish()
+			Tagger.common_thread = null
 		
 		get_tree().quit()
 
