@@ -14,7 +14,7 @@ config/name="Tagging Project"
 run/main_scene="res://Scenes/application.tscn"
 config/features=PackedStringArray("4.1", "GL Compatibility")
 config/icon="res://icon.svg"
-boot_splash/minimum_display_time=1000
+boot_splash/minimum_display_time=2500
 
 [autoload]
 
