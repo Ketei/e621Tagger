@@ -21,7 +21,7 @@ extends Resource
 
 @export var file_version: String = "1.0"
 
-@export var open_tag_folder_on_creation: bool = true
+@export var open_tag_folder_on_creation: bool = false
 
 @export var load_web_gifs: bool = false
 @export var load_local_gifs: bool = true
