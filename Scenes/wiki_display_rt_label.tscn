@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0uuucfxbjqa2"]
+[gd_scene load_steps=7 format=3 uid="uid://b0uuucfxbjqa2"]
 
 [ext_resource type="FontFile" uid="uid://k7asnrjysktr" path="res://Fonts/Ubuntu/Ubuntu-Bold.ttf" id="1_11hds"]
 [ext_resource type="FontFile" uid="uid://0k2ttkk787di" path="res://Fonts/Ubuntu/Ubuntu-Regular.ttf" id="1_shkgl"]
 [ext_resource type="FontFile" uid="uid://cq44brxgfnbev" path="res://Fonts/Ubuntu/Ubuntu-Italic.ttf" id="2_4tfk1"]
 [ext_resource type="FontFile" uid="uid://c26l8t4tmp4kk" path="res://Fonts/Ubuntu/Ubuntu-BoldItalic.ttf" id="3_wqyn8"]
 [ext_resource type="FontFile" uid="uid://bhy16nbsq6sdq" path="res://Fonts/Ubuntu/UbuntuMono-Regular.ttf" id="4_fnxev"]
+[ext_resource type="Script" path="res://Scripts/wiki_display_script.gd" id="6_tft0s"]
 
 [node name="WikiDisplayRTLabel" type="RichTextLabel"]
 offset_right = 40.0
@@ -15,6 +16,7 @@ theme_override_fonts/italics_font = ExtResource("2_4tfk1")
 theme_override_fonts/bold_italics_font = ExtResource("3_wqyn8")
 theme_override_fonts/mono_font = ExtResource("4_fnxev")
 bbcode_enabled = true
+script = ExtResource("6_tft0s")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 show_behind_parent = true
