@@ -323,8 +323,11 @@ func update_tag(tag_name: String) -> void:
 		var current_index: int = full_tag_list.find(tag_name)
 		
 		if Tagger.tag_manager.has_tag(tag_name):
-			append_registered_tag(Tagger.tag_manager.get_tag(tag_name))
+			var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
+			append_registered_tag(tag_load)
 			item_list.set_item_icon(current_index, load("res://Textures/valid_tag.png"))
+			if not tag_load.tooltip.is_empty():
+				item_list.set_item_tooltip(current_index, tag_load.tooltip)
 		else:
 			item_list.set_item_icon(current_index, load("res://Textures/generic_tag.png"))
 
