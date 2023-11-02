@@ -8,7 +8,7 @@ signal add_tag_signal
 @onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
 @onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
 @onready var cancel_auto_button = $CancelAutoButton
-@onready var main_application = $"../../.."
+#@onready var main_application = $"../../.."
 
 @onready var add_auto_complete_node = $".."
 @onready var add_selected_button = $AddSelectedButton
@@ -61,7 +61,7 @@ func open_right_click_context_menu(index: int, at_position: Vector2, mouse_butto
 
 func activate_right_click_context_menu(id_pressed: int) -> void:
 	if id_pressed == 0:
-		main_application.go_to_create_tag(
+		tagger.main_application.go_to_create_tag(
 				selected_tag, 
 				[], 
 				tag_search_dictionary[selected_tag]["related_tags"],
@@ -69,7 +69,7 @@ func activate_right_click_context_menu(id_pressed: int) -> void:
 		add_auto_complete_node.hide()
 	
 	elif id_pressed == 1:
-		main_application.go_to_edit_tag(selected_tag)
+		tagger.main_application.go_to_edit_tag(selected_tag)
 		add_auto_complete_node.hide()
 
 
