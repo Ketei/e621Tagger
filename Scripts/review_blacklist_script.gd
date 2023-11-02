@@ -8,7 +8,7 @@ extends VBoxContainer
 func _ready():
 	for blacktag in Tagger.settings_lists.suggestion_review_blacklist:
 		sugg_blacklist_item_list.add_item(blacktag)
-	
+	sugg_blacklist_item_list.sort_items_by_text()
 	sugg_blacklist_line_edit.text_submitted.connect(add_to_sugg_blacklist)
 	sugg_blacklist_item_list.item_activated.connect(remove_from_sugg_blacklist)
 

@@ -7,7 +7,7 @@ extends VBoxContainer
 func _ready() -> void:
 	for invalid_tag in Tagger.settings_lists.invalid_tags:
 		invalid_tag_list.add_item(invalid_tag)
-	
+	invalid_tag_list.sort_items_by_text()
 	invalid_tags_line_edit.text_submitted.connect(add_to_invalid_tags)
 	invalid_tag_list.item_activated.connect(remove_from_invalids)
 	

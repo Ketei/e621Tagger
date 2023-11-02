@@ -11,7 +11,7 @@ func _ready():
 	
 	for item in Tagger.settings_lists.suggestion_blacklist:
 		black_list.add_item(item)
-
+	black_list.sort_items_by_text()
 
 func add_to_blacklist(new_item: String) -> void:
 	new_item = new_item.to_lower().strip_edges()
