@@ -9,6 +9,7 @@ extends Control
 @onready var tag_reviewer = $"TagReviewer"
 @onready var tag_category_searcher = $TagCategorySearcher
 @onready var wiki = $Wiki
+@onready var splash_screen_texture: TextureRect = $SplashScreenTexture
 
 #@onready var e_621_requester_quick_search = $Tagger/AddAutoComplete/QuickSearch/e621RequesterQuickSearch
 @onready var e_621_requester = %e621Requester
@@ -32,6 +33,14 @@ func _ready():
 	menu.id_pressed.connect(trigger_options)
 	
 	trigger_options(0)
+	
+	await get_tree().create_timer(1.0).timeout
+	
+	var intro_tween: Tween = create_tween()
+	intro_tween.set_ease(Tween.EASE_OUT)
+	intro_tween.set_trans(Tween.TRANS_CUBIC)
+	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 1.5)
+	intro_tween.tween_callback(splash_screen_texture.queue_free)
 
 
 func trigger_options(id: int) -> void:
@@ -175,8 +184,6 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-#		e_621_requester_quick_search.cancel_main_request()
-#		e_621_requester_quick_search.cancel_side_requests()
 		
 		tag_creator.e621_samples_downloader.cancel_main_request()
 		tag_creator.e621_samples_downloader.cancel_side_requests()
