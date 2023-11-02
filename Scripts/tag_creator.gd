@@ -227,6 +227,7 @@ func next_in_samples_queue() -> void:
 func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
 	download_samples_check_box.button_pressed = false
 	has_images_check_box.button_pressed = true
+	tooltip_line_edit.clear()
 	conflict_item_list.clear()
 	conflicts_array.clear()
 	tag_suggestion_array.clear()
