@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=40 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -26,6 +26,7 @@
 [ext_resource type="Script" path="res://Scripts/aliases_script.gd" id="16_ojscj"]
 [ext_resource type="Script" path="res://Scripts/review_blacklist_script.gd" id="17_g6q24"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
+[ext_resource type="Script" path="res://Scripts/load_blacklist_script.gd" id="21_40puc"]
 [ext_resource type="Texture2D" uid="uid://crkdn4d3g0jk2" path="res://Textures/2168222.png" id="26_jf4io"]
 
 [sub_resource type="GDScript" id="GDScript_plco6"]
@@ -645,9 +646,13 @@ item_6/checkable = 1
 item_6/id = 5
 
 [node name="Wiki" type="PopupMenu" parent="MenuBar"]
-item_count = 1
+size = Vector2i(123, 54)
+item_count = 2
 item_0/text = "Refresh Wiki"
 item_0/id = 0
+item_1/text = "Edit tag"
+item_1/id = 1
+item_1/disabled = true
 
 [node name="API" type="PopupMenu" parent="MenuBar"]
 item_count = 1
@@ -1937,6 +1942,7 @@ theme_override_constants/separation = 16
 alignment = 1
 
 [node name="SettingsSets" type="VBoxContainer" parent="Settings/SettingsContainer"]
+custom_minimum_size = Vector2(568, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
@@ -2155,6 +2161,20 @@ layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "These tags are invalid tags and won't get added to a final tag list. It'll be displayed red"
 max_columns = 2
+
+[node name="LoadBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("21_40puc")
+
+[node name="LoadBLLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/LoadBlacklist"]
+layout_mode = 2
+tooltip_text = "When loading a tag list, these tags won't be loaded."
+placeholder_text = "Load blacklist"
+
+[node name="LoadBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/LoadBlacklist"]
+layout_mode = 2
+size_flags_vertical = 3
 
 [node name="SuggestionBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists"]
 layout_mode = 2

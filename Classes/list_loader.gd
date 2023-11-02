@@ -26,8 +26,9 @@ func show_list_namer() -> void:
 
 
 func generate_tags_array(input_string: String, split_char: String = "", whitespace_char: String = "") -> PackedStringArray:
-	var _split_tags: PackedStringArray = []
-	var _whitespaced_tags: PackedStringArray = []
+	var _split_tags: Array = []
+	var _whitespaced_tags: Array = []
+	var final_array: PackedStringArray = []
 	
 	if input_string.is_empty():
 		return PackedStringArray()
@@ -43,27 +44,17 @@ func generate_tags_array(input_string: String, split_char: String = "", whitespa
 		for tag in _split_tags:
 			_whitespaced_tags.append(tag.replace(whitespace_char, " ").strip_edges())
 	
-	return _whitespaced_tags
+	for item in _whitespaced_tags:
+		if not item in Tagger.settings_lists.loader_blacklist:
+			final_array.append(item)
+	
+	return final_array
 
 
 func generate_preview() -> void:
 	preview_list.clear()
-
 	for item in generate_tags_array(input_tags.text.replace("\n", " ").strip_escapes().strip_edges(), separator.text, whitespace.text):
 		preview_list.add_item(Tagger.alias_database.get_alias(item))
-
-
-func send_tags() -> void:	
-
-	main_application.load_tags(
-			generate_tags_array(
-					input_tags.text.replace("\n", " ").strip_escapes().strip_edges(),
-					separator.text,
-					whitespace.text))
-	
-	transfer_tags.text = "Success!"
-	text_timer.start()
-	clear_boxes()
 
 
 func clear_boxes() -> void:
