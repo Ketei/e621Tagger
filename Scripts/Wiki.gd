@@ -12,6 +12,7 @@ signal tag_updated
 @onready var full_screen_display = $FullScreenDisplay
 @onready var wiki_image_requester = $WikiImageRequester
 @onready var wiki_popup_menu: PopupMenu = $"../MenuBar/Wiki"
+@onready var main_application = $".."
 
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
 
@@ -31,7 +32,7 @@ var current_search: String = ""
 
 
 func _ready():
-	wiki_edit.meta_clicked.connect(wiki_link_clicked)
+	wiki_edit.search_in_wiki.connect(search_for_tag)
 	full_screen_display.display_hidden.connect(play_all_gifs)
 	tag_search_line_edit.text_submitted.connect(search_for_tag)
 	wiki_popup_menu.id_pressed.connect(activate_menu_option)
@@ -54,6 +55,8 @@ func set_new_picture_columns(columns_to_display: int) -> void:
 func activate_menu_option(id_option: int) -> void:
 	if id_option == 0:
 		search_for_tag(current_search)
+	elif id_option == 1:
+		main_application.go_to_edit_tag(current_search)
 
 
 func hide_node() -> void:
@@ -75,6 +78,10 @@ func clear_wiki() -> void:
 	tag_search_line_edit.clear()
 	tag_search_line_edit.placeholder_text = "Search in Wiki"
 	wiki_edit.text = ""
+	wiki_popup_menu.set_item_disabled(
+			wiki_popup_menu.get_item_index(1),
+			true
+	)
 
 
 func search_for_tag(new_text: String) -> void:
@@ -91,22 +98,35 @@ func search_for_tag(new_text: String) -> void:
 	if not Tagger.tag_manager.has_tag(new_text):
 		return
 	
+	wiki_popup_menu.set_item_disabled(
+			wiki_popup_menu.get_item_index(1),
+			false
+	)
+	
 	current_search = new_text
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 	var bbc_text: String = "[font_size=30][color={1}]{0}[/color][/font_size]\n".format([_tag.tag.capitalize(), Tagger.settings.category_color_code[Tagger.Categories.keys()[_tag.category]]])
 	tag_search_line_edit.placeholder_text = _tag.tag
 	
+	bbc_text += "[color=29b8e7][b]Category: [/b] {0}[/color]\n\n".format([Tagger.Categories.keys()[_tag.category].capitalize()])
+	
 	if not _tag.parents.is_empty():
 		bbc_text += "[color=8eef97][b]Parents: [/b]"
 		for parent_tag in _tag.parents:
-			bbc_text += parent_tag + ", "
+			if Tagger.tag_manager.has_tag(parent_tag):
+				bbc_text += "[url]{0}[/url], ".format([parent_tag])
+			else:
+				bbc_text += parent_tag + ", "
 		bbc_text = bbc_text.left(-2)
 		bbc_text += "[/color]"
 		bbc_text += "\n"
 	if not _tag.conflicts.is_empty():
 		bbc_text += "[color=8eef97][b]Conflicts: [/b]"
 		for suggested_tag in _tag.conflicts:
-			bbc_text += suggested_tag + ", "
+			if Tagger.tag_manager.has_tag(suggested_tag):
+				bbc_text += "[url]{0}[/url], ".format([suggested_tag])
+			else:
+				bbc_text += suggested_tag + ", "
 		bbc_text = bbc_text.left(-2)
 		bbc_text += "[/color]"
 		bbc_text += "\n"
@@ -267,13 +287,4 @@ func pause_all_gifs() -> void:
 func play_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
 		child.pause_texture(false)
-
-
-func wiki_link_clicked(meta) -> void:
-	var meta_string: String = str(meta)
-	
-	if meta_string.begins_with("http://") or meta_string.begins_with("https://"):
-		OS.shell_open(meta_string)
-	elif Tagger.tag_manager.has_tag(meta_string):
-		search_for_tag(meta_string)
 
