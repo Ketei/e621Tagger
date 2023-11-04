@@ -606,5 +606,3 @@ one_shot = true
 [node name="CopyTimer" type="Timer" parent="."]
 wait_time = 2.0
 one_shot = true
-
-[node name="e621Requester" parent="." instance=ExtResource("8_o1hfx")]
