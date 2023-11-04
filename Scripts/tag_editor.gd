@@ -35,34 +35,35 @@ var suggestions_array: Array[String] = []
 
 @onready var text_change_timer: Timer = $TextChangeTimer
 @onready var downloading_samples_label: Label = $DownloadingSamplesLabel
-@onready var e621_samples_dl_review = $e621SamplesDLReview
+#@onready var e621_samples_dl_review = $e621SamplesDLReview
 @onready var preview_bbc_button: Button = $PreviewBBCButton
 @onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
 @onready var preview_bbc_window = $PreviewBBCWindow
-
-func preview_bcc() -> void:
-	rich_text_label.text = wiki_edit.text
-	preview_bbc_window.show()
-
 
 var samples_downloader_queue: Dictionary = {}
 var is_downloading_samples: bool = false:
 	set(value):
 		is_downloading_samples = value
 		downloading_samples_label.visible = is_downloading_samples
+var delete_with_folder: bool = false
 
 
 func _ready():
 	hide()
 	
 	preview_bbc_button.pressed.connect(preview_bcc)
+	delete_with_folder = Tagger.settings.delete_with_pictures
+	
+	review_menu.set_item_checked(
+			review_menu.get_item_index(3),
+			Tagger.settings.delete_with_pictures)
 	
 	review_menu.set_item_tooltip(
-			review_menu.get_item_index(5),
+			review_menu.get_item_index(3),
 			"If enabled when deleting a tag, the pictures folder will be 
 			deleted as well.")
 
-	e621_samples_dl_review.images_saved.connect(next_in_samples_queue)
+#	e621_samples_dl_review.images_saved.connect(next_in_samples_queue)
 	add_conflict_line_edit.text_submitted.connect(add_tag_conflict)
 	conflicts_item_list.item_activated.connect(remove_tag_conflict)
 	
@@ -85,7 +86,12 @@ func _ready():
 	parents_item_list.search_for_tag.connect(search_for_tag)
 	
 	add_parent_line_edit.text_submitted.connect(add_parent)
-	
+
+
+func preview_bcc() -> void:
+	rich_text_label.text = wiki_edit.text
+	preview_bbc_window.show()
+
 
 func update_tag() -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
@@ -148,7 +154,7 @@ func delete_tag(tag_to_delete: String) -> void:
 	if ResourceLoader.exists(_tag_path):
 		OS.move_to_trash(ProjectSettings.globalize_path(_tag_path))
 	
-	if Tagger.settings.delete_with_pictures and DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
+	if delete_with_folder and DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag.file_name.get_basename()):
 		OS.move_to_trash(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag.file_name.get_basename()))
 	
 	var _implication_replace: ImplicationDictionary = Tagger.tag_manager.get_implication(_tag.tag.left(1))
@@ -160,27 +166,24 @@ func delete_tag(tag_to_delete: String) -> void:
 
 
 func activate_menu_bar(id_button: int) -> void:
-	if id_button == 1: # Deleting a tag
+	if id_button == 2: # Deleting a tag
 		delete_tag(name_line.text.to_lower())
 		clear_and_disable()
 	
-	elif id_button == 2: # Show conflicts
+	elif id_button == 1: # Show conflicts
 		conflict_window.show()
-	
-	elif id_button == 3: # Download samples
-		add_to_download_queue()
-	
-	elif id_button == 4: # Reload page
+	elif id_button == 0: # Reload page
 		search_for_tag(name_line.text)
-	elif  id_button == 5: # Delete picture folder on deletion
+	elif  id_button == 3: # Delete picture folder on deletion
 		var is_enabled: bool = not review_menu.is_item_checked(
-				review_menu.get_item_index(5))
+				review_menu.get_item_index(3))
 		
 		review_menu.set_item_checked(
-				review_menu.get_item_index(5),
+				review_menu.get_item_index(3),
 				is_enabled)
 			
 		Tagger.settings.delete_with_pictures = is_enabled
+		delete_with_folder = is_enabled
 
 
 func clear_and_disable() -> void:
@@ -206,10 +209,10 @@ func clear_and_disable() -> void:
 	add_parent_line_edit.editable = false
 	wiki_edit.clear()
 	wiki_edit.editable = false
+	review_menu.set_item_disabled(review_menu.get_item_index(0), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
-	review_menu.set_item_disabled(review_menu.get_item_index(3), true)
-	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
+#	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
 	tag_update_button.disabled = true
 
 
@@ -277,10 +280,10 @@ func search_for_tag(new_text: String) -> void:
 	wiki_edit.editable = true
 	tag_tooltip_line_edit.editable = true
 	tag_update_button.disabled = false
+	review_menu.set_item_disabled(review_menu.get_item_index(0), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
-	review_menu.set_item_disabled(review_menu.get_item_index(3), false)
-	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
+#	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
 	tag_searcher.clear()
 
 
@@ -321,48 +324,4 @@ func remove_suggested(sug_id: int) -> void:
 
 func _on_timer_timeout() -> void:
 	tag_update_button.text = "Update Tag"
-
-
-func add_to_download_queue():
-	if name_line.text.is_empty():
-		return
-	
-	var tag: Tag = Tagger.tag_manager.get_tag(name_line.text)
-	
-	if samples_downloader_queue.has(Tagger.tag_images_path + tag.file_name.get_basename() + "/"):
-		return
-	
-	var search_tags: Array[String] = ["~type:jpg", "~type:png", "order:score"]
-		
-	for blacklist_tag in Tagger.settings_lists.samples_blacklist:
-		if blacklist_tag == name_line.text:
-			continue
-		search_tags.append("-" + blacklist_tag)
-	
-	search_tags.append(name_line.text)
-	
-	samples_downloader_queue[Tagger.tag_images_path + tag.file_name.get_basename() + "/"] = search_tags
-	
-	if not is_downloading_samples:
-		download_samples()
-
-
-func download_samples() -> void:
-	is_downloading_samples = true
-	var key_to_download: String = samples_downloader_queue.keys().front()
-	
-	e621_samples_dl_review.match_name = samples_downloader_queue[key_to_download].duplicate()
-	e621_samples_dl_review.save_on_finish = true
-	e621_samples_dl_review.path_to_save_to = key_to_download
-	e621_samples_dl_review.get_posts()
-	samples_downloader_queue.erase(key_to_download)
-
-
-func next_in_samples_queue() -> void:
-	if samples_downloader_queue.is_empty():
-		is_downloading_samples = false
-		return
-	else:
-		await get_tree().create_timer(10.0).timeout
-		download_samples()
 
