@@ -12,7 +12,7 @@ extends Control
 @onready var splash_screen_texture: TextureRect = $SplashScreenTexture
 
 #@onready var e_621_requester_quick_search = $Tagger/AddAutoComplete/QuickSearch/e621RequesterQuickSearch
-@onready var e_621_requester = %e621Requester
+#@onready var e_621_requester = %e621Requester
 @onready var menu_bar: MenuBar = $MenuBar
 
 var current_menu: int = -1
@@ -34,12 +34,12 @@ func _ready():
 	
 	trigger_options(0)
 	
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(0.5).timeout
 	
 	var intro_tween: Tween = create_tween()
-	intro_tween.set_ease(Tween.EASE_OUT)
-	intro_tween.set_trans(Tween.TRANS_CUBIC)
-	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 1.5)
+#	intro_tween.set_ease(Tween.EASE_OUT)
+#	intro_tween.set_trans(Tween.TRANS_QUAD)
+	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 1.0)
 	intro_tween.tween_callback(splash_screen_texture.queue_free)
 
 
@@ -184,19 +184,7 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		
-		tag_creator.e621_samples_downloader.cancel_main_request()
-		tag_creator.e621_samples_downloader.cancel_side_requests()
-		
-		tag_reviewer.e621_samples_dl_review.cancel_main_request()
-		tag_reviewer.e621_samples_dl_review.cancel_side_requests()
-		
-		wiki.wiki_image_requester.cancel_main_request()
-		wiki.wiki_image_requester.cancel_side_requests()
-		
-		e_621_requester.cancel_main_request()
-		e_621_requester.cancel_side_requests()
-		
+
 		Tagger.settings.save()
 		Tagger.site_settings.save()
 		Tagger.settings_lists.save()
