@@ -22,10 +22,8 @@ func _ready():
 
 
 func _on_response(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-#	request_result.clear()
-	
 	if result != 0:
-		job_finished.emit(self)
+		job_finished.emit()
 		print_debug("Job finished with error: " + str(result))
 		return
 
@@ -99,7 +97,7 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 		var response_array = JSON.parse_string(body.get_string_from_utf8())
 		
 		if typeof(response_array) == TYPE_DICTIONARY:
-			job_finished.emit(self)
+			job_finished.emit()
 			return
 		
 		var tags_array: Array[e621Tag] = []
