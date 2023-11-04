@@ -10,6 +10,23 @@ var instance_dictionary: Dictionary = {}
 
 var active_instance: String = ""
 
+@onready var e_621api_request: E621API = $"../e621APIRequest"
+
+
+func add_to_api_queue(tag_name: String, tag_amount: int, node_ref: Node) -> void:
+	e_621api_request.add_to_queue([tag_name], tag_amount, E621API.SEARCH_TYPES.TAG, node_ref)
+
+
+func remove_from_api_queue(tag_to_remove: String, reference_node: Node) -> void:
+	var dictionary_to_search: Dictionary = {
+		"tags": [tag_to_remove],
+		"type": E621API.SEARCH_TYPES.TAG,
+		"limit": 50,
+		"reference": reference_node,
+		"path": ""
+		}
+	e_621api_request.remove_from_queue(dictionary_to_search)
+
 
 func _ready():
 	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(2), Tagger.settings.search_suggested)
@@ -125,3 +142,4 @@ func can_create_instance(instance_name: String) -> bool:
 func update_tag(tag_to_update: String) -> void:
 	for instance in instance_dictionary:
 		instance_dictionary[instance].update_tag(tag_to_update)
+

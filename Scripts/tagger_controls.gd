@@ -3,7 +3,6 @@ class_name TaggerInstance
 
 @onready var line_edit: LineEdit = $LineEdit
 @onready var item_list: ItemList = $CurrentTags/ItemList
-@onready var e_621_requester = $e621Requester
 @onready var suggested_list: ItemList = $Suggested/SuggestedList
 @onready var tag_list_generator: TagListGenerator = $TagListGenerator
 @onready var generate_list: Button = $GenerateList
@@ -126,8 +125,9 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 			character_count_added += 1
 	
 		if Tagger.settings.search_suggested:
-			tag_queue.append(tag_name)
-			start_suggestion_lookup()
+#			tag_queue.append(tag_name)
+#			start_suggestion_lookup()
+			tag_holder.add_to_search_queue({tag_name: self})
 	
 	item_list.ensure_current_is_visible()
 	
@@ -163,18 +163,43 @@ func append_registered_tag(tag_resource: Tag) -> void:
 	
 	update_parents(tag_resource)
 	
-	for suggestion in tag_resource.suggestions:
-		add_suggested_tag(suggestion)
+	if Tagger.settings.load_suggested:
+		for suggestion in tag_resource.suggestions:
+			add_suggested_tag(suggestion)
 	
-	for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
-		add_suggested_tag(related_tag)
+	if Tagger.settings.search_suggested:
+		for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
+			add_suggested_tag(related_tag)
 	
 	add_to_category(tag_resource.category)
 
 
-func append_online_data(array_with_resource: Array) -> void: # Connect tag requeter here
+#func append_online_data(array_with_resource: Array) -> void: # Connect tag requeter here
+#	var tag_resource: e621Tag = array_with_resource.front()
+#
+#	if tags_inputed.has(tag_resource.tag_name):
+#		tags_inputed[tag_resource.tag_name]["id"] = tag_resource.id
+#		tags_inputed[tag_resource.tag_name]["post_count"] = tag_resource.post_count
+#		tags_inputed[tag_resource.tag_name]["related_tags"] = tag_resource.get_tags_with_strength()
+#		tags_inputed[tag_resource.tag_name]["is_locked"] = tag_resource.is_locked
+#
+#		if tags_inputed[tag_resource.tag_name]["category"] == Tagger.Categories.GENERAL and translate_category(tag_resource.category) != Tagger.Categories.GENERAL:
+#			tags_inputed[tag_resource.tag_name]["category"] = translate_category(tag_resource.category)
+#			add_to_category(translate_category(tag_resource.category))
+#		for tag in tag_resource.get_tags_with_strength():
+#			add_suggested_tag(tag)
+#
+#
+#	if not tag_queue.is_empty():
+#		suggestion_timer.start()
+#	else:
+#		is_searching_tags = false
+#
+
+func api_response(array_with_resource: Array) -> void:
 	var tag_resource: e621Tag = array_with_resource.front()
-	
+	print(tag_resource.related_tags)
+	print(tag_resource.get_tags_with_strength())
 	if tags_inputed.has(tag_resource.tag_name):
 		tags_inputed[tag_resource.tag_name]["id"] = tag_resource.id
 		tags_inputed[tag_resource.tag_name]["post_count"] = tag_resource.post_count
@@ -188,10 +213,10 @@ func append_online_data(array_with_resource: Array) -> void: # Connect tag reque
 			add_suggested_tag(tag)
 			
 	
-	if not tag_queue.is_empty():
-		suggestion_timer.start()
-	else:
-		is_searching_tags = false
+#	if not tag_queue.is_empty():
+#		suggestion_timer.start()
+#	else:
+#		is_searching_tags = false
 
 
 func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: bool = true, suggested_tags: Array = [], tag_category := Tagger.Categories.GENERAL) -> void: # Connect line submit here
@@ -274,8 +299,9 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	check_minimum_requirements()
 	
 	if Tagger.settings.search_suggested and search_online:
-		tag_queue.append(tag_name)
-		start_suggestion_lookup()
+#		tag_queue.append(tag_name)
+#		start_suggestion_lookup()
+		tag_holder.add_to_api_queue(tag_name, 1, self)
 
 
 func add_suggested_tag(tag_name: String) -> void:
@@ -360,6 +386,8 @@ func remove_tag(item_index: int) -> void: # Connect to itemlist activate
 	item_list.remove_item(item_index)
 	regenerate_parents()
 	check_minimum_requirements()
+	
+	tag_holder.remove_from_api_queue(tag_name, self)
 
 
 func add_to_category(category_added: Tagger.Categories) -> void:
@@ -430,8 +458,9 @@ func add_from_suggested(item_activated: int) -> void: # Connect to item activate
 		add_new_tag(_tag_text, false)
 	
 		if Tagger.settings.search_suggested:
-			tag_queue.append(_tag_text)
-			start_suggestion_lookup()
+#			tag_queue.append(_tag_text)
+#			start_suggestion_lookup()
+			tag_holder.add_to_search_queue(_tag_text)
 
 
 func regenerate_parents() -> void:
@@ -551,7 +580,6 @@ func disconnect_and_free() -> void:
 func _ready():
 	# Experimental connects
 	line_edit.text_submitted.connect(add_new_tag)
-	e_621_requester.get_finished.connect(append_online_data)
 	suggested_list.item_activated.connect(add_from_suggested)
 	item_list.item_activated.connect(remove_tag)
 	clear_tags_button.pressed.connect(clear_inputted_tags)
@@ -573,7 +601,7 @@ func _ready():
 	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
 	clean_suggestions_button.pressed.connect(clean_suggestions)
 	
-	suggestion_timer.timeout.connect(search_suggested)
+#	suggestion_timer.timeout.connect(search_suggested)
 	
 	copy_timer.timeout.connect(on_copy_timer_timeout)
 
@@ -671,20 +699,6 @@ func clean_suggestions() -> void:
 			suggested_list.remove_item(_remove_index)
 
 
-func start_suggestion_lookup() -> void:
-	if is_searching_tags:
-		return
-	
-	is_searching_tags = true
-	search_suggested()
-
-
-func search_suggested() -> void:
-	e_621_requester.match_name.clear()
-	e_621_requester.match_name.append(tag_queue.pop_front())
-	e_621_requester.get_tags()
-
-
 func generate_tag_list() -> void:
 	tag_list_generator.generate_tag_list_v2(tags_inputed)
 	tag_list_generator.__explore_parents_v2()
@@ -705,8 +719,3 @@ func copy_resut_to_clipboard() -> void:
 func on_copy_timer_timeout() -> void:
 	copy_to_clipboard.text = "Copy to Clipboard"
 
-
-func _notification(what):
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		e_621_requester.cancel_main_request()
-		e_621_requester.cancel_side_requests()

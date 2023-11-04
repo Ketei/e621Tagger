@@ -17,7 +17,7 @@ signal tag_created(tag_name)
 @onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
 @onready var conflict_window = $ConflictWindow
 @onready var download_samples_check_box: CheckBox = $DownloadSamplesCheckBox
-@onready var e621_samples_downloader = $e621SamplesDownloader
+#@onready var e621_samples_downloader = $e621SamplesDownloader
 @onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
 @onready var tooltip_line_edit: LineEdit = $TooltipLineEdit
 
@@ -25,6 +25,8 @@ signal tag_created(tag_name)
 @onready var preview_bbc_window = $PreviewBBCWindow
 @onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
 
+@onready var e_621api_request: E621API = $"../e621APIRequest"
+@onready var downloading_samples_lbl: Label = $DownloadingSamplesLbl
 
 
 var parent_tags: Array = []
@@ -35,7 +37,14 @@ var text_timer: Timer
 var tag_suggestion_array: Array[String] = []
 
 var samples_downloader_queue: Dictionary = {}
-var is_downloading_samples: bool = false
+
+var downloads_queued: int = 0:
+	set(value):
+		downloads_queued = value
+		if 0 == downloads_queued:
+			downloading_samples_lbl.hide()
+		else:
+			downloading_samples_lbl.show()
 
 func _ready():
 	hide()
@@ -44,7 +53,7 @@ func _ready():
 	
 	has_images_check_box.toggled.connect(has_images_toggled)
 	
-	e621_samples_downloader.images_saved.connect(next_in_samples_queue)
+#	e621_samples_downloader.images_saved.connect(next_in_samples_queue)
 	
 	tag_creator_menu.set_item_checked(tag_creator_menu.get_item_index(1), Tagger.settings.open_tag_folder_on_creation)
 	
@@ -192,36 +201,17 @@ func create_tag() -> void:
 			search_tags.append("-" + blacklist_tag)
 		
 		search_tags.append(target_tag)
-		
-		samples_downloader_queue[Tagger.tag_images_path + _tag_path.get_file().get_basename() + "/"] = search_tags
-		
-		if not is_downloading_samples:
-			download_samples()
+
+		e_621api_request.add_to_queue(search_tags, 5, E621API.SEARCH_TYPES.DOWNLOAD, self, Tagger.tag_images_path + _tag_path.get_file().get_basename() + "/")
+		downloads_queued += 1
 		
 	clear_menu_items("Done!")
 	
 	tag_created.emit(target_tag)
 
 
-func download_samples() -> void:
-	is_downloading_samples = true
-	var key_to_download: String = samples_downloader_queue.keys().front()
-	
-	e621_samples_downloader.match_name = samples_downloader_queue[key_to_download].duplicate()
-	e621_samples_downloader.save_on_finish = true
-	e621_samples_downloader.path_to_save_to = key_to_download
-	e621_samples_downloader.get_posts()
-	
-	samples_downloader_queue.erase(key_to_download)
-
-
-func next_in_samples_queue() -> void:
-	if samples_downloader_queue.is_empty():
-		is_downloading_samples = false
-		return
-	else:
-		await get_tree().create_timer(10.0).timeout
-		download_samples()
+func api_response(_response) -> void:
+	downloads_queued -= 1
 
 
 func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
