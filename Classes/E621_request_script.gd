@@ -4,8 +4,26 @@ extends HTTPRequest
 
 signal job_finished(reference)
 signal parsed_result(e621_result)
+signal job_failed
 
 enum RequestType {POST, TAG}
+
+enum RequestResult {
+	SUCCESS,
+	CHUNKED_BODY_SIZE_MISMATCH,
+	CANT_CONNECT,
+	CANT_RESOLVE,
+	CONNECTION_ERROR,
+	TLS_HANDSHAKE_ERROR,
+	NO_RESPONSE,
+	BODY_SIZE_LIMIT_EXCEEDED,
+	BODY_DECOMPRESS_FAILED,
+	REQUEST_FAILED,
+	DOWNLOAD_FILE_CANT_OPEN,
+	DOWNLOAD_FILE_WRITE_ERROR,
+	REDIRECT_LIMIT_REACHED,
+	TIMEOUT,
+}
 
 var request_mode: RequestType = RequestType.POST
 
@@ -23,8 +41,8 @@ func _ready():
 
 func _on_response(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray):
 	if result != 0:
-		job_finished.emit()
-		print_debug("Job finished with error: " + str(result))
+		print_debug("Job finished with error: " + RequestResult.keys()[result])
+		job_failed.emit()
 		return
 
 	if request_mode == RequestType.POST:
