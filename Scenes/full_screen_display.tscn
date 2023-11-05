@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dq3egjcbm6oqd"]
+[gd_scene load_steps=3 format=3 uid="uid://dq3egjcbm6oqd"]
 
 [ext_resource type="Script" path="res://Classes/full_screen_lewd_display.gd" id="1_ust0f"]
-[ext_resource type="Texture2D" uid="uid://bg00xcsp57xr3" path="res://Textures/df44a4fac532cb6f99d462af9c72f90c.png" id="2_gli6f"]
 
 [sub_resource type="GDScript" id="GDScript_6nk4r"]
 resource_name = "lewd_text_script"
@@ -176,6 +175,5 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 0
-texture = ExtResource("2_gli6f")
 stretch_mode = 5
 script = SubResource("GDScript_6nk4r")

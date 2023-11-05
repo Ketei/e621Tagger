@@ -25,7 +25,7 @@ extends Resource
 
 @export var load_web_gifs: bool = false
 @export var load_local_gifs: bool = true
-@export_range(1, 3, 1) var picture_columns_to_search: int = 3
+@export_range(1, 3, 1) var picture_columns_to_search: int = 2
 
 @export var delete_with_pictures: bool = false
 
