@@ -7,6 +7,7 @@ signal image_created(image_file)
 signal image_skipped
 signal images_saved
 signal posts_found(amount)
+signal request_timed_out
 	
 enum Category {
 	ANY = -1,
@@ -61,13 +62,19 @@ var main_active: bool = false
 func _ready():
 	main_e621.parsed_result.connect(_get_finished)
 	main_e621.timeout = timeout_time
+	main_e621.job_failed.connect(failed_timeout)
 	
 	for gen in range(max_parallel_requests):
 		var e6_request := e621Request.new()
 		e6_request.is_post_downloader = false
+		e6_request.timeout = 20
 		add_child(e6_request)
 		http_requester_references.append(e6_request)
 		e6_request.job_finished.connect(request_timeout)
+
+
+func failed_timeout() -> void:
+	get_finished.emit([])
 
 
 func request_timeout() -> void:
@@ -88,6 +95,7 @@ func get_posts() -> void:
 			_url += "page=b" + str(page) + "&"
 		else:
 			_url += "page=a" + str(page) + "&"
+	
 	if not match_name.is_empty():
 		_url += "tags="
 	
