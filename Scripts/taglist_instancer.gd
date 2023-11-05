@@ -17,11 +17,26 @@ func add_to_api_queue(tag_name: String, tag_amount: int, node_ref: Node) -> void
 	e_621api_request.add_to_queue([tag_name], tag_amount, E621API.SEARCH_TYPES.TAG, node_ref)
 
 
-func remove_from_api_queue(tag_to_remove: String, reference_node: Node) -> void:
+func add_to_api_prio_queue(tag_name: String, tag_amount: int, node_ref: Node) -> void:
+	e_621api_request.add_to_queue([tag_name], tag_amount, E621API.SEARCH_TYPES.TAG, node_ref, "", true)
+
+
+func remove_from_api_prio_queue(tag_to_remove: String, reference_node: Node, tag_amount: int) -> void:
 	var dictionary_to_search: Dictionary = {
 		"tags": [tag_to_remove],
 		"type": E621API.SEARCH_TYPES.TAG,
-		"limit": 50,
+		"limit": tag_amount,
+		"reference": reference_node,
+		"path": ""
+		}
+	e_621api_request.remove_from_queue(dictionary_to_search, true)
+
+
+func remove_from_api_queue(tag_to_remove: String, reference_node: Node, tag_amount: int) -> void:
+	var dictionary_to_search: Dictionary = {
+		"tags": [tag_to_remove],
+		"type": E621API.SEARCH_TYPES.TAG,
+		"limit": tag_amount,
 		"reference": reference_node,
 		"path": ""
 		}
