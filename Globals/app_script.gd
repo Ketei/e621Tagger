@@ -34,13 +34,13 @@ func _ready():
 	
 	trigger_options(0)
 	
-	await get_tree().create_timer(0.5).timeout
+	# Commenting until I have the splash screen
 	
-	var intro_tween: Tween = create_tween()
-#	intro_tween.set_ease(Tween.EASE_OUT)
-#	intro_tween.set_trans(Tween.TRANS_QUAD)
-	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 1.0)
-	intro_tween.tween_callback(splash_screen_texture.queue_free)
+#	await get_tree().create_timer(0.5).timeout
+#
+#	var intro_tween: Tween = create_tween()
+#	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 1.0)
+#	intro_tween.tween_callback(splash_screen_texture.queue_free)
 
 
 func trigger_options(id: int) -> void:
