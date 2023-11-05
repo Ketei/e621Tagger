@@ -658,11 +658,13 @@ metadata/_edit_use_anchors_ = true
 script = ExtResource("2_ral6j")
 
 [node name="e621ImageDownloader" parent="e621APIRequest" instance=ExtResource("2_4gepn")]
+max_parallel_requests = 4
 timeout_time = 10.0
 post_limit = 50
 get_sample_if_available = false
 
 [node name="APICooldown" type="Timer" parent="e621APIRequest"]
+wait_time = 2.0
 one_shot = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -2407,11 +2409,12 @@ offset_top = -48.0
 offset_right = 1273.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 25
-text = "v 1.0.0"
+text = "v 0.9.0"
 horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="APILoader" type="Control" parent="Settings"]
+visible = false
 layout_mode = 1
 anchor_top = -0.0843373
 anchor_right = 1.0
