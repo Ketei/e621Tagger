@@ -8,6 +8,7 @@ signal tag_updated
 
 @onready var lewd_pic_container: GridContainer = $VBoxContainer/HBoxContainer/Imeges/ScrollContainer/LewdPicsContainer
 @onready var preview_progress_load: ProgressBar = $VBoxContainer/HBoxContainer/Imeges/PreviewProgressLoad
+@onready var wiki_search_cooldown: Timer = $WikiSearchCooldown
 
 @onready var full_screen_display = $FullScreenDisplay
 @onready var wiki_image_requester = $WikiImageRequester
@@ -254,6 +255,8 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 	if preview_progress_load.value == preview_progress_load.max_value:
 		finished_loading_local.emit()
+		if wiki_search_cooldown.is_stopped():
+			await wiki_search_cooldown.timeout
 		tag_search_line_edit.editable = true
 
 
@@ -322,6 +325,7 @@ func search_web_images(tag_names: String) -> void:
 	
 	wiki_image_requester.match_name = search_tags.duplicate()
 	wiki_image_requester.get_posts_and_download()
+	wiki_search_cooldown.start()
 
 
 func display_big_pic(texture_to_load: Texture2D) -> void:
