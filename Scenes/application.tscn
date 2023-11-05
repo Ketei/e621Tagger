@@ -324,7 +324,12 @@ resource_name = "api_loader_script"
 script/source = "extends Control
 
 @onready var close_button: Button = $AllItems/CloseButton
+@onready var api_log_in_http_request: HTTPRequest = $APILogInHTTPRequest
+@onready var load_api = $AllItems/LoadAPI
+@onready var log_in_api = $AllItems/LogInAPI
+@onready var e_621api_request = $\"../../e621APIRequest\"
 
+var login_caller_node: Node = null
 
 func _ready():
 	self.hide()
@@ -333,7 +338,29 @@ func _ready():
 
 func hide_api_loader() -> void:
 	self.visible = false
+	log_in_api.clear_fields()
+	load_api.clear_fields()
 
+
+func try_login(auth_header_memory: String, request_ref: Node) -> void:
+	if login_caller_node:
+		return
+	
+	var headers: Array = Tagger.get_headers()
+	headers.append(\"Authorization: \" + auth_header_memory)
+#	api_log_in_http_request.request(\"https://e621.net/posts.json?limit=1\", headers)
+#	api_log_in_http_request.request_completed.connect(request_ref.load_response)
+	e_621api_request.add_to_queue([], 1, E621API.SEARCH_TYPES.POST, self, \"\", true)
+	login_caller_node = request_ref
+	
+#	api_log_in_http_request.request_completed.disconnect(request_ref.load_response)
+
+
+func api_response(response):
+	if not login_caller_node:
+		return
+	login_caller_node.load_response(response)
+	login_caller_node = null
 "
 
 [sub_resource type="GDScript" id="GDScript_ert6n"]
@@ -344,11 +371,30 @@ signal successful_load
 signal fields_disabled
 signal fields_enabled
 
+enum RequestResult {
+	SUCCESS,
+	CHUNKED_BODY_SIZE_MISMATCH,
+	CANT_CONNECT,
+	CANT_RESOLVE,
+	CONNECTION_ERROR,
+	TLS_HANDSHAKE_ERROR,
+	NO_RESPONSE,
+	BODY_SIZE_LIMIT_EXCEEDED,
+	BODY_DECOMPRESS_FAILED,
+	REQUEST_FAILED,
+	DOWNLOAD_FILE_CANT_OPEN,
+	DOWNLOAD_FILE_WRITE_ERROR,
+	REDIRECT_LIMIT_REACHED,
+	TIMEOUT,
+}
+
 @onready var api_key: LineEdit = $APIKey
 @onready var reveal_pass_button: CheckButton = $APIKey/RevealPassButton
 @onready var load_button: Button = $LoadButton
-@onready var button_text_timer: Timer = $ButtonTextTimer
-@onready var requesst_verify: HTTPRequest = $HTTPRequest
+#@onready var button_text_timer: Timer = $ButtonTextTimer
+#@onready var requesst_verify: HTTPRequest = $HTTPRequest
+@onready var api_loader = $\"../..\"
+@onready var load_info_label: Label = $LoadInfoLabel
 
 var valid_file: bool = false
 var auth_header_memory: String = \"\"
@@ -356,7 +402,7 @@ var auth_header_memory: String = \"\"
 
 func _ready():
 	
-	requesst_verify.request_completed.connect(load_response)
+#	requesst_verify.request_completed.connect(load_response)
 	
 	if FileAccess.file_exists(Tagger.api_file_path):
 		load_button.disabled = false
@@ -364,7 +410,7 @@ func _ready():
 		reveal_pass_button.disabled = false
 	
 	reveal_pass_button.toggled.connect(reveal_pass)
-	button_text_timer.timeout.connect(restore_button_text)
+#	button_text_timer.timeout.connect(restore_button_text)
 	load_button.pressed.connect(load_api_key)
 	api_key.text_submitted.connect(load_api_key)
 
@@ -376,6 +422,7 @@ func clear_and_disable() -> void:
 	reveal_pass_button.disabled = true
 	reveal_pass_button.button_pressed = false
 	auth_header_memory = \"\"
+	load_info_label.text = \"\"
 
 
 func load_api_key(_text_sumbit: String = \"\") -> void:
@@ -387,34 +434,32 @@ func load_api_key(_text_sumbit: String = \"\") -> void:
 	if config_file:
 		valid_file = true
 		auth_header_memory = config_file.get_as_text()
-		
-		var headers: Array = Tagger.get_headers()
-		headers.append(\"Authorization: \" + auth_header_memory)
-		requesst_verify.request(\"https://e621.net/posts.json?limit=1\", headers)
+		api_loader.try_login(auth_header_memory, self)
 		load_button.text = \"Please Wait\"
 		load_button.disabled = true
 	else:
 		api_key.clear()
-		load_button.text = \"Wrong Password\"
-		button_text_timer.start()
+		load_info_label.text = \"Wrong Password\"
+#		button_text_timer.start()
 		enable_fields()
 		fields_enabled.emit()
 
 
-func load_response(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
-	if result == 0 and response_code == 200:
+func load_response(response_dictionary: Dictionary) -> void:
+	load_button.text = \"Load Key\"
+	var response_array = response_dictionary[\"response\"]
+	if not response_array.is_empty():
 		Tagger.e6_headers_data[\"Authorization\"] = auth_header_memory
 		load_button.text = \"Success!\"
-		button_text_timer.start()
 		clear_and_disable()
 		successful_load.emit()
 	else:
+		enable_fields()
+		fields_enabled.emit()
 		if valid_file:
-			load_button.text = \"Invalid API Key\"
-			button_text_timer.start()
+			load_info_label.text = \"Network error\"
 		else:
-			load_button.text = \"Network error\"
-			button_text_timer.start()
+			load_info_label.text = \"Invalid API Key\"
 
 
 func restore_button_text() -> void:
@@ -430,13 +475,20 @@ func disable_fields() -> void:
 	load_button.disabled = true
 	reveal_pass_button.disabled = true
 	reveal_pass_button.button_pressed = false
+	load_info_label.add_theme_color_override(\"font_color\", Color.DARK_GRAY)
+
+
+func clear_fields() -> void:
+	auth_header_memory = \"\"
+	api_key.clear()
+	load_info_label.text = \"\"
 
 
 func enable_fields() -> void:
-	api_key.editable = false
-	load_button.disabled = true
-	reveal_pass_button.disabled = true
-	reveal_pass_button.button_pressed = false
+	api_key.editable = true
+	load_button.disabled = false
+	reveal_pass_button.disabled = false
+	load_info_label.remove_theme_color_override(\"font_color\")
 
 
 "
@@ -449,15 +501,33 @@ signal successful_log_in
 signal fields_disabled
 signal fields_enabled
 
+enum RequestResult {
+	SUCCESS,
+	CHUNKED_BODY_SIZE_MISMATCH,
+	CANT_CONNECT,
+	CANT_RESOLVE,
+	CONNECTION_ERROR,
+	TLS_HANDSHAKE_ERROR,
+	NO_RESPONSE,
+	BODY_SIZE_LIMIT_EXCEEDED,
+	BODY_DECOMPRESS_FAILED,
+	REQUEST_FAILED,
+	DOWNLOAD_FILE_CANT_OPEN,
+	DOWNLOAD_FILE_WRITE_ERROR,
+	REDIRECT_LIMIT_REACHED,
+	TIMEOUT,
+}
+
 @onready var user_line_edit: LineEdit = $UserLineEdit
 @onready var key_line_edit: LineEdit = $KeyLineEdit
 @onready var remember_check: CheckBox = $RememberCheck
 @onready var encrypt_key_line_edit: LineEdit = $RememberCheck/EncryptKeyLineEdit
 @onready var reveal_encrypt: CheckButton = $RememberCheck/EncryptKeyLineEdit/RevealEncrypt
 @onready var save_btn: Button = $SaveBTN
-@onready var verify_request: HTTPRequest = $HTTPRequest
+#@onready var verify_request: HTTPRequest = $HTTPRequest
 @onready var info_label = $InfoLabel
 @onready var log_in_label = $LogInLabel
+@onready var api_loader = $\"../..\"
 
 var _auth_header: String = \"\"
 
@@ -466,7 +536,7 @@ func _ready():
 	reveal_encrypt.toggled.connect(toggle_secret)
 	save_btn.pressed.connect(save_key)
 	remember_check.toggled.connect(remember_key_check_toggle)
-	verify_request.request_completed.connect(verify_login)
+#	verify_request.request_completed.connect(load_response)
 
 
 func remember_key_check_toggle(toggle_state: bool) -> void:
@@ -487,22 +557,18 @@ func save_key() -> void:
 	disable_fields()
 	fields_disabled.emit()
 	_auth_header = str(Marshalls.utf8_to_base64(user_line_edit.text.to_lower() + \":\" + key_line_edit.text))
-	var headers: Array = Tagger.get_headers()
-	headers.append(\"Authorization: \" + _auth_header)
-	verify_request.request(\"https://e621.net/posts.json?limit=1\", headers)
+	api_loader.try_login(_auth_header, self)
 	save_btn.disabled = true
 	save_btn.text = \"Please Wait\"
-	
-	await verify_request.request_completed
-	
-	save_btn.text = \"Log-In\"
-	
-	
-func verify_login(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray): #401 = BAD
-	if result == 0 and response_code == 200:
+
+
+func load_response(response_dictionary: Dictionary): #401 = BAD
+	var response_array = response_dictionary[\"response\"]
+	if not response_array.is_empty():
 		successfull_login()
 	else:
 		failed_log_in()
+	save_btn.text = \"Log-In\"
 
 
 func failed_log_in() -> void:
@@ -523,6 +589,13 @@ func clear_and_disable() -> void:
 	encrypt_key_line_edit.editable = false
 	reveal_encrypt.disabled = true
 	info_label.add_theme_color_override(\"font_color\", Color.DARK_GRAY)
+
+
+func clear_fields() -> void:
+	_auth_header = \"\"
+	encrypt_key_line_edit.clear()
+	user_line_edit.clear()
+	key_line_edit.clear()
 
 
 func successfull_login() -> void:
@@ -2348,6 +2421,9 @@ grow_vertical = 2
 script = SubResource("GDScript_7dq25")
 metadata/_edit_use_anchors_ = true
 
+[node name="APILogInHTTPRequest" type="HTTPRequest" parent="Settings/APILoader"]
+timeout = 10.0
+
 [node name="ColorRect" type="ColorRect" parent="Settings/APILoader"]
 layout_mode = 1
 anchors_preset = 15
@@ -2392,6 +2468,15 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
 
+[node name="LoadInfoLabel" type="Label" parent="Settings/APILoader/AllItems/LoadAPI"]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 112.0
+offset_right = 353.0
+offset_bottom = 142.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Label3" type="Label" parent="Settings/APILoader/AllItems/LoadAPI"]
 layout_mode = 0
 offset_left = -8.0
@@ -2430,9 +2515,8 @@ disabled = true
 text = "Load Key"
 
 [node name="ButtonTextTimer" type="Timer" parent="Settings/APILoader/AllItems/LoadAPI"]
+wait_time = 2.0
 one_shot = true
-
-[node name="HTTPRequest" type="HTTPRequest" parent="Settings/APILoader/AllItems/LoadAPI"]
 
 [node name="LogInAPI" type="Control" parent="Settings/APILoader/AllItems"]
 anchors_preset = 0
@@ -2521,9 +2605,6 @@ offset_top = 144.0
 offset_right = 320.0
 offset_bottom = 184.0
 text = "Log-in"
-
-[node name="HTTPRequest" type="HTTPRequest" parent="Settings/APILoader/AllItems/LogInAPI"]
-timeout = 10.0
 
 [node name="LogInLabel" type="Label" parent="Settings/APILoader/AllItems/LogInAPI"]
 layout_mode = 0
