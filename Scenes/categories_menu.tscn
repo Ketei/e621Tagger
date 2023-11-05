@@ -5,7 +5,6 @@
 [node name="CategoriesMenu" type="OptionButton"]
 offset_right = 192.0
 offset_bottom = 40.0
-action_mode = 1
 text_overrun_behavior = 3
 clip_text = true
 script = ExtResource("1_mpf0k")

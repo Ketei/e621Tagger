@@ -4,8 +4,26 @@ extends HTTPRequest
 
 signal job_finished(reference)
 signal parsed_result(e621_result)
+signal job_failed
 
 enum RequestType {POST, TAG}
+
+enum RequestResult {
+	SUCCESS,
+	CHUNKED_BODY_SIZE_MISMATCH,
+	CANT_CONNECT,
+	CANT_RESOLVE,
+	CONNECTION_ERROR,
+	TLS_HANDSHAKE_ERROR,
+	NO_RESPONSE,
+	BODY_SIZE_LIMIT_EXCEEDED,
+	BODY_DECOMPRESS_FAILED,
+	REQUEST_FAILED,
+	DOWNLOAD_FILE_CANT_OPEN,
+	DOWNLOAD_FILE_WRITE_ERROR,
+	REDIRECT_LIMIT_REACHED,
+	TIMEOUT,
+}
 
 var request_mode: RequestType = RequestType.POST
 
@@ -22,11 +40,9 @@ func _ready():
 
 
 func _on_response(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-#	request_result.clear()
-	
 	if result != 0:
-		job_finished.emit(self)
-		print_debug("Job finished with error: " + str(result))
+		print_debug("Job finished with error: " + RequestResult.keys()[result])
+		job_failed.emit()
 		return
 
 	if request_mode == RequestType.POST:
@@ -99,7 +115,7 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 		var response_array = JSON.parse_string(body.get_string_from_utf8())
 		
 		if typeof(response_array) == TYPE_DICTIONARY:
-			job_finished.emit(self)
+			job_finished.emit()
 			return
 		
 		var tags_array: Array[e621Tag] = []

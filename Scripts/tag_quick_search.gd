@@ -2,13 +2,13 @@ extends Control
 
 signal add_tag_signal
 
-@export var tags_to_add: int = 10
+@export var tags_to_get: int = 10
 
-@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
+#@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
 @onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
 @onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
 @onready var cancel_auto_button = $CancelAutoButton
-@onready var main_application = $"../../.."
+#@onready var main_application = $"../../.."
 
 @onready var add_auto_complete_node = $".."
 @onready var add_selected_button = $AddSelectedButton
@@ -19,26 +19,26 @@ signal add_tag_signal
 
 
 var tag_search_array: Array[String] = [] # To be removed
-var is_tagger_requesting: float = false
+#var is_tagger_requesting: float = false
 
 var tag_search_dictionary: Dictionary = {}
 var list_order_array: Array = []
+var selected_tag: String = ""
 
+var search_queue: String = ""
 
 func _ready():
 	auto_complete_item_list.item_clicked.connect(open_right_click_context_menu)
-	e6_requester_quick_search.post_limit = tags_to_add + 1
+#	e6_requester_quick_search.post_limit = tags_to_get
 	
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
 	request_cooldown_timer.timeout.connect(timer_timeout)
-	e6_requester_quick_search.get_finished.connect(add_online_to_list)
+#	e6_requester_quick_search.get_finished.connect(add_online_to_list)
 	auto_com_line_edit.text_submitted.connect(search_for_tag_v2)
 	cancel_auto_button.pressed.connect(add_auto_complete_node.hide)
 	add_selected_button.pressed.connect(add_selected_to_list)
 	quick_search_popup_menu.id_pressed.connect(activate_right_click_context_menu)
-
-var selected_tag: String = ""
 
 
 func open_right_click_context_menu(index: int, at_position: Vector2, mouse_button_index: int) -> void:
@@ -61,7 +61,7 @@ func open_right_click_context_menu(index: int, at_position: Vector2, mouse_butto
 
 func activate_right_click_context_menu(id_pressed: int) -> void:
 	if id_pressed == 0:
-		main_application.go_to_create_tag(
+		tagger.main_application.go_to_create_tag(
 				selected_tag, 
 				[], 
 				tag_search_dictionary[selected_tag]["related_tags"],
@@ -69,7 +69,7 @@ func activate_right_click_context_menu(id_pressed: int) -> void:
 		add_auto_complete_node.hide()
 	
 	elif id_pressed == 1:
-		main_application.go_to_edit_tag(selected_tag)
+		tagger.main_application.go_to_edit_tag(selected_tag)
 		add_auto_complete_node.hide()
 
 
@@ -98,7 +98,8 @@ func search_for_tag_v2(tag_to_search: String) -> void:
 	tag_to_search = tag_to_search.replace("_", " ").strip_edges().to_lower()
 	
 	var tag_for_url: String = ""
-
+	search_queue = tag_to_search
+	
 	if some_fix_option.selected == 0:
 		tag_for_url = tag_to_search + "*"
 	elif some_fix_option.selected == 1:
@@ -134,64 +135,27 @@ func search_for_tag_v2(tag_to_search: String) -> void:
 				list_order_array.append(tag)
 
 	auto_com_line_edit.clear()
-	
-	e6_requester_quick_search.match_name = [tag_for_url]
-	e6_requester_quick_search.get_tags()
-	is_tagger_requesting = true
-	request_cooldown_timer.start()
-
-
-#func search_for_tag(tag_to_search: String) -> void:
-#	auto_com_line_edit.editable = false
-#	tag_to_search = tag_to_search.strip_edges().to_lower()
-#
-#	if is_tagger_requesting:
-#		e6_requester_quick_search.cancel_main_request()
-#
-#	tag_search_array.clear()
-#	auto_complete_item_list.clear()
-#
-#	var tag_for_url: String = ""
-#
-#	if some_fix_option.selected == 0:
-#		tag_for_url = tag_to_search + "*"
-#	elif some_fix_option.selected == 1:
-#		tag_for_url = "*" + tag_to_search 
-#	elif some_fix_option.selected == 2:
-#		tag_for_url = "*" + tag_to_search + "*"
-#
-#	if some_fix_option.selected == 0:
-#		for tag in Tagger.tag_manager.search_with_prefix(tag_to_search):
-#			if tag_search_array.has(tag):
-#				continue
-#			auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
-#			tag_search_array.append(tag)
-#	elif some_fix_option.selected == 1:
-#		for tag in Tagger.tag_manager.search_with_suffix(tag_to_search):
-#			if tag_search_array.has(tag):
-#				continue
-#			auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
-#			tag_search_array.append(tag)
-#	elif some_fix_option.selected == 2:
-#		for tag in Tagger.tag_manager.search_for_content(tag_to_search):
-#			if tag_search_array.has(tag):
-#				continue
-#			auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
-#			tag_search_array.append(tag)
-#
-#	auto_com_line_edit.clear()
-#
-#	e6_requester_quick_search.match_name = [tag_for_url]
-#	e6_requester_quick_search.get_tags()
+	tagger.tag_holder.add_to_api_prio_queue(tag_for_url, 50, self)
 #	is_tagger_requesting = true
 #	request_cooldown_timer.start()
 
 
-func add_online_to_list(parsed_array: Array) -> void:
-	is_tagger_requesting = false
+func api_response(response_dictionary: Dictionary) -> void:
+	var parsed_array: Array = response_dictionary["response"]
+	
+	search_queue = ""
+	auto_com_line_edit.editable = true
+	
+	if parsed_array.is_empty():
+		return
+	
+	var found_array = []
 	
 	for e621_tag in parsed_array:
 		var temp_format: e621Tag = e621_tag
+		if temp_format.category == e621Tag.Category.INVALID:
+			continue
+
 		var tag_name: String = temp_format.tag_name
 		
 		var dictionary_build: Dictionary = {
@@ -217,8 +181,15 @@ func add_online_to_list(parsed_array: Array) -> void:
 	
 
 		if not list_order_array.has(temp_format.tag_name):
-			list_order_array.append(temp_format.tag_name)
-			auto_complete_item_list.add_item(temp_format.tag_name, load("res://Textures/generic_tag.png"))
+#			list_order_array.append(temp_format.tag_name)
+#			auto_complete_item_list.add_item(temp_format.tag_name, load("res://Textures/generic_tag.png"))
+			found_array.append(temp_format.tag_name)
+
+	found_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	for item in found_array:
+		list_order_array.append(item)
+		auto_complete_item_list.add_item(item, load("res://Textures/generic_tag.png"))
 
 
 func clear_all_items() -> void:
@@ -229,10 +200,6 @@ func clear_all_items() -> void:
 	auto_complete_item_list.clear()
 	list_order_array.clear()
 
-	if is_tagger_requesting:
-		e6_requester_quick_search.cancel_main_request()
-		is_tagger_requesting = false
-
 
 func close_add() -> void: # Unused
 	add_auto_complete_node.hide()
@@ -241,3 +208,7 @@ func close_add() -> void: # Unused
 func timer_timeout() -> void:
 	auto_com_line_edit.editable = true
 
+
+func close_instance() -> void:
+	if not search_queue.is_empty():
+		tagger.tag_holder.remove_from_api_prio_queue(search_queue, self, 50)

@@ -2,9 +2,9 @@ class_name TagManager
 extends Resource
 
 
-var relation_database: Dictionary = {}
+@export var relation_database: Dictionary = {}
 
-var relation_paths: Dictionary = {}
+@export var relation_paths: Dictionary = {}
 
 
 static func load_database() -> TagManager:

@@ -6,6 +6,8 @@ signal downloads_finished()
 signal image_created(image_file)
 signal image_skipped
 signal images_saved
+signal posts_found(amount)
+signal request_timed_out
 	
 enum Category {
 	ANY = -1,
@@ -56,15 +58,27 @@ var queue_downloads: Array[e621Post] = []
 
 var main_active: bool = false
 
+
 func _ready():
 	main_e621.parsed_result.connect(_get_finished)
 	main_e621.timeout = timeout_time
+	main_e621.job_failed.connect(failed_timeout)
 	
 	for gen in range(max_parallel_requests):
 		var e6_request := e621Request.new()
 		e6_request.is_post_downloader = false
+		e6_request.timeout = 20
 		add_child(e6_request)
 		http_requester_references.append(e6_request)
+		e6_request.job_finished.connect(request_timeout)
+
+
+func failed_timeout() -> void:
+	get_finished.emit([])
+
+
+func request_timeout() -> void:
+	image_skipped.emit()
 
 
 func get_posts() -> void:
@@ -81,6 +95,7 @@ func get_posts() -> void:
 			_url += "page=b" + str(page) + "&"
 		else:
 			_url += "page=a" + str(page) + "&"
+	
 	if not match_name.is_empty():
 		_url += "tags="
 	
@@ -140,7 +155,7 @@ func save_image(result: int, _response_code: int, _headers: PackedStringArray, b
 	else:
 		print_debug("Unsupporded format. Skipping")
 	
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(2.0).timeout
 	next_download_in_queue(requester)
 
 
@@ -148,7 +163,8 @@ func next_download_in_queue(requester) -> void:
 	if queue_downloads.is_empty():
 		active_requesters -= 1
 		requester.request_completed.disconnect(save_image)
-		images_saved.emit()
+#		images_saved.emit()
+		get_finished.emit([])
 		return
 	
 	var _request_data: e621Post = queue_downloads.pop_front()
@@ -156,7 +172,6 @@ func next_download_in_queue(requester) -> void:
 	current_queue_index += 1
 	
 	requester.image_id = _request_data.id
-	
 	if _request_data.sample.has_sample and get_sample_if_available and not _request_data.sample.url.is_empty():
 		requester.image_format = "jpg"
 		requester.request(_request_data.sample.url, Tagger.get_headers())
@@ -190,16 +205,17 @@ func save_posts_to_path(e621_data_array: Array = []) -> void:
 			active_requesters += 1
 
 
-func response_received(e621_data_array: Array) -> void:
-	get_finished.emit(e621_data_array)
+#func response_received(e621_data_array: Array) -> void:
+#	get_finished.emit(e621_data_array)
 
 
 func _get_finished(e621_data_array: Array) -> void:
 	main_active = false
 	
 	if download_on_finish:
-		download_pictures(e621_data_array)
 		download_on_finish = false
+		posts_found.emit(e621_data_array.size())
+		download_pictures(e621_data_array)
 	elif save_on_finish:
 		save_on_finish = false
 		save_posts_to_path(e621_data_array)
@@ -220,6 +236,8 @@ func cancel_side_requests() -> void:
 		http_requester.cancel_request()
 		if http_requester.request_completed.is_connected(_create_image):
 			http_requester.request_completed.disconnect(_create_image)
+		if http_requester.request_completed.is_connected(save_image):
+			http_requester.request_completed.disconnect(save_image)
 	
 	active_requesters = 0
 
@@ -260,7 +278,7 @@ func _next_in_queue(requester: e621Request) -> void:
 		active_requesters -= 1
 		requester.request_completed.disconnect(_create_image)
 		if active_requesters == 0:
-			downloads_finished.emit()
+			get_finished.emit([])
 		return
 	
 	var _request_data: e621Post = queue_pictures.pop_front()
@@ -303,4 +321,13 @@ func _create_image(result: int, _response_code: int, _headers: PackedStringArray
 	if not queue_pictures.is_empty():
 		await get_tree().create_timer(1.0).timeout
 		_next_in_queue(requester)
-	
+		
+		
+func cancel_all_requests() -> void:
+	cancel_main_request()
+	cancel_side_requests()
+
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		cancel_all_requests()

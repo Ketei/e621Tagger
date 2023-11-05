@@ -31,7 +31,7 @@ enum Sites {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/0.5.2 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.9.0 (by Ketei)",
 }
 
 
@@ -47,6 +47,8 @@ var tag_manager: TagManager
 var settings_lists: SettingLists
 var headers_ini: ConfigFile
 
+var common_thread: Thread
+
 
 func _init():
 	verify_folder_structure()
@@ -55,6 +57,10 @@ func _init():
 	site_settings = SiteSettings.load_settings()
 	alias_database = AliasDatabase.load_database()
 	settings_lists = SettingLists.load_database()
+
+
+func _ready():
+	common_thread = Thread.new()
 
 
 func verify_folder_structure() -> void:
@@ -70,7 +76,7 @@ func verify_folder_structure() -> void:
 	
 	if not DirAccess.dir_exists_absolute(tag_images_path):
 		DirAccess.make_dir_absolute(tag_images_path)
-		
+
 
 func get_headers() -> Array:
 	var return_headers: Array = []

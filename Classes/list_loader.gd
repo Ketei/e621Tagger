@@ -10,28 +10,25 @@ extends Control
 
 @onready var whitespace: TextEdit = %Whitespace
 @onready var separator: TextEdit = %Separator
-
-@onready var check_box = %CheckBox
-
-
-var timer_text: Timer
+@onready var text_timer = $TextTimer
+@onready var list_namer = $ListNamer
 
 
 func _ready():
-	hide()
-	transfer_tags.pressed.connect(send_tags)
+	transfer_tags.pressed.connect(show_list_namer)
 	preview_tags.pressed.connect(generate_preview)
-	timer_text = Timer.new()
-	timer_text.autostart = false
-	timer_text.wait_time = 2.0
-	timer_text.one_shot = true
-	timer_text.timeout.connect(_timer_timeout)
-	add_child(timer_text)
+	text_timer.timeout.connect(_timer_timeout)
+
+
+func show_list_namer() -> void:
+	if not input_tags.text.replace("\n", " ").replace(whitespace.text, " ").strip_edges().strip_escapes().is_empty():
+		list_namer.show_and_focus()
 
 
 func generate_tags_array(input_string: String, split_char: String = "", whitespace_char: String = "") -> PackedStringArray:
-	var _split_tags: PackedStringArray = []
-	var _whitespaced_tags: PackedStringArray = []
+	var _split_tags: Array = []
+	var _whitespaced_tags: Array = []
+	var final_array: PackedStringArray = []
 	
 	if input_string.is_empty():
 		return PackedStringArray()
@@ -47,28 +44,17 @@ func generate_tags_array(input_string: String, split_char: String = "", whitespa
 		for tag in _split_tags:
 			_whitespaced_tags.append(tag.replace(whitespace_char, " ").strip_edges())
 	
-	return _whitespaced_tags
+	for item in _whitespaced_tags:
+		if not item in Tagger.settings_lists.loader_blacklist:
+			final_array.append(item)
+	
+	return final_array
 
 
 func generate_preview() -> void:
 	preview_list.clear()
-
 	for item in generate_tags_array(input_tags.text.replace("\n", " ").strip_escapes().strip_edges(), separator.text, whitespace.text):
-		preview_list.add_item(item)
-
-
-func send_tags() -> void:	
-
-	main_application.load_tags(
-			generate_tags_array(
-					input_tags.text.replace("\n", " ").strip_escapes().strip_edges(),
-					separator.text,
-					whitespace.text),
-			check_box.button_pressed)
-	
-	transfer_tags.text = "Success!"
-	timer_text.start()
-	clear_boxes()
+		preview_list.add_item(Tagger.alias_database.get_alias(item))
 
 
 func clear_boxes() -> void:
@@ -80,3 +66,4 @@ func clear_boxes() -> void:
 
 func _timer_timeout():
 	transfer_tags.text = "Transfer tags"
+

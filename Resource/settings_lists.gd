@@ -532,6 +532,8 @@ extends Resource
 
 @export var constant_tags: Array[String] = []
 
+@export var loader_blacklist: Array[String] = []
+
 @export var suggestion_review_blacklist: Array[String] = ["comic"]
 @export var samples_blacklist: Array[String] = ["comic"]
 

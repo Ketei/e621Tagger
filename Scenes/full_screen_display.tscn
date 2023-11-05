@@ -9,7 +9,6 @@ script/source = "extends TextureRect
 signal hide_lewd_image()
 @onready var scroll_container: ScrollContainer = $\"..\"
 
-
 var max_h_range: int = 0:
 	set(value):
 		max_h_range = maxi(value, 0)
@@ -19,8 +18,9 @@ var max_v_range: int = 0:
 		max_v_range = maxi(value, 0)
 
 var is_zooming: bool = false
-var target_center_pixel: Vector2 = Vector2.ZERO
+var target_center_pixel := Vector2i.ZERO
 
+var is_on_original_size: bool = false
 
 
 func _ready():
@@ -31,39 +31,77 @@ func _ready():
 func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			if expand_mode == TextureRect.EXPAND_KEEP_SIZE:
-				is_zooming = false
-				expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			
+			var mouse_pos: Vector2 = get_global_mouse_position()
+			var texture_dimensions := Vector2(texture.get_size())
+			
+			var new_height: float = (texture_dimensions.y / texture_dimensions.x) * 1280
+			var new_width: float = (texture_dimensions.x / texture_dimensions.y) * 720
+			var scaled_dimensions: Vector2
+			var target_dimensions: Vector2 = Vector2.ZERO
+			
+			if 720 < new_height:
+				scaled_dimensions = Vector2(new_width, 720)
 			else:
-				var texture_dimensions: Vector2 = texture.get_size()
-				var mouse_pos: Vector2 = get_global_mouse_position()
-				
-				# Setting range
-				var vertical_coverage: int = mini(floori((texture_dimensions.y / texture_dimensions.x) * 1280), 720)
-				var horizontal_coverage: int = mini(floori((texture_dimensions.x / texture_dimensions.y) * 720), 1280)
+				scaled_dimensions = Vector2(1280, new_height)
+			
+			if is_on_original_size:
+				target_dimensions = texture_dimensions
+			else:
+				target_dimensions = scaled_dimensions
+			
+			var empty_x_edges: float = maxf(1280 - target_dimensions.x, 0)
+			empty_x_edges /= 2
 
-				@warning_ignore(\"integer_division\")
-				var initial_h_point: int = (1280 - horizontal_coverage) / 2
-				@warning_ignore(\"integer_division\")
-				var initial_v_point: int = (720 - vertical_coverage) / 2
-				
-				var initial_positions := Vector2(initial_h_point, initial_v_point)
-				var final_positions := Vector2(initial_h_point + horizontal_coverage, initial_v_point + vertical_coverage)
-		
-				if initial_positions.x <= mouse_pos.x and mouse_pos.x <= final_positions.x and initial_positions.y <= mouse_pos.y and mouse_pos.y <= final_positions.y:
-					@warning_ignore(\"narrowing_conversion\")
-					var relative_x_position: int = maxi(mouse_pos.x - initial_positions.x, 0)
-					@warning_ignore(\"narrowing_conversion\")
-					var relative_y_position: int = maxi(mouse_pos.y - initial_positions.y, 0)
-					
-					is_zooming = true
-					# 968 x 720
-					target_center_pixel.x = roundf((relative_x_position * texture_dimensions.x) / horizontal_coverage)
-					target_center_pixel.y = roundf((relative_y_position * texture_dimensions.y) / vertical_coverage)
-					expand_mode = TextureRect.EXPAND_KEEP_SIZE
+			var empty_y_edges: float = maxf(720 - target_dimensions.y, 0)
+			empty_y_edges /= 2
+
+			var right_corner_x: float = minf(target_dimensions.x + empty_x_edges, 1280)
+			var right_corner_y: float = minf(target_dimensions.y + empty_y_edges, 720)
+			
+			if expand_mode == TextureRect.EXPAND_KEEP_SIZE: # Fit to screen
+				if is_on_original_size:
+					is_on_original_size = false
+				else:
+					is_on_original_size = true
+
+				if is_vector_less_than(Vector2(empty_x_edges, empty_y_edges), mouse_pos) and is_vector_less_than(mouse_pos, Vector2(right_corner_x, right_corner_y)):
+					is_zooming = false
+					expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+					if is_vector_less_than(texture_dimensions, Vector2(1280, 720)):
+						stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 				else:
 					hide_lewd_image.emit()
-				
+			
+			else:
+				# Switching to OriginalRes
+				if stretch_mode == STRETCH_KEEP_CENTERED:
+					is_on_original_size = true # It starts on original size
+				else:
+					is_on_original_size = false # it starts on scaled size
+
+				if is_vector_less_than(Vector2(empty_x_edges, empty_y_edges), mouse_pos) and is_vector_less_than(mouse_pos, Vector2(right_corner_x, right_corner_y )):
+					@warning_ignore(\"narrowing_conversion\")
+					var relative_x_position: int = maxi(mouse_pos.x - empty_x_edges, 0)
+					@warning_ignore(\"narrowing_conversion\")
+					var relative_y_position: int = maxi(mouse_pos.y - empty_y_edges, 0)
+					
+					if stretch_mode == STRETCH_KEEP_CENTERED:
+						is_on_original_size = false
+						is_zooming = false
+					else:
+						is_on_original_size = true
+						is_zooming = true
+
+						target_center_pixel.x = roundi((relative_x_position * texture_dimensions.x) / target_dimensions.x)
+						target_center_pixel.y = roundi((relative_y_position * texture_dimensions.y) / target_dimensions.y)
+
+					expand_mode = TextureRect.EXPAND_KEEP_SIZE
+					if stretch_mode == STRETCH_KEEP_CENTERED:
+						stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				else:
+					hide_lewd_image.emit()
+			
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			hide_lewd_image.emit()
 
@@ -83,6 +121,25 @@ func set_vertical() -> void:
 	var max_range: int = maxi(max_v_range, 0)
 	@warning_ignore(\"narrowing_conversion\")
 	scroll_container.get_v_scroll_bar().value = clampi(target_center_pixel.y - 360, 0, max_range)
+
+
+func are_vectors_equal(vector_1: Vector2, vector_2: Vector2) -> bool:
+	var vector_x_compare: bool = vector_1.x == vector_2.x
+	var vector_y_compare: bool = vector_1.y == vector_2.y
+	
+	if vector_x_compare and vector_y_compare:
+		return true
+	else:
+		return false
+
+
+func is_vector_less_than(smaller_vector: Vector2, larger_vector: Vector2) -> bool:
+	var vector_x_compare: bool = smaller_vector.x < larger_vector.x
+	var vector_y_compare: bool = smaller_vector.y < larger_vector.y
+	if vector_x_compare and vector_y_compare:
+		return true
+	else:
+		return false
 
 "
 
@@ -118,6 +175,5 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 0
-expand_mode = 1
 stretch_mode = 5
 script = SubResource("GDScript_6nk4r")

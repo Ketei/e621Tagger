@@ -1,27 +1,32 @@
 extends Control
+class_name TaggerInstance
 
 @onready var line_edit: LineEdit = $LineEdit
 @onready var item_list: ItemList = $CurrentTags/ItemList
-@onready var e_621_requester = %e621Requester
 @onready var suggested_list: ItemList = $Suggested/SuggestedList
-@onready var tag_list_generator: TagListGenerator = $"../TagListGenerator"
-@onready var generate_list: Button = %GenerateList
+@onready var tag_list_generator: TagListGenerator = $TagListGenerator
+@onready var generate_list: Button = $GenerateList
 @onready var final_tag_list: TextEdit = $FinalList/FinalTagList
 @onready var implied_list: ItemList = $"Implied Tags/ImpliedList"
-@onready var copy_to_clipboard: Button = %CopyToClipboard
+@onready var copy_to_clipboard: Button = $CopyToClipboard
 @onready var clean_suggestions_button: Button = $CleanSuggestionsButton
 @onready var add_auto_complete: Control = $AddAutoComplete
 @onready var open_auto_complete_btn: Button = $OpenAutoCompleteBTN
 
-@onready var tagger_menu_bar: PopupMenu = $"../MenuBar/Tagger"
 @onready var conflicting_tags: Control = $ConflictingTags
-@onready var main_application = $".."
 
 @onready var clear_tags_button: Button = $ClearTagsButton
 @onready var clear_suggested_button: Button = $ClearSuggestedButton
 @onready var tagger_context_menu: PopupMenu = $TaggerContextMenu
 @onready var warning_rect: TextureRect = $WarningRect
+@onready var suggestion_timer: Timer = $SuggestionTimer
+@onready var copy_timer: Timer = $CopyTimer
+@onready var quick_search = $AddAutoComplete/QuickSearch
 
+var main_application
+var tagger_menu_bar: PopupMenu
+var tag_holder
+var instance_name: String
 var tag_queue: Array[String] = []
 var is_searching_tags: bool = false
 
@@ -30,8 +35,6 @@ var implied_tags_array: Array[String] = []
 
 var final_tag_list_array: Array[String] = []
 
-@onready var suggestion_timer: Timer = $SuggestionTimer
-var copy_timer: Timer
 
 var context_menu_item_index: int = -1
 
@@ -87,6 +90,7 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 		var index: int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		item_list.select(index)
 		item_list.set_item_tooltip(index, "This tag is an invalid tag")
+		item_list.set_item_custom_fg_color(index, Color.html(Tagger.settings.category_color_code["INVALID"]))
 		full_tag_list.append(tag_name)
 		return
 		
@@ -102,10 +106,17 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 		full_tag_list.append(tag_name)
 		add_to_category(tag_dict["category"])
 		
+		var add_index: int = 0
+		
 		if Tagger.tag_manager.has_tag(tag_name):
-			item_list.select(item_list.add_item(tag_name, load("res://Textures/valid_tag.png")))
+			add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 		else:
-			item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
+			add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
+		
+		item_list.select(add_index)
+		item_list.set_item_custom_fg_color(
+					add_index,
+					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_dict["category"]]]))
 		
 		if character_bodytypes.has(tag_name):
 			body_types_added += 1
@@ -115,8 +126,9 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 			character_count_added += 1
 	
 		if Tagger.settings.search_suggested:
-			tag_queue.append(tag_name)
-			start_suggestion_lookup()
+#			tag_queue.append(tag_name)
+#			start_suggestion_lookup()
+			tag_holder.add_to_search_queue({tag_name: self})
 	
 	item_list.ensure_current_is_visible()
 	
@@ -126,7 +138,7 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 		add_suggested_tag(suggested_tag)
 	
 	check_minimum_requirements()
-	
+
 
 func append_registered_tag(tag_resource: Tag) -> void:
 	if tags_inputed.has(tag_resource.tag):
@@ -152,18 +164,25 @@ func append_registered_tag(tag_resource: Tag) -> void:
 	
 	update_parents(tag_resource)
 	
-	for suggestion in tag_resource.suggestions:
-		add_suggested_tag(suggestion)
+	if Tagger.settings.load_suggested:
+		for suggestion in tag_resource.suggestions:
+			add_suggested_tag(suggestion)
 	
-	for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
-		add_suggested_tag(related_tag)
+	if Tagger.settings.search_suggested:
+		for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
+			add_suggested_tag(related_tag)
 	
 	add_to_category(tag_resource.category)
 
 
-func append_online_data(array_with_resource: Array) -> void: # Connect tag requeter here
-	var tag_resource: e621Tag = array_with_resource.front()
+func api_response(dictionary_response: Dictionary) -> void:
+	var array_with_resource = dictionary_response["response"]
+	tag_queue.erase(dictionary_response["tags"].front())
 	
+	if array_with_resource.is_empty():
+		return
+	
+	var tag_resource: e621Tag = array_with_resource.front()
 	if tags_inputed.has(tag_resource.tag_name):
 		tags_inputed[tag_resource.tag_name]["id"] = tag_resource.id
 		tags_inputed[tag_resource.tag_name]["post_count"] = tag_resource.post_count
@@ -175,12 +194,6 @@ func append_online_data(array_with_resource: Array) -> void: # Connect tag reque
 			add_to_category(translate_category(tag_resource.category))
 		for tag in tag_resource.get_tags_with_strength():
 			add_suggested_tag(tag)
-			
-	
-	if not tag_queue.is_empty():
-		suggestion_timer.start()
-	else:
-		is_searching_tags = false
 
 
 func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: bool = true, suggested_tags: Array = [], tag_category := Tagger.Categories.GENERAL) -> void: # Connect line submit here
@@ -203,7 +216,10 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	if Tagger.settings_lists.invalid_tags.has(tag_name): # Lastly, check if invalid
 		var invalid_index:int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		full_tag_list.append(tag_name)
+		item_list.set_item_custom_fg_color(invalid_index, Color.html(Tagger.settings.category_color_code["INVALID"]))
 		item_list.set_item_tooltip(invalid_index, "Invalid tag")
+		item_list.select(invalid_index)
+		item_list.ensure_current_is_visible()
 		if add_from_signal:
 			line_edit.clear()
 		return
@@ -218,6 +234,11 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		append_registered_tag(tag_load)
 		
 		var add_index: int = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
+		if Color.html_is_valid(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]):
+			item_list.set_item_custom_fg_color(
+					add_index,
+					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]))
+		
 		if not tag_load.tooltip.is_empty():
 			item_list.set_item_tooltip(add_index, tag_load.tooltip)
 		
@@ -228,8 +249,13 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		if tag_category != Tagger.Categories.GENERAL:
 			tags_inputed[tag_name]["category"] = tag_category
 			add_to_category(tag_category)
-		
-		item_list.select(item_list.add_item(tag_name, load("res://Textures/generic_tag.png")))
+		var add_index: int = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
+		item_list.set_item_custom_fg_color(add_index, Color.html("cccccc"))
+		item_list.select(add_index)
+	
+	if implied_tags_array.has(tag_name):
+		implied_list.remove_item(implied_tags_array.find(tag_name))
+		implied_tags_array.erase(tag_name)
 	
 	for suggested_tag in suggested_tags:
 		add_suggested_tag(suggested_tag)
@@ -251,7 +277,13 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	if Tagger.settings.search_suggested and search_online:
 		tag_queue.append(tag_name)
-		start_suggestion_lookup()
+		tag_holder.add_to_api_queue(tag_name, 1, self)
+
+
+func close_instance() -> void:
+	for pending_tag in tag_queue:
+		tag_holder.remove_from_api_queue(pending_tag, self, 1)
+	quick_search.close_instance()
 
 
 func add_suggested_tag(tag_name: String) -> void:
@@ -299,8 +331,11 @@ func update_tag(tag_name: String) -> void:
 		var current_index: int = full_tag_list.find(tag_name)
 		
 		if Tagger.tag_manager.has_tag(tag_name):
-			append_registered_tag(Tagger.tag_manager.get_tag(tag_name))
+			var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
+			append_registered_tag(tag_load)
 			item_list.set_item_icon(current_index, load("res://Textures/valid_tag.png"))
+			if not tag_load.tooltip.is_empty():
+				item_list.set_item_tooltip(current_index, tag_load.tooltip)
 		else:
 			item_list.set_item_icon(current_index, load("res://Textures/generic_tag.png"))
 
@@ -333,6 +368,8 @@ func remove_tag(item_index: int) -> void: # Connect to itemlist activate
 	item_list.remove_item(item_index)
 	regenerate_parents()
 	check_minimum_requirements()
+	
+	tag_holder.remove_from_api_queue(tag_name, self, 1)
 
 
 func add_to_category(category_added: Tagger.Categories) -> void:
@@ -403,8 +440,9 @@ func add_from_suggested(item_activated: int) -> void: # Connect to item activate
 		add_new_tag(_tag_text, false)
 	
 		if Tagger.settings.search_suggested:
-			tag_queue.append(_tag_text)
-			start_suggestion_lookup()
+#			tag_queue.append(_tag_text)
+#			start_suggestion_lookup()
+			tag_holder.add_to_search_queue(_tag_text)
 
 
 func regenerate_parents() -> void:
@@ -435,6 +473,9 @@ func regenerate_parents() -> void:
 
 
 func clear_all_tags() -> void: # Connect to clear all dropdown menu
+	if tag_holder.active_instance != instance_name:
+		return
+	
 	full_tag_list.clear()
 	tags_inputed.clear()
 	suggestion_tags_array.clear()
@@ -487,6 +528,9 @@ func clear_inputted_tags() -> void: # Connect to clear tags button
 
 
 func clear_suggestion_tags() -> void: # Connect to clear suggeted button
+	if tag_holder.active_instance != instance_name:
+		return
+	
 	suggestion_tags_array.clear()
 	suggested_list.clear()
 
@@ -507,12 +551,18 @@ func load_tag_list(tags_to_load: Array, replace_tags: bool) -> void:
 
 # ------------------------------------------------------
 
+func disconnect_and_free() -> void:
+	close_instance()
+	tagger_menu_bar.id_pressed.disconnect(tagger_menu_pressed)
+	tagger_menu_bar = null
+	main_application = null
+	tag_holder = null
+	self.queue_free()
+
 
 func _ready():
-	show()
 	# Experimental connects
 	line_edit.text_submitted.connect(add_new_tag)
-	e_621_requester.get_finished.connect(append_online_data)
 	suggested_list.item_activated.connect(add_from_suggested)
 	item_list.item_activated.connect(remove_tag)
 	clear_tags_button.pressed.connect(clear_inputted_tags)
@@ -528,23 +578,15 @@ func _ready():
 	
 	add_auto_complete.visible = false
 	open_auto_complete_btn.pressed.connect(add_auto_complete.show)
-	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(2), Tagger.settings.search_suggested)
-	tagger_menu_bar.set_item_checked(tagger_menu_bar.get_item_index(3), Tagger.settings.load_suggested)
-	
 	tagger_menu_bar.id_pressed.connect(tagger_menu_pressed)
 	
 	generate_list.pressed.connect(generate_tag_list)
 	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
 	clean_suggestions_button.pressed.connect(clean_suggestions)
 	
-	suggestion_timer.timeout.connect(search_suggested)
+#	suggestion_timer.timeout.connect(search_suggested)
 	
-	copy_timer = Timer.new()
-	copy_timer.wait_time = 2.0
-	copy_timer.autostart = false
-	copy_timer.one_shot = false
 	copy_timer.timeout.connect(on_copy_timer_timeout)
-	add_child(copy_timer)
 
 
 func move_left_context(index: int, item_position: Vector2, mouse_button_index: int) -> void:
@@ -557,40 +599,79 @@ func move_left_context(index: int, item_position: Vector2, mouse_button_index: i
 		if Tagger.tag_manager.has_tag(tag_text):
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(0), true)
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(1), false)
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), false)
 		else:
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(0), false)
 			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(1), true)
-
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), true)
 		tagger_context_menu.show()
 
 
 func left_click_context_menu_clicked(id_pressed: int) -> void:
 	if id_pressed == 0:
 		var tag_name = item_list.get_item_text(context_menu_item_index)
-#		tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL
-#		main_application.go_to_create_tag(item_list.get_item_text(context_menu_item_index))
 		main_application.go_to_create_tag(tag_name, tags_inputed[tag_name]["parents"], tags_inputed[tag_name]["suggested_tags"] + tags_inputed[tag_name]["related_tags"], tags_inputed[tag_name]["category"])
 	elif id_pressed == 1:
 		main_application.go_to_edit_tag(item_list.get_item_text(context_menu_item_index))
 	elif id_pressed == 2:
 		remove_tag(context_menu_item_index)
+	elif id_pressed == 3:
+		main_application.go_to_wiki(item_list.get_item_text(context_menu_item_index))
+
+
+func sort_tags_by_category() -> void:
+	if tag_holder.active_instance != instance_name:
+		return
+	
+	if full_tag_list.size() < 2:
+		return
+	
+	var final_array: Array = []
+	var sorting_array: Array = []
+	var current_tags: Dictionary = tags_inputed.duplicate()
+	
+	var order_array: Array = [
+		Tagger.Categories.ARTIST,
+		Tagger.Categories.COPYRIGHT,
+		Tagger.Categories.CHARACTER,
+		Tagger.Categories.SPECIES,
+	]
+	
+	for category_lookup in order_array:
+		for tag in current_tags.keys():
+			if current_tags[tag]["category"] == category_lookup:
+				sorting_array.append(tag)
+				current_tags.erase(tag)
+		sorting_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+		final_array.append_array(sorting_array)
+		sorting_array.clear()
+	
+	sorting_array = current_tags.keys()
+	sorting_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	final_array.append_array(sorting_array)
+	
+	clear_inputted_tags()
+	
+	for item in final_array:
+		add_new_tag(item)
 
 
 func tagger_menu_pressed(option_id: int) -> void:
-	var item_index: int = tagger_menu_bar.get_item_index(option_id)
-	
 	if option_id == 0:
 		clear_all_tags()
 	elif option_id == 1:
 		clear_suggestion_tags()
-	elif option_id == 2:
-		tagger_menu_bar.toggle_item_checked(item_index)
-		Tagger.settings.search_suggested = tagger_menu_bar.is_item_checked(item_index)
-	elif option_id == 3:
-		tagger_menu_bar.toggle_item_checked(item_index)
-		Tagger.settings.load_suggested = tagger_menu_bar.is_item_checked(tagger_menu_bar.get_item_index(option_id))
 	elif option_id == 4:
-		conflicting_tags.show()
+		show_conflicting_tags()
+	elif option_id == 8:
+		sort_tags_by_category()
+
+
+func show_conflicting_tags() -> void:
+	if tag_holder.active_instance != instance_name:
+		return
+	
+	conflicting_tags.show()
 
 
 func clean_suggestions() -> void:
@@ -599,37 +680,6 @@ func clean_suggestions() -> void:
 			var _remove_index: int = suggestion_tags_array.find(tag)
 			suggestion_tags_array.remove_at(_remove_index)
 			suggested_list.remove_item(_remove_index)
-
-
-func start_suggestion_lookup() -> void:
-	if is_searching_tags:
-		return
-	
-	is_searching_tags = true
-	search_suggested()
-
-
-func search_suggested() -> void:
-	e_621_requester.match_name.clear()
-	e_621_requester.match_name.append(tag_queue.pop_front())
-	e_621_requester.get_tags()
-	
-#
-#func suggestions_found(e621_data_array: Array) -> void: # Unused
-#	var e621_tag_data: e621Tag = e621_data_array.front()
-#
-#	for item in e621_tag_data.get_tags_with_strength():
-#		if suggestion_tags_array.has(item) or full_tag_list.has(item):
-#			continue
-#
-#		if not suggestion_tags_array.has(item) and not Tagger.settings_lists.suggestion_blacklist.has(item):
-#			suggestion_tags_array.append(item)
-#			suggested_list.add_item(item)
-#
-#	if not tag_queue.is_empty():
-#		suggestion_timer.start()
-#	else:
-#		is_searching_tags = false
 
 
 func generate_tag_list() -> void:
