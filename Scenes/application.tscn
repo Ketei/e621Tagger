@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=39 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -27,7 +27,6 @@
 [ext_resource type="Script" path="res://Scripts/review_blacklist_script.gd" id="17_g6q24"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
 [ext_resource type="Script" path="res://Scripts/load_blacklist_script.gd" id="21_40puc"]
-[ext_resource type="Texture2D" uid="uid://crkdn4d3g0jk2" path="res://Textures/2168222.png" id="26_jf4io"]
 
 [sub_resource type="GDScript" id="GDScript_plco6"]
 resource_name = "conflict_window_creator"
@@ -664,7 +663,7 @@ post_limit = 50
 get_sample_if_available = false
 
 [node name="APICooldown" type="Timer" parent="e621APIRequest"]
-wait_time = 2.0
+wait_time = 1.5
 one_shot = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -2082,6 +2081,7 @@ text = "Select all"
 metadata/_edit_use_anchors_ = true
 
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -2401,18 +2401,6 @@ layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "When dowloading samples, the posts with these tags won't be downloaded."
 
-[node name="VersionLabel" type="Label" parent="Settings"]
-modulate = Color(0.113725, 0.133333, 0.164706, 0.643137)
-layout_mode = 0
-offset_left = 1192.0
-offset_top = -48.0
-offset_right = 1273.0
-offset_bottom = -10.0
-theme_override_font_sizes/font_size = 25
-text = "v 0.9.0"
-horizontal_alignment = 2
-vertical_alignment = 1
-
 [node name="APILoader" type="Control" parent="Settings"]
 visible = false
 layout_mode = 1
@@ -2626,6 +2614,33 @@ offset_right = 888.0
 offset_bottom = 40.0
 text = "X"
 
+[node name="CenterContainer" type="CenterContainer" parent="Settings"]
+layout_mode = 0
+offset_left = 1152.0
+offset_top = -56.0
+offset_right = 1280.0
+offset_bottom = 8.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="VersionLabel" type="Label" parent="Settings/CenterContainer/VBoxContainer"]
+modulate = Color(0.113725, 0.133333, 0.164706, 0.588235)
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "v 0.9.0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label" type="Label" parent="Settings/CenterContainer/VBoxContainer"]
+self_modulate = Color(0.0627451, 0.0784314, 0.101961, 0.588235)
+layout_mode = 2
+text = "Wulfre edition"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
 visible = false
 layout_mode = 1
@@ -2635,5 +2650,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("26_jf4io")
 script = SubResource("GDScript_hos7x")
