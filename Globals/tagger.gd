@@ -31,7 +31,7 @@ enum Sites {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/1.0.0 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.9.0 (by Ketei)",
 }
 
 
@@ -48,6 +48,7 @@ var settings_lists: SettingLists
 var headers_ini: ConfigFile
 
 var common_thread: Thread
+
 
 func _init():
 	verify_folder_structure()
