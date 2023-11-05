@@ -21,6 +21,7 @@ class_name TaggerInstance
 @onready var warning_rect: TextureRect = $WarningRect
 @onready var suggestion_timer: Timer = $SuggestionTimer
 @onready var copy_timer: Timer = $CopyTimer
+@onready var quick_search = $AddAutoComplete/QuickSearch
 
 var main_application
 var tagger_menu_bar: PopupMenu
@@ -174,32 +175,14 @@ func append_registered_tag(tag_resource: Tag) -> void:
 	add_to_category(tag_resource.category)
 
 
-#func append_online_data(array_with_resource: Array) -> void: # Connect tag requeter here
-#	var tag_resource: e621Tag = array_with_resource.front()
-#
-#	if tags_inputed.has(tag_resource.tag_name):
-#		tags_inputed[tag_resource.tag_name]["id"] = tag_resource.id
-#		tags_inputed[tag_resource.tag_name]["post_count"] = tag_resource.post_count
-#		tags_inputed[tag_resource.tag_name]["related_tags"] = tag_resource.get_tags_with_strength()
-#		tags_inputed[tag_resource.tag_name]["is_locked"] = tag_resource.is_locked
-#
-#		if tags_inputed[tag_resource.tag_name]["category"] == Tagger.Categories.GENERAL and translate_category(tag_resource.category) != Tagger.Categories.GENERAL:
-#			tags_inputed[tag_resource.tag_name]["category"] = translate_category(tag_resource.category)
-#			add_to_category(translate_category(tag_resource.category))
-#		for tag in tag_resource.get_tags_with_strength():
-#			add_suggested_tag(tag)
-#
-#
-#	if not tag_queue.is_empty():
-#		suggestion_timer.start()
-#	else:
-#		is_searching_tags = false
-#
-
-func api_response(array_with_resource: Array) -> void:
+func api_response(dictionary_response: Dictionary) -> void:
+	var array_with_resource = dictionary_response["response"]
+	tag_queue.erase(dictionary_response["tags"].front())
+	
+	if array_with_resource.is_empty():
+		return
+	
 	var tag_resource: e621Tag = array_with_resource.front()
-	print(tag_resource.related_tags)
-	print(tag_resource.get_tags_with_strength())
 	if tags_inputed.has(tag_resource.tag_name):
 		tags_inputed[tag_resource.tag_name]["id"] = tag_resource.id
 		tags_inputed[tag_resource.tag_name]["post_count"] = tag_resource.post_count
@@ -211,12 +194,6 @@ func api_response(array_with_resource: Array) -> void:
 			add_to_category(translate_category(tag_resource.category))
 		for tag in tag_resource.get_tags_with_strength():
 			add_suggested_tag(tag)
-			
-	
-#	if not tag_queue.is_empty():
-#		suggestion_timer.start()
-#	else:
-#		is_searching_tags = false
 
 
 func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: bool = true, suggested_tags: Array = [], tag_category := Tagger.Categories.GENERAL) -> void: # Connect line submit here
@@ -299,9 +276,14 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	check_minimum_requirements()
 	
 	if Tagger.settings.search_suggested and search_online:
-#		tag_queue.append(tag_name)
-#		start_suggestion_lookup()
+		tag_queue.append(tag_name)
 		tag_holder.add_to_api_queue(tag_name, 1, self)
+
+
+func close_instance() -> void:
+	for pending_tag in tag_queue:
+		tag_holder.remove_from_api_queue(pending_tag, self, 1)
+	quick_search.close_instance()
 
 
 func add_suggested_tag(tag_name: String) -> void:
@@ -387,7 +369,7 @@ func remove_tag(item_index: int) -> void: # Connect to itemlist activate
 	regenerate_parents()
 	check_minimum_requirements()
 	
-	tag_holder.remove_from_api_queue(tag_name, self)
+	tag_holder.remove_from_api_queue(tag_name, self, 1)
 
 
 func add_to_category(category_added: Tagger.Categories) -> void:
@@ -570,6 +552,7 @@ func load_tag_list(tags_to_load: Array, replace_tags: bool) -> void:
 # ------------------------------------------------------
 
 func disconnect_and_free() -> void:
+	close_instance()
 	tagger_menu_bar.id_pressed.disconnect(tagger_menu_pressed)
 	tagger_menu_bar = null
 	main_application = null
