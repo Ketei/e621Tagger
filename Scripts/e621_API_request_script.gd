@@ -61,12 +61,15 @@ func next_in_queue() -> void:
 		if queued_call["type"] == SEARCH_TYPES.DOWNLOAD:
 			tag_requester.save_on_finish = true
 		tag_requester.get_posts()
+	
 	var response: Array = await tag_requester.get_finished
-	queued_call["reference"].api_response(
-			{
-				"tags": queued_call["tags"],
-				"response": response
-			})
+	
+	if is_instance_valid(queued_call["reference"]):
+		queued_call["reference"].api_response(
+				{
+					"tags": queued_call["tags"],
+					"response": response
+				})
 	
 	api_cooldown.start()
 	
