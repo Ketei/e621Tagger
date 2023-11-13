@@ -42,14 +42,16 @@ func add_to_queue(tags_to_search: Array, limit: int, search_type:SEARCH_TYPES, n
 func next_in_queue() -> void:
 	if not is_api_active:
 		is_api_active = true
+	
 	tag_requester.match_name.clear()
+	
 	var queued_call: Dictionary = {}
 	
 	if not prio_search_queue.is_empty():
 		queued_call = prio_search_queue.pop_front()
 	else:
 		queued_call = tag_search_queue.pop_front()
-		
+	
 	tag_requester.match_name.append_array(queued_call["tags"])
 	tag_requester.post_limit = queued_call["limit"]
 	tag_requester.path_to_save_to = queued_call["path"]
