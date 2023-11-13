@@ -28,6 +28,20 @@ extends Resource
 @export var tag_separator: String = " "
 
 
+func get_whitespace(site_key: int) -> String:
+	if _site_formatting.has(str(site_key)):
+		return _site_formatting[str(site_key)]["whitespace"]
+	else:
+		return "_"
+
+
+func get_separator(site_key: int) -> String:
+	if _site_formatting.has(str(site_key)):
+		return _site_formatting[str(site_key)]["separator"]
+	else:
+		return " "
+
+
 static func load_settings() -> SiteSettings:
 	var site_formatting_settings: Dictionary = {
 		"0": {
