@@ -123,15 +123,12 @@ func explore_parents_v2(_is_first_run: bool = true) -> void:
 		explore_parents_v2(false)
 
 
-func create_list_from_array(array_data: Array[String]) -> String:
+func create_list_from_array(array_data: Array[String], whitespace_char: String, separator_char: String) -> String:
 	var _return_string: String = ""
-	var whitespace_char: String = Tagger.site_settings._site_formatting[str(target_site)]["whitespace"]
-	var separator_char: String = Tagger.site_settings._site_formatting[str(target_site)]["separator"]
-	
 	
 	for tag in array_data:
 		_return_string += tag.replace(" ", whitespace_char)
-		_return_string += Tagger.site_settings.tag_separator
+		_return_string += separator_char
 	
 	_return_string = _return_string.left(-separator_char.length())
 	
