@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://d1sacwwwxfxpb"]
+
+[ext_resource type="Script" path="res://Scripts/tag_export_dialog.gd" id="1_70vcx"]
+
+[node name="TagFileDialog" type="FileDialog"]
+title = "Save Tags"
+initial_position = 1
+size = Vector2i(640, 360)
+visible = true
+min_size = Vector2i(640, 360)
+max_size = Vector2i(1280, 720)
+ok_button_text = "Save"
+dialog_hide_on_ok = true
+access = 2
+filters = PackedStringArray("*.txt")
+script = ExtResource("1_70vcx")
+
+[connection signal="file_selected" from="." to="." method="file_saved"]

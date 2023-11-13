@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=12 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="6_qh7uu"]
 [ext_resource type="Script" path="res://Scripts/tag_quick_search.gd" id="7_gh0lf"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="8_o1hfx"]
+[ext_resource type="PackedScene" uid="uid://d1sacwwwxfxpb" path="res://Scenes/tag_export_dialog.tscn" id="9_q63mv"]
 
 [sub_resource type="GDScript" id="GDScript_7uef3"]
 script/source = "extends Control
@@ -295,6 +296,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -39.84
 grow_horizontal = 2
 grow_vertical = 2
 placeholder_text = "Final tags"
@@ -306,8 +308,8 @@ scroll_smooth = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.7375
-anchor_top = 1.0
-anchor_right = 0.85
+anchor_top = 0.94382
+anchor_right = 0.85625
 anchor_bottom = 1.0
 offset_top = -48.0
 offset_bottom = -17.0
@@ -318,15 +320,24 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.862
-anchor_top = 1.0
+anchor_top = 0.94382
 anchor_right = 0.9875
-anchor_bottom = 1.0
+anchor_bottom = 0.94382
 offset_left = 0.639893
 offset_top = -48.0
 offset_bottom = -17.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Copy to Clipboard"
+metadata/_edit_use_anchors_ = true
+
+[node name="ExportTagsButton" type="Button" parent="."]
+layout_mode = 0
+anchor_left = 0.8625
+anchor_top = 0.932584
+anchor_right = 0.9875
+anchor_bottom = 0.977528
+text = "Export"
 metadata/_edit_use_anchors_ = true
 
 [node name="Label3" type="Label" parent="."]
@@ -606,3 +617,6 @@ one_shot = true
 [node name="CopyTimer" type="Timer" parent="."]
 wait_time = 2.0
 one_shot = true
+
+[node name="TagFileDialog" parent="." instance=ExtResource("9_q63mv")]
+visible = false
