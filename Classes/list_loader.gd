@@ -8,8 +8,8 @@ extends Control
 @onready var preview_tags: Button = %PreviewTags
 @onready var transfer_tags: Button  = %TransferTags
 
-@onready var whitespace: TextEdit = %Whitespace
-@onready var separator: TextEdit = %Separator
+@onready var whitespace: LineEdit = %Whitespace
+@onready var separator: LineEdit = %Separator
 @onready var text_timer = $TextTimer
 @onready var list_namer = $ListNamer
 
