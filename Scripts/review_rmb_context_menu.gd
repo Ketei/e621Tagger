@@ -33,7 +33,7 @@ func parent_clicked(index: int, at_position: Vector2, mouse_button_index: int) -
 			parents_items_popup_menu.set_item_disabled(parents_items_popup_menu.get_item_index(1), false)
 			parents_items_popup_menu.set_item_disabled(parents_items_popup_menu.get_item_index(0), true)
 		
-		parents_items_popup_menu.position = at_position + Vector2(8, 280)
+		parents_items_popup_menu.position = at_position + global_position
 		parents_items_popup_menu.show()
 	
 	

@@ -2,24 +2,23 @@ extends Control
 
 signal tag_created(tag_name)
 
-@onready var tag_to_add_line_edit: LineEdit = $TagToAddLineEdit
-@onready var categories_menu: OptionButton = $CategoriesMenu
-@onready var create_tags_button = $CreateTagsButton
-@onready var wiki_info = $WikiInfo
-@onready var add_parent_line_edit = $AddParentLineEdit
-@onready var parent_item_list: ItemList = $ParentItemList
-@onready var tag_prio_box: SpinBox = $TagPrioBox
-@onready var suggestion_item_list: ItemList = $SuggestionItemList
-@onready var suggestion_line_edit: LineEdit = $SugestionLineEdit
-@onready var has_images_check_box: CheckBox = $HasImagesCheckBox
+@onready var main_application = $".."
+@onready var tag_to_add_line_edit: LineEdit = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/TagToAddLineEdit
+@onready var categories_menu: OptionButton = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/CategoryHBox/CategoriesMenu
+@onready var create_tags_button = $VBoxContainer/CreateTagsButton
+@onready var wiki_info = $VBoxContainer/HBoxContainer/RightPartVBox/WikiInfo
+@onready var add_parent_line_edit = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox/AddParentLineEdit
+@onready var parent_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox/ParentItemList
+@onready var tag_prio_box: SpinBox = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/PriorityHBox/TagPrioBox
+@onready var suggestion_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox/SuggestionItemList
+@onready var suggestion_line_edit: LineEdit = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox/SugestionLineEdit
+@onready var has_images_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/HasImagesCheckBox
 @onready var tag_creator_menu: PopupMenu = $"../MenuBar/Tag Creator"
 @onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
 @onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
 @onready var conflict_window = $ConflictWindow
-@onready var download_samples_check_box: CheckBox = $DownloadSamplesCheckBox
-#@onready var e621_samples_downloader = $e621SamplesDownloader
-#@onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
-@onready var tooltip_line_edit: LineEdit = $TooltipLineEdit
+@onready var download_samples_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/DownloadSamplesCheckBox
+@onready var tooltip_line_edit: LineEdit = $VBoxContainer/HBoxContainer/RightPartVBox/TooltipLineEdit
 
 @onready var bbc_preview_button: Button = $BBCPreviewButton
 @onready var preview_bbc_window = $PreviewBBCWindow
@@ -27,7 +26,7 @@ signal tag_created(tag_name)
 
 @onready var e_621api_request: E621API = $"../e621APIRequest"
 @onready var downloading_samples_lbl: Label = $DownloadingSamplesLbl
-
+@onready var creator_pop_up_menu: PopupMenu = $CreatorPopUpMenu
 
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
@@ -45,6 +44,8 @@ var downloads_queued: int = 0:
 			downloading_samples_lbl.hide()
 		else:
 			downloading_samples_lbl.show()
+
+var left_context_tag: String = ""
 
 func _ready():
 	hide()
@@ -69,12 +70,27 @@ func _ready():
 	add_parent_line_edit.text_submitted.connect(add_parent)
 	parent_item_list.item_activated.connect(remove_parent)
 	
+	parent_item_list.open_context_clicked.connect(show_popup_menu)
+	suggestion_item_list.open_context_clicked.connect(show_popup_menu)
+	creator_pop_up_menu.id_pressed.connect(menu_id_pressed)
+	
 	text_timer = Timer.new()
 	text_timer.wait_time = 2.0
 	text_timer.autostart = false
 	text_timer.one_shot = true
 	text_timer.timeout.connect(on_timer_timeout)
 	add_child(text_timer)
+
+
+func show_popup_menu(tag_clicked: String, element_position: Vector2, item_position: Vector2) -> void:
+	left_context_tag = tag_clicked
+	creator_pop_up_menu.position = element_position + item_position
+	creator_pop_up_menu.show()
+
+
+func menu_id_pressed(menu_id: int) -> void:
+	if menu_id == 0:
+		main_application.go_to_wiki(left_context_tag)
 
 
 func preview_bcc() -> void:

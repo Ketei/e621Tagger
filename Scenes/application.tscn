@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=43 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -13,7 +13,9 @@
 [ext_resource type="PackedScene" uid="uid://dq3egjcbm6oqd" path="res://Scenes/full_screen_display.tscn" id="7_bjv2t"]
 [ext_resource type="Script" path="res://Scripts/review_rmb_context_menu.gd" id="7_rbsko"]
 [ext_resource type="Script" path="res://Scripts/review_rmb_suggestion_menu.gd" id="8_q7svj"]
+[ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="8_rcl5d"]
 [ext_resource type="Script" path="res://Scripts/api_interaction_script.gd" id="8_vpvmy"]
+[ext_resource type="Script" path="res://Scripts/tag_itemlist.gd" id="10_bk3sl"]
 [ext_resource type="Script" path="res://Scripts/Wiki.gd" id="10_nr3xk"]
 [ext_resource type="PackedScene" uid="uid://b0uuucfxbjqa2" path="res://Scenes/wiki_display_rt_label.tscn" id="12_rknam"]
 [ext_resource type="Script" path="res://Scripts/invalid_tags_script.gd" id="14_aa6rg"]
@@ -1128,7 +1130,9 @@ layout_mode = 2
 [node name="NameCreatorLineEdit" type="LineEdit" parent="ListLoader/ListNamer/CenterContainer/NamingWindow/CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(320, 32)
 layout_mode = 2
-placeholder_text = "Unique name or empty for random"
+tooltip_text = "Leave empty to assing a random name. If the name matches a tagger tab, list will be loaded into that tagger."
+theme = ExtResource("8_rcl5d")
+placeholder_text = "Tagger to be loaded into"
 alignment = 1
 max_length = 30
 caret_blink = true
@@ -1151,10 +1155,167 @@ text = "Load Tags"
 [node name="TagCreator" type="Control" parent="."]
 visible = false
 layout_mode = 1
-anchor_top = 0.0916667
+anchor_top = 0.0666667
 anchor_right = 1.0
 anchor_bottom = 1.00278
 script = ExtResource("5_wk1wy")
+metadata/_edit_use_anchors_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TagCreator"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_right = -16.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TagCreator/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="LeftPartVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NameHBox" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+placeholder_text = "Tag to add"
+caret_blink = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox"]
+layout_mode = 2
+
+[node name="DownloadSamplesCheckBox" type="CheckBox" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer"]
+layout_mode = 2
+tooltip_text = "If enabled some samples for the tags will be downloaded on tag creation."
+text = "Download samples"
+
+[node name="HasImagesCheckBox" type="CheckBox" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer"]
+layout_mode = 2
+tooltip_text = "If the tag has images associated to it. When reviewing it'll try to load images."
+button_pressed = true
+text = "Has Images"
+
+[node name="CatPrioHBox" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CategoryHBox" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CategoriesLabel" type="Label" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/CategoryHBox"]
+layout_mode = 2
+text = "Category:"
+vertical_alignment = 1
+
+[node name="CategoriesMenu" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/CategoryHBox" instance=ExtResource("7_7hodc")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PriorityHBox" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/PriorityHBox"]
+layout_mode = 2
+text = "Priority:"
+vertical_alignment = 1
+
+[node name="TagPrioBox" type="SpinBox" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/PriorityHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+allow_greater = true
+allow_lesser = true
+alignment = 1
+select_all_on_focus = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ParentsVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ParentItemList" type="ItemList" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+allow_rmb_select = true
+script = ExtResource("10_bk3sl")
+metadata/_edit_use_anchors_ = true
+
+[node name="AddParentLineEdit" type="LineEdit" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+placeholder_text = "Add new parent tag"
+caret_blink = true
+metadata/_edit_use_anchors_ = true
+
+[node name="SuggestionsVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="SuggestionItemList" type="ItemList" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+allow_rmb_select = true
+script = ExtResource("10_bk3sl")
+metadata/_edit_use_anchors_ = true
+
+[node name="SugestionLineEdit" type="LineEdit" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+tooltip_text = "Tags to suggest if this tag is used."
+placeholder_text = "Suggestions"
+caret_blink = true
+metadata/_edit_use_anchors_ = true
+
+[node name="RightPartVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="WikiInfo" type="TextEdit" parent="TagCreator/VBoxContainer/HBoxContainer/RightPartVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Wiki Info"
+wrap_mode = 1
+scroll_smooth = true
+caret_blink = true
+metadata/_edit_use_anchors_ = true
+
+[node name="TooltipLineEdit" type="LineEdit" parent="TagCreator/VBoxContainer/HBoxContainer/RightPartVBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+tooltip_text = "Short description to be shown when hoverin on the tag on the Tagger window (Like this one!)"
+placeholder_text = "Tag tooltip description"
+caret_blink = true
+
+[node name="CreateTagsButton" type="Button" parent="TagCreator/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+disabled = true
+text = "Create Tag"
 metadata/_edit_use_anchors_ = true
 
 [node name="DownloadingSamplesLbl" type="Label" parent="TagCreator"]
@@ -1168,149 +1329,13 @@ text = "Downloading Samples"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TagToAddLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.025
-anchor_top = -0.0121951
-anchor_right = 0.23125
-anchor_bottom = 0.035061
-offset_top = 8.00001
-offset_right = 24.0
-offset_bottom = 8.00001
-placeholder_text = "Tag to add"
-caret_blink = true
-
-[node name="CategoriesMenu" parent="TagCreator" instance=ExtResource("7_7hodc")]
-layout_mode = 0
-offset_left = 104.0
-offset_top = 56.0
-offset_right = 256.0
-offset_bottom = 88.0
-
-[node name="CategoriesLabel" type="Label" parent="TagCreator/CategoriesMenu"]
-layout_mode = 0
-offset_left = -80.0
-offset_bottom = 32.0
-text = "Category:"
-vertical_alignment = 1
-
-[node name="TagPrioBox" type="SpinBox" parent="TagCreator"]
-layout_mode = 0
-offset_left = 352.0
-offset_top = 56.0
-offset_right = 512.0
-offset_bottom = 87.0
-allow_greater = true
-allow_lesser = true
-alignment = 1
-select_all_on_focus = true
-
-[node name="Label" type="Label" parent="TagCreator/TagPrioBox"]
-layout_mode = 0
-offset_left = -80.0
-offset_bottom = 32.0
-text = "Priority:"
-vertical_alignment = 1
-
-[node name="AddParentLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.01875
-anchor_top = 0.817073
-anchor_right = 0.2
-anchor_bottom = 0.878049
-placeholder_text = "Add new parent tag"
-caret_blink = true
-metadata/_edit_use_anchors_ = true
-
-[node name="SugestionLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.2125
-anchor_top = 0.817073
-anchor_right = 0.39375
-anchor_bottom = 0.878049
-tooltip_text = "Tags to suggest if this tag is used."
-placeholder_text = "Suggestions"
-caret_blink = true
-metadata/_edit_use_anchors_ = true
-
-[node name="WikiInfo" type="TextEdit" parent="TagCreator"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.40625
-anchor_right = 0.98125
-anchor_bottom = 0.804878
-placeholder_text = "Wiki Info"
-wrap_mode = 1
-scroll_smooth = true
-caret_blink = true
-metadata/_edit_use_anchors_ = true
-
-[node name="TooltipLineEdit" type="LineEdit" parent="TagCreator"]
-layout_mode = 0
-offset_left = 520.0
-offset_top = 536.0
-offset_right = 1256.0
-offset_bottom = 576.0
-tooltip_text = "Short description to be shown when hoverin on the tag on the Tagger window (Like this one!)"
-placeholder_text = "Tag tooltip description"
-caret_blink = true
-
 [node name="BBCPreviewButton" type="Button" parent="TagCreator"]
 layout_mode = 0
-offset_left = 1064.0
+offset_left = 1072.0
 offset_top = -40.0
-offset_right = 1256.0
+offset_right = 1264.0
 offset_bottom = -9.00001
 text = "Preview"
-
-[node name="CreateTagsButton" type="Button" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.01875
-anchor_top = 0.902439
-anchor_right = 0.98125
-anchor_bottom = 0.97561
-disabled = true
-text = "Create Tag"
-metadata/_edit_use_anchors_ = true
-
-[node name="DownloadSamplesCheckBox" type="CheckBox" parent="TagCreator"]
-layout_mode = 0
-offset_left = 336.0
-offset_top = -16.0
-offset_right = 511.0
-offset_bottom = 15.0
-tooltip_text = "If enabled some samples for the tags will be downloaded on tag creation."
-text = "Download samples"
-
-[node name="HasImagesCheckBox" type="CheckBox" parent="TagCreator"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.2625
-anchor_top = 0.0121951
-anchor_right = 0.353906
-anchor_bottom = 0.0594512
-offset_top = 8.0
-offset_bottom = 8.0
-tooltip_text = "If the tag has images associated to it. When reviewing it'll try to load images."
-button_pressed = true
-text = "Has Images"
-
-[node name="ParentItemList" type="ItemList" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.01875
-anchor_top = 0.158537
-anchor_right = 0.2
-anchor_bottom = 0.804878
-metadata/_edit_use_anchors_ = true
-
-[node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.2125
-anchor_top = 0.158537
-anchor_right = 0.39375
-anchor_bottom = 0.804878
-metadata/_edit_use_anchors_ = true
 
 [node name="ConflictWindow" type="Control" parent="TagCreator"]
 visible = false
@@ -1434,6 +1459,12 @@ offset_top = -32.0
 offset_right = 641.0
 offset_bottom = -1.0
 text = "X"
+
+[node name="CreatorPopUpMenu" type="PopupMenu" parent="TagCreator"]
+size = Vector2i(132, 31)
+item_count = 1
+item_0/text = "Search in Wiki"
+item_0/id = 0
 
 [node name="TagReviewer" type="Control" parent="."]
 visible = false
@@ -2111,21 +2142,19 @@ script = SubResource("GDScript_chh5e")
 [node name="SettingsContainer" type="HBoxContainer" parent="Settings"]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 8.0
 offset_right = 1264.0
 offset_bottom = 648.0
 theme_override_constants/separation = 16
 alignment = 1
 
 [node name="SettingsSets" type="VBoxContainer" parent="Settings/SettingsContainer"]
-custom_minimum_size = Vector2(568, 0)
+custom_minimum_size = Vector2(504, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
 [node name="DefaultSiteHBox" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 10
 alignment = 1
 script = ExtResource("14_budhs")
 
@@ -2138,9 +2167,11 @@ vertical_alignment = 1
 [node name="OptionButton" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox" instance=ExtResource("14_ns2kj")]
 custom_minimum_size = Vector2(250, 32)
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
+theme_override_constants/separation = 10
 alignment = 1
 script = ExtResource("15_qm1be")
 
@@ -2151,8 +2182,8 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HSlider" type="HSlider" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
-custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 4
 
 [node name="PercentageSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
@@ -2201,6 +2232,7 @@ color = Color(0.188235, 0.215686, 0.258824, 1)
 layout_mode = 0
 offset_right = 272.0
 offset_bottom = 104.0
+alignment = 1
 
 [node name="ToggleButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
 layout_mode = 2
@@ -2259,6 +2291,7 @@ layout_mode = 2
 text = "Default save path:"
 
 [node name="SavePathLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsSets/DefaultPathContainer"]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 editable = false
@@ -2268,7 +2301,7 @@ layout_mode = 2
 text = "Select Folder"
 
 [node name="UtilityButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
@@ -2281,8 +2314,8 @@ text = "Open tags folder"
 [node name="RecreateDatabaseBtn" type="Button" parent="Settings/SettingsContainer/SettingsSets/UtilityButtons"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "If you've added tag files instead of creating them, you'll need to recreate the implications in order for them to show up in the application"
-text = "Recreate tag impliactions"
+tooltip_text = "If you've added tag files in the tags folder instead of creating them through this software, you'll need to recreate the tag registry."
+text = "Recreate tag registry"
 
 [node name="Aliases" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
@@ -2346,7 +2379,7 @@ script = ExtResource("14_aa6rg")
 
 [node name="InvalidTagsLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
 layout_mode = 2
-placeholder_text = "Add to invalid tags"
+placeholder_text = "Invalid tags"
 caret_blink = true
 
 [node name="InvalidItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
@@ -2376,7 +2409,7 @@ script = ExtResource("15_sobiw")
 
 [node name="AddToBlack" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
 layout_mode = 2
-placeholder_text = "Add to suggestion blacklist"
+placeholder_text = "Suggestion blacklist"
 caret_blink = true
 
 [node name="BlackList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
@@ -2399,7 +2432,7 @@ script = ExtResource("16_msuae")
 [node name="ConstantsLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
 layout_mode = 2
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
-placeholder_text = "Add to constants"
+placeholder_text = "Constants"
 caret_blink = true
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
@@ -2656,7 +2689,7 @@ layout_mode = 0
 offset_left = 1152.0
 offset_top = -56.0
 offset_right = 1280.0
-offset_bottom = 8.0
+offset_bottom = -8.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Settings/CenterContainer"]
 layout_mode = 2

@@ -4,10 +4,10 @@
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="3_rq6wp"]
 [ext_resource type="Texture2D" uid="uid://6b2a6r2r2br2" path="res://Textures/WarningIcon.svg" id="4_hxtr0"]
+[ext_resource type="Script" path="res://Scripts/tag_itemlist.gd" id="5_fpeot"]
 [ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="5_vrc8r"]
 [ext_resource type="Script" path="res://Scripts/platform_option_button.gd" id="6_qh7uu"]
 [ext_resource type="Script" path="res://Scripts/tag_quick_search.gd" id="7_gh0lf"]
-[ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="8_o1hfx"]
 [ext_resource type="PackedScene" uid="uid://d1sacwwwxfxpb" path="res://Scenes/tag_export_dialog.tscn" id="9_q63mv"]
 
 [sub_resource type="GDScript" id="GDScript_7uef3"]
@@ -99,16 +99,25 @@ func check_for_conflicts() -> void:
 
 [node name="Tagger" type="Control"]
 layout_mode = 3
-anchor_top = 0.067
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -40.24
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_u1cpf")
 
 [node name="TagListGenerator" type="Node" parent="."]
 script = ExtResource("2_enrd1")
+
+[node name="TaggerContextMenu" type="PopupMenu" parent="."]
+size = Vector2i(119, 100)
+item_count = 3
+item_0/text = "Wiki"
+item_0/id = 2
+item_1/text = "Create Tag"
+item_1/id = 0
+item_2/text = "Edit Tag"
+item_2/id = 1
 
 [node name="WarningRect" type="TextureRect" parent="."]
 layout_mode = 0
@@ -123,252 +132,134 @@ tooltip_text = "- 0 character tags detected. Recommended tag: zero pictured
 theme = ExtResource("3_rq6wp")
 texture = ExtResource("4_hxtr0")
 
-[node name="ClearTagsButton" type="Button" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
-offset_left = 336.0
-offset_right = 385.0
-offset_bottom = 31.0
+offset_left = 16.0
+offset_right = 1264.0
+offset_bottom = 656.0
+theme_override_constants/separation = 8
+
+[node name="InputTags" type="VBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(306, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ClearTagsButton" type="Button" parent="HBoxContainer/InputTags"]
+layout_mode = 2
+size_flags_horizontal = 8
 text = "Clear"
 
-[node name="CurrentTags" type="Control" parent="."]
-layout_mode = 1
-anchor_left = 0.012
-anchor_top = -0.071
-anchor_right = 0.3
-anchor_bottom = 1.0
-offset_left = 0.639999
-offset_top = 87.712
-offset_bottom = -56.0
-
-[node name="ItemList" type="ItemList" parent="CurrentTags"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ItemList" type="ItemList" parent="HBoxContainer/InputTags"]
+layout_mode = 2
+size_flags_vertical = 3
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 theme_override_constants/h_separation = 10
 allow_rmb_select = true
-same_column_width = true
 fixed_icon_size = Vector2i(10, 10)
+script = ExtResource("5_fpeot")
 
-[node name="TaggerContextMenu" type="PopupMenu" parent="."]
-size = Vector2i(122, 116)
-item_count = 4
-item_0/text = "Wiki"
-item_0/id = 3
-item_1/text = "Create Tag"
-item_1/id = 0
-item_2/text = "Edit Tag"
-item_2/id = 1
-item_3/text = "Remove Tag"
-item_3/id = 2
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/InputTags"]
+layout_mode = 2
 
-[node name="LineEdit" type="LineEdit" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.012
-anchor_top = 1.0
-anchor_right = 0.262
-anchor_bottom = 1.0
-offset_left = 0.639999
-offset_top = -48.0
-offset_right = 0.639954
-offset_bottom = -17.0
+[node name="LineEdit" type="LineEdit" parent="HBoxContainer/InputTags/HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
 placeholder_text = "Add Tag"
 
-[node name="OpenAutoCompleteBTN" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.269
-anchor_top = 1.0
-anchor_right = 0.3
-anchor_bottom = 1.0
-offset_left = -0.320038
-offset_top = -48.0
-offset_bottom = -16.0
+[node name="OpenAutoCompleteBTN" type="Button" parent="HBoxContainer/InputTags/HBoxContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+size_flags_horizontal = 8
 tooltip_text = "Search for tags"
 icon = ExtResource("5_vrc8r")
 icon_alignment = 1
 expand_icon = true
 
-[node name="Label" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.312
-anchor_top = -0.071
-anchor_right = 0.409
-anchor_bottom = -0.071
-offset_left = 0.639984
-offset_top = 55.712
-offset_right = -0.52002
-offset_bottom = 85.024
+[node name="SuggestedImpliedTags" type="VBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(620, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/SuggestedImpliedTags"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SuggestedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 1
 text = "Suggested Tags:"
+vertical_alignment = 1
 
-[node name="Suggested" type="Control" parent="."]
-layout_mode = 1
-anchor_left = 0.312
-anchor_top = -0.071
-anchor_right = 0.512
-anchor_bottom = 1.0
-offset_left = 0.639984
-offset_top = 87.712
-offset_right = 0.639954
-offset_bottom = -56.0
-metadata/_edit_group_ = true
-
-[node name="SuggestedList" type="ItemList" parent="Suggested"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
-same_column_width = true
-
-[node name="Label2" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.525
-anchor_top = -0.0114762
-anchor_right = 0.603
-anchor_bottom = -0.0114762
-offset_left = -6.10352e-05
-offset_top = 15.712
-offset_right = 0.159912
-offset_bottom = 47.712
-text = "Implied tags:"
-metadata/_edit_use_anchors_ = true
-
-[node name="ClearSuggestedButton" type="Button" parent="."]
-layout_mode = 0
-offset_left = 608.0
-offset_right = 657.0
-offset_bottom = 31.0
+[node name="ClearSuggestedButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
 text = "Clear"
 
-[node name="Implied Tags" type="Control" parent="."]
-layout_mode = 1
-anchor_left = 0.525
-anchor_top = -0.071
-anchor_right = 0.725
-anchor_bottom = 1.0
-offset_top = 87.712
-offset_bottom = -56.0
-
-[node name="ImpliedList" type="ItemList" parent="Implied Tags"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="SuggestedList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
+allow_rmb_select = true
 same_column_width = true
+script = ExtResource("5_fpeot")
 
-[node name="CleanSuggestionsButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.312
-anchor_top = 1.0
-anchor_right = 0.725
-anchor_bottom = 1.0
-offset_left = 0.639984
-offset_top = -48.0
-offset_bottom = -17.0
+[node name="ImpliedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Label2" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/ImpliedTags"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+text = "Implied tags:"
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="ImpliedList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/ImpliedTags"]
+layout_mode = 2
+size_flags_vertical = 3
+allow_rmb_select = true
+same_column_width = true
+script = ExtResource("5_fpeot")
+
+[node name="CleanSuggestionsButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
 tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
 text = "Clean Suggestions"
 
-[node name="FinalList" type="Control" parent="."]
-layout_mode = 1
-anchor_left = 0.737
-anchor_top = -0.071
-anchor_right = 0.987
-anchor_bottom = 1.0
-offset_left = 0.640015
-offset_top = 87.712
-offset_right = 0.640015
-offset_bottom = -56.0
+[node name="FinalTags" type="VBoxContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(306, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
-[node name="FinalTagList" type="TextEdit" parent="FinalList"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_bottom = -39.84
-grow_horizontal = 2
-grow_vertical = 2
-placeholder_text = "Final tags"
-editable = false
-wrap_mode = 1
-scroll_smooth = true
+[node name="Platform" type="HBoxContainer" parent="HBoxContainer/FinalTags"]
+layout_mode = 2
 
-[node name="GenerateList" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.7375
-anchor_top = 0.94382
-anchor_right = 0.85625
-anchor_bottom = 1.0
-offset_top = -48.0
-offset_bottom = -17.0
-text = "Generate List"
-metadata/_edit_use_anchors_ = true
-
-[node name="CopyToClipboard" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.862
-anchor_top = 0.94382
-anchor_right = 0.9875
-anchor_bottom = 0.94382
-offset_left = 0.639893
-offset_top = -48.0
-offset_bottom = -17.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "Copy to Clipboard"
-metadata/_edit_use_anchors_ = true
-
-[node name="ExportTagsButton" type="Button" parent="."]
-layout_mode = 0
-anchor_left = 0.8625
-anchor_top = 0.932584
-anchor_right = 0.9875
-anchor_bottom = 0.977528
-text = "Export"
-metadata/_edit_use_anchors_ = true
-
-[node name="Label3" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.737
-anchor_top = -0.071
-anchor_right = 0.737
-anchor_bottom = -0.071
-offset_left = 0.639893
-offset_top = 47.712
-offset_right = 128.64
-offset_bottom = 79.712
+[node name="Label3" type="Label" parent="HBoxContainer/FinalTags/Platform"]
+layout_mode = 2
 text = "Target platform:"
 horizontal_alignment = 2
 vertical_alignment = 1
-clip_text = true
-text_overrun_behavior = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="TargetPlatformButton" type="OptionButton" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.737
-anchor_top = -0.071
-anchor_right = 0.987
-anchor_bottom = -0.071
-offset_left = 136.64
-offset_top = 47.712
-offset_right = 0.639893
-offset_bottom = 79.712
+[node name="TargetPlatformButton" type="OptionButton" parent="HBoxContainer/FinalTags/Platform"]
+layout_mode = 2
+size_flags_horizontal = 3
 alignment = 1
 item_count = 3
 selected = 0
@@ -381,15 +272,50 @@ popup/item_2/id = 2
 script = ExtResource("6_qh7uu")
 metadata/_edit_use_anchors_ = true
 
+[node name="FinalTagList" type="TextEdit" parent="HBoxContainer/FinalTags"]
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Final tags"
+editable = false
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+middle_mouse_paste_enabled = false
+wrap_mode = 1
+scroll_smooth = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/FinalTags"]
+layout_mode = 2
+
+[node name="GenerateList" type="Button" parent="HBoxContainer/FinalTags/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Generate List"
+metadata/_edit_use_anchors_ = true
+
+[node name="ExportsVBox" type="VBoxContainer" parent="HBoxContainer/FinalTags/HBoxContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+
+[node name="CopyToClipboard" type="Button" parent="HBoxContainer/FinalTags/HBoxContainer/ExportsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Copy to Clipboard"
+metadata/_edit_use_anchors_ = true
+
+[node name="ExportTagsButton" type="Button" parent="HBoxContainer/FinalTags/HBoxContainer/ExportsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Export"
+metadata/_edit_use_anchors_ = true
+
 [node name="AddAutoComplete" type="Control" parent="."]
 visible = false
 layout_mode = 1
-anchor_top = -0.071
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 1.0
-offset_top = -0.287998
-offset_right = 1.0
+anchor_left = 0.001
+anchor_right = 0.001
+offset_left = -1.28
+offset_right = 1278.72
+offset_bottom = 672.0
 script = SubResource("GDScript_7uef3")
 
 [node name="ColorRect" type="ColorRect" parent="AddAutoComplete"]
@@ -399,17 +325,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.184314, 0.184314, 0.184314, 0.588235)
+color = Color(0.184314, 0.184314, 0.184314, 0)
 
 [node name="QuickSearch" type="Control" parent="AddAutoComplete"]
 layout_mode = 1
-anchor_left = 0.012
-anchor_top = 1.0
-anchor_right = 0.45
-anchor_bottom = 1.0
-offset_left = 0.639999
-offset_top = -368.0
-offset_bottom = -56.0
+anchor_left = 0.0252813
+anchor_top = 0.488381
+anchor_right = 0.463281
+anchor_bottom = 0.952381
+offset_left = -0.360001
+offset_top = -0.191986
+offset_right = -1.0
 script = ExtResource("7_gh0lf")
 tags_to_get = 50
 metadata/_edit_use_anchors_ = true
@@ -474,7 +400,7 @@ popup/item_0/text = "Prefix_"
 popup/item_0/id = 0
 popup/item_1/text = "_Sufix"
 popup/item_1/id = 1
-popup/item_2/text = "_Both_"
+popup/item_2/text = "_Has_"
 popup/item_2/id = 2
 metadata/_edit_use_anchors_ = true
 
@@ -505,12 +431,6 @@ offset_right = -22.88
 offset_bottom = -17.0
 text = "Close"
 metadata/_edit_use_anchors_ = true
-
-[node name="e621RequesterQuickSearch" parent="AddAutoComplete/QuickSearch" instance=ExtResource("8_o1hfx")]
-max_parallel_requests = 0
-timeout_time = 5.0
-post_limit = 25
-order = "count"
 
 [node name="AddSelectedButton" type="Button" parent="AddAutoComplete/QuickSearch"]
 layout_mode = 1
@@ -608,9 +528,6 @@ offset_top = 8.0
 offset_right = 376.0
 offset_bottom = 39.0
 text = "X"
-
-[node name="SuggestionTimer" type="Timer" parent="."]
-one_shot = true
 
 [node name="CopyTimer" type="Timer" parent="."]
 wait_time = 2.0
