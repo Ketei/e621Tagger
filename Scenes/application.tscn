@@ -659,13 +659,13 @@ resource_name = "auto_show_splash"
 script/source = "extends TextureRect
 
 func _ready():
-	if ProjectSettings.get_setting(\"application/boot_splash/show_image\"):
-		var texta = ProjectSettings.get_setting(\"application/boot_splash/image\")
-		var imaga = Image.load_from_file(texta)
-		texture = ImageTexture.create_from_image(imaga)
-		show()
-	else:
-		hide()
+	
+	if ProjectSettings.get_setting(\"application/boot_splash/image\") != \"res://Textures/Splash.png\":
+		var image_path: String = ProjectSettings.get_setting(\"application/boot_splash/image\")
+		var image_create: Image = Image.load_from_file(image_path)
+		texture = ImageTexture.create_from_image(image_create)
+
+	show()
 "
 
 [node name="MainApplication" type="Control"]
@@ -2691,7 +2691,7 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("29_gik5o")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 script = SubResource("GDScript_hos7x")
 
 [connection signal="dir_selected" from="Settings/DefaultFolderFileDialog" to="Settings/DefaultFolderFileDialog" method="folder_selected"]
