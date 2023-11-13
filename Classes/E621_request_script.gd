@@ -2,7 +2,7 @@ class_name e621Request
 extends HTTPRequest
 
 
-signal job_finished(reference)
+signal job_finished(reference) # Unused signal
 signal parsed_result(e621_result)
 signal job_failed
 
@@ -27,7 +27,6 @@ enum RequestResult {
 
 var request_mode: RequestType = RequestType.POST
 
-#var request_result: Array = []
 var job_index: int = 0
 var image_format: String = ""
 var image_id: int = 0

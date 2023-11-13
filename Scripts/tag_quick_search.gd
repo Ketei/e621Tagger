@@ -4,22 +4,15 @@ signal add_tag_signal
 
 @export var tags_to_get: int = 10
 
-#@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
 @onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
 @onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
 @onready var cancel_auto_button = $CancelAutoButton
-#@onready var main_application = $"../../.."
 
-@onready var add_auto_complete_node = $".."
+#@onready var add_auto_complete_node = $".."
 @onready var add_selected_button = $AddSelectedButton
 @onready var some_fix_option: OptionButton = $SomeFixOption
-#@onready var request_cooldown_timer = $"../RequestCooldownTimer"
 @onready var tagger = $"../.."
 @onready var quick_search_popup_menu: PopupMenu = $QuickSearchPopupMenu
-
-
-var tag_search_array: Array[String] = [] # To be removed
-#var is_tagger_requesting: float = false
 
 var tag_search_dictionary: Dictionary = {}
 var list_order_array: Array = []
@@ -27,12 +20,13 @@ var selected_tag: String = ""
 
 var search_queue: String = ""
 
+
 func _ready():
 	auto_complete_item_list.item_clicked.connect(open_right_click_context_menu)
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
 	auto_com_line_edit.text_submitted.connect(search_for_tag_v2)
-	cancel_auto_button.pressed.connect(add_auto_complete_node.hide)
+	cancel_auto_button.pressed.connect(hide)
 	add_selected_button.pressed.connect(add_selected_to_list)
 	quick_search_popup_menu.id_pressed.connect(activate_right_click_context_menu)
 
@@ -62,11 +56,11 @@ func activate_right_click_context_menu(id_pressed: int) -> void:
 				[], 
 				tag_search_dictionary[selected_tag]["related_tags"],
 				tag_search_dictionary[selected_tag]["category"])
-		add_auto_complete_node.hide()
+		hide()
 	
 	elif id_pressed == 1:
 		tagger.main_application.go_to_edit_tag(selected_tag)
-		add_auto_complete_node.hide()
+		hide()
 
 
 func save_search_select(item_index: int) -> void:
@@ -192,10 +186,6 @@ func clear_all_items() -> void:
 	tag_search_dictionary.clear()
 	auto_complete_item_list.clear()
 	list_order_array.clear()
-
-
-func close_add() -> void: # Unused
-	add_auto_complete_node.hide()
 
 
 func close_instance() -> void:
