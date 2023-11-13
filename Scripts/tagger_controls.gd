@@ -22,6 +22,9 @@ class_name TaggerInstance
 @onready var suggestion_timer: Timer = $SuggestionTimer
 @onready var copy_timer: Timer = $CopyTimer
 @onready var quick_search = $AddAutoComplete/QuickSearch
+@onready var export_tags_button: Button = $ExportTagsButton
+@onready var tag_file_dialog: TagFileDialog = $TagFileDialog
+
 
 var main_application
 var tagger_menu_bar: PopupMenu
@@ -233,11 +236,15 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
 		append_registered_tag(tag_load)
 		
+		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]
 		var add_index: int = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
-		if Color.html_is_valid(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]):
-			item_list.set_item_custom_fg_color(
-					add_index,
-					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]))
+		
+		if not Color.html_is_valid(html_code):
+			html_code = "cccccc"
+			
+		item_list.set_item_custom_fg_color(
+				add_index,
+				Color.html(html_code))
 		
 		if not tag_load.tooltip.is_empty():
 			item_list.set_item_tooltip(add_index, tag_load.tooltip)
@@ -567,6 +574,7 @@ func _ready():
 	item_list.item_activated.connect(remove_tag)
 	clear_tags_button.pressed.connect(clear_inputted_tags)
 	clear_suggested_button.pressed.connect(clear_suggestion_tags)
+	export_tags_button.pressed.connect(open_export_dialog)
 	# ---------------------
 	
 	check_minimum_requirements()
@@ -702,3 +710,14 @@ func copy_resut_to_clipboard() -> void:
 func on_copy_timer_timeout() -> void:
 	copy_to_clipboard.text = "Copy to Clipboard"
 
+
+func open_export_dialog() -> void:
+	tag_file_dialog.tag_string = final_tag_list.text
+	
+	if tag_file_dialog.default_filename.is_empty():
+		tag_file_dialog.default_filename = instance_name
+	
+	if tag_file_dialog.default_path.is_empty():
+		tag_file_dialog.default_path = Tagger.settings.default_save_path
+	
+	tag_file_dialog.show_dialog()

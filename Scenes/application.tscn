@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=41 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -27,6 +27,8 @@
 [ext_resource type="Script" path="res://Scripts/review_blacklist_script.gd" id="17_g6q24"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
 [ext_resource type="Script" path="res://Scripts/load_blacklist_script.gd" id="21_40puc"]
+[ext_resource type="Script" path="res://Scripts/default_folder_file_dialog.gd" id="28_rjvdb"]
+[ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
 
 [sub_resource type="GDScript" id="GDScript_plco6"]
 resource_name = "conflict_window_creator"
@@ -239,7 +241,10 @@ script/source = "extends Control
 
 @onready var open_tags_button = $SettingsContainer/SettingsSets/UtilityButtons/OpenTagsButton
 @onready var settings_bar: PopupMenu = $\"../MenuBar/API\"
+@onready var save_path_line_edit: LineEdit = $SettingsContainer/SettingsSets/DefaultPathContainer/SavePathLineEdit
+@onready var default_folder_file_dialog = $DefaultFolderFileDialog
 
+@onready var select_folder_button: Button = $SettingsContainer/SettingsSets/DefaultPathContainer/SelectFolderButton
 @onready var api_loader = $APILoader
 
 var timer: Timer
@@ -247,6 +252,10 @@ var timer: Timer
 
 func _ready():
 	hide()
+	
+	select_folder_button.pressed.connect(show_folder_dialog)
+	save_path_line_edit.text = Tagger.settings.default_save_path
+		
 	settings_bar.id_pressed.connect(settings_menu_press)
 	
 	open_tags_button.pressed.connect(open_tags_folder)
@@ -283,6 +292,17 @@ func __recreate_database() -> void:
 
 func on_timer_timeout() -> void:
 	recreate_database_btn.text = \"Recreate tag database\"
+
+
+func set_default_save_path(new_path: String) -> void:
+	save_path_line_edit.text = new_path
+
+
+func show_folder_dialog() -> void:
+	default_folder_file_dialog.show()
+	
+	
+	
 "
 
 [sub_resource type="GDScript" id="GDScript_hr4cx"]
@@ -956,8 +976,12 @@ offset_left = 0.32
 offset_top = 47.712
 offset_bottom = -72.0
 wrap_mode = 1
+highlight_all_occurrences = true
+scroll_smooth = true
+scroll_v_scroll_speed = 10.0
+caret_blink = true
 
-[node name="Separator" type="TextEdit" parent="ListLoader"]
+[node name="Separator" type="LineEdit" parent="ListLoader"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
@@ -970,10 +994,10 @@ offset_top = -56.0
 offset_right = -0.320007
 offset_bottom = -16.0
 placeholder_text = "Separator"
-draw_spaces = true
+caret_blink = true
 metadata/_edit_use_anchors_ = true
 
-[node name="Whitespace" type="TextEdit" parent="ListLoader"]
+[node name="Whitespace" type="LineEdit" parent="ListLoader"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
@@ -984,7 +1008,7 @@ anchor_bottom = 1.0
 offset_top = -56.0
 offset_bottom = -16.0
 placeholder_text = "Whitespace"
-draw_spaces = true
+caret_blink = true
 metadata/_edit_use_anchors_ = true
 
 [node name="TransferTags" type="Button" parent="ListLoader"]
@@ -1193,14 +1217,6 @@ placeholder_text = "Add new parent tag"
 caret_blink = true
 metadata/_edit_use_anchors_ = true
 
-[node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
-layout_mode = 0
-anchor_left = 0.2125
-anchor_top = 0.158537
-anchor_right = 0.39375
-anchor_bottom = 0.804878
-metadata/_edit_use_anchors_ = true
-
 [node name="SugestionLineEdit" type="LineEdit" parent="TagCreator"]
 layout_mode = 0
 anchor_left = 0.2125
@@ -1252,13 +1268,14 @@ disabled = true
 text = "Create Tag"
 metadata/_edit_use_anchors_ = true
 
-[node name="ParentItemList" type="ItemList" parent="TagCreator"]
+[node name="DownloadSamplesCheckBox" type="CheckBox" parent="TagCreator"]
 layout_mode = 0
-anchor_left = 0.01875
-anchor_top = 0.158537
-anchor_right = 0.2
-anchor_bottom = 0.804878
-metadata/_edit_use_anchors_ = true
+offset_left = 336.0
+offset_top = -16.0
+offset_right = 511.0
+offset_bottom = 15.0
+tooltip_text = "If enabled some samples for the tags will be downloaded on tag creation."
+text = "Download samples"
 
 [node name="HasImagesCheckBox" type="CheckBox" parent="TagCreator"]
 layout_mode = 1
@@ -1273,14 +1290,21 @@ tooltip_text = "If the tag has images associated to it. When reviewing it'll try
 button_pressed = true
 text = "Has Images"
 
-[node name="DownloadSamplesCheckBox" type="CheckBox" parent="TagCreator"]
+[node name="ParentItemList" type="ItemList" parent="TagCreator"]
 layout_mode = 0
-offset_left = 336.0
-offset_top = -16.0
-offset_right = 511.0
-offset_bottom = 15.0
-tooltip_text = "If enabled some samples for the tags will be downloaded on tag creation."
-text = "Download samples"
+anchor_left = 0.01875
+anchor_top = 0.158537
+anchor_right = 0.2
+anchor_bottom = 0.804878
+metadata/_edit_use_anchors_ = true
+
+[node name="SuggestionItemList" type="ItemList" parent="TagCreator"]
+layout_mode = 0
+anchor_left = 0.2125
+anchor_top = 0.158537
+anchor_right = 0.39375
+anchor_bottom = 0.804878
+metadata/_edit_use_anchors_ = true
 
 [node name="ConflictWindow" type="Control" parent="TagCreator"]
 visible = false
@@ -1404,16 +1428,6 @@ offset_top = -32.0
 offset_right = 641.0
 offset_bottom = -1.0
 text = "X"
-
-[node name="e621SamplesDownloader" parent="TagCreator" instance=ExtResource("2_4gepn")]
-max_parallel_requests = 1
-timeout_time = 10.0
-post_limit = 5
-get_sample_if_available = false
-
-[node name="SamplesCooldownTimer" type="Timer" parent="TagCreator"]
-wait_time = 2.0
-one_shot = true
 
 [node name="TagReviewer" type="Control" parent="."]
 visible = false
@@ -2230,6 +2244,23 @@ size_flags_horizontal = 6
 disabled = true
 text = "Load GIFs"
 
+[node name="DefaultPathContainer" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/DefaultPathContainer"]
+layout_mode = 2
+text = "Default save path:"
+
+[node name="SavePathLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsSets/DefaultPathContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="SelectFolderButton" type="Button" parent="Settings/SettingsContainer/SettingsSets/DefaultPathContainer"]
+layout_mode = 2
+text = "Select Folder"
+
 [node name="UtilityButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
@@ -2630,19 +2661,21 @@ alignment = 1
 modulate = Color(0.113725, 0.133333, 0.164706, 0.588235)
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "v 0.9.0"
+text = "v 0.9.5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Label" type="Label" parent="Settings/CenterContainer/VBoxContainer"]
-self_modulate = Color(0.0627451, 0.0784314, 0.101961, 0.588235)
-layout_mode = 2
-text = "Wulfre edition"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="DefaultFolderFileDialog" type="FileDialog" parent="Settings"]
+title = "Open a Directory"
+initial_position = 1
+size = Vector2i(960, 540)
+ok_button_text = "Select Current Folder"
+dialog_hide_on_ok = true
+file_mode = 2
+access = 2
+script = ExtResource("28_rjvdb")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -2650,4 +2683,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+texture = ExtResource("29_gik5o")
 script = SubResource("GDScript_hos7x")
+
+[connection signal="dir_selected" from="Settings/DefaultFolderFileDialog" to="Settings/DefaultFolderFileDialog" method="folder_selected"]

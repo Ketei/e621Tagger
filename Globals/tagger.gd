@@ -31,7 +31,7 @@ enum Sites {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/0.9.0 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.9.5 (by Ketei)",
 }
 
 
@@ -39,6 +39,7 @@ const implications_path: String = "user://database/implications/"
 const tags_path: String = "user://database/tags/"
 const tag_images_path: String = "user://database/tag_images/"
 const api_file_path: String = "user://e621_key.txt"
+const tag_exports_folder: String = "user://tag_exports/"
 
 var alias_database: AliasDatabase
 var settings: UserSettings
@@ -76,6 +77,9 @@ func verify_folder_structure() -> void:
 	
 	if not DirAccess.dir_exists_absolute(tag_images_path):
 		DirAccess.make_dir_absolute(tag_images_path)
+	
+	if not DirAccess.dir_exists_absolute(tag_exports_folder):
+		DirAccess.make_dir_absolute(tag_exports_folder)
 
 
 func get_headers() -> Array:

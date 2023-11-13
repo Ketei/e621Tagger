@@ -18,7 +18,7 @@ signal tag_created(tag_name)
 @onready var conflict_window = $ConflictWindow
 @onready var download_samples_check_box: CheckBox = $DownloadSamplesCheckBox
 #@onready var e621_samples_downloader = $e621SamplesDownloader
-@onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
+#@onready var samples_cooldown_timer: Timer = $SamplesCooldownTimer
 @onready var tooltip_line_edit: LineEdit = $TooltipLineEdit
 
 @onready var bbc_preview_button: Button = $BBCPreviewButton
