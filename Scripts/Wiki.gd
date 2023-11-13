@@ -182,7 +182,12 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 
 
 func build_wiki_entry(target_tag: Tag) -> String:
-	var bbc_text: String = "[font_size=30][color={1}]{0}[/color][/font_size]\n".format([target_tag.tag.capitalize(), Tagger.settings.category_color_code[Tagger.Categories.keys()[target_tag.category]]])
+	var html_text: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[target_tag.category]]
+	
+	if not Color.html_is_valid(html_text):
+		html_text = "cccccc"
+	
+	var bbc_text: String = "[font_size=30][color={1}]{0}[/color][/font_size]\n".format([target_tag.tag.capitalize(), html_text])
 
 	bbc_text += "[color=29b8e7][b]Category: [/b] {0}[/color]\n\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
 	

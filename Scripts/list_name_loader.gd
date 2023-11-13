@@ -5,8 +5,8 @@ extends Control
 @onready var new_tagger = $"../../NewTagger"
 
 @onready var input_tags: TextEdit = %InputTags
-@onready var separator: TextEdit = %Separator
-@onready var whitespace: TextEdit = %Whitespace
+@onready var separator: LineEdit = %Separator
+@onready var whitespace: LineEdit = %Whitespace
 @onready var cancel_load_button: Button = $CenterContainer/NamingWindow/CenterContainer/VBoxContainer/HBoxContainer/CancelLoadButton
 @onready var list_loader = $".."
 @onready var main_application = $"../.."

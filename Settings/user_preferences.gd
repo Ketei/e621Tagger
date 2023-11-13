@@ -53,6 +53,9 @@ extends Resource
 	"INVALID": "cccccc",
 }
 
+@export var default_save_path: String = ""
+
+
 static var settings_version: String = "1.0" 
 
 
@@ -68,7 +71,7 @@ static func load_settings() -> UserSettings:
 	var settings_load: UserSettings
 	
 	if ResourceLoader.exists("user://user_settings.tres", "UserSettings"):
-		settings_load = ResourceLoader.load("user://user_settings.tres")
+		settings_load = ResourceLoader.load("user://user_settings.tres", "UserSettings")
 		var new_compare := UserSettings.new()
 		for color_cat in new_compare.category_color_code.keys():
 			if settings_load.category_color_code.has(color_cat):
@@ -76,6 +79,10 @@ static func load_settings() -> UserSettings:
 					settings_load.category_color_code[color_cat] = new_compare.category_color_code[color_cat]
 			else:
 				settings_load.category_color_code[color_cat] = new_compare.category_color_code[color_cat]
+		if not DirAccess.dir_exists_absolute(settings_load.default_save_path) or settings_load.default_save_path.is_empty():
+			settings_load.default_save_path = ProjectSettings.globalize_path(Tagger.tag_exports_folder)
+		if not settings_load.default_save_path.ends_with("/"):
+			settings_load.default_save_path += "/"
 	else:
 		settings_load = UserSettings.new()
 	
