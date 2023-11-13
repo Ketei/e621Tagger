@@ -490,6 +490,7 @@ offset_top = -48.0
 offset_right = 0.0799866
 offset_bottom = -16.0
 placeholder_text = "Enter tag"
+select_all_on_focus = true
 metadata/_edit_use_anchors_ = true
 
 [node name="CancelAutoButton" type="Button" parent="AddAutoComplete/QuickSearch"]
@@ -524,9 +525,6 @@ offset_bottom = -17.0
 tooltip_text = "Adds all selected tags to the main list"
 text = "Add"
 metadata/_edit_use_anchors_ = true
-
-[node name="RequestCooldownTimer" type="Timer" parent="AddAutoComplete"]
-one_shot = true
 
 [node name="ConflictingTags" type="Control" parent="."]
 visible = false

@@ -13,7 +13,7 @@ signal add_tag_signal
 @onready var add_auto_complete_node = $".."
 @onready var add_selected_button = $AddSelectedButton
 @onready var some_fix_option: OptionButton = $SomeFixOption
-@onready var request_cooldown_timer = $"../RequestCooldownTimer"
+#@onready var request_cooldown_timer = $"../RequestCooldownTimer"
 @onready var tagger = $"../.."
 @onready var quick_search_popup_menu: PopupMenu = $QuickSearchPopupMenu
 
@@ -29,12 +29,8 @@ var search_queue: String = ""
 
 func _ready():
 	auto_complete_item_list.item_clicked.connect(open_right_click_context_menu)
-#	e6_requester_quick_search.post_limit = tags_to_get
-	
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
-	request_cooldown_timer.timeout.connect(timer_timeout)
-#	e6_requester_quick_search.get_finished.connect(add_online_to_list)
 	auto_com_line_edit.text_submitted.connect(search_for_tag_v2)
 	cancel_auto_button.pressed.connect(add_auto_complete_node.hide)
 	add_selected_button.pressed.connect(add_selected_to_list)
@@ -94,6 +90,7 @@ func add_selected_to_list() -> void:
 
 func search_for_tag_v2(tag_to_search: String) -> void:
 	clear_all_items()
+	auto_com_line_edit.release_focus()
 	auto_com_line_edit.editable = false
 	tag_to_search = tag_to_search.replace("_", " ").strip_edges().to_lower()
 	
@@ -134,10 +131,7 @@ func search_for_tag_v2(tag_to_search: String) -> void:
 				auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
 				list_order_array.append(tag)
 
-	auto_com_line_edit.clear()
 	tagger.tag_holder.add_to_api_prio_queue(tag_for_url, 50, self)
-#	is_tagger_requesting = true
-#	request_cooldown_timer.start()
 
 
 func api_response(response_dictionary: Dictionary) -> void:
@@ -193,7 +187,6 @@ func api_response(response_dictionary: Dictionary) -> void:
 
 
 func clear_all_items() -> void:
-	auto_com_line_edit.clear()
 	auto_complete_item_list.clear()
 	
 	tag_search_dictionary.clear()
@@ -203,10 +196,6 @@ func clear_all_items() -> void:
 
 func close_add() -> void: # Unused
 	add_auto_complete_node.hide()
-
-
-func timer_timeout() -> void:
-	auto_com_line_edit.editable = true
 
 
 func close_instance() -> void:
