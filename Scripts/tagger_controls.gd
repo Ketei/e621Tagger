@@ -24,6 +24,7 @@ class_name TaggerInstance
 @onready var quick_search = $AddAutoComplete/QuickSearch
 @onready var export_tags_button: Button = $ExportTagsButton
 @onready var tag_file_dialog: TagFileDialog = $TagFileDialog
+@onready var target_platform_button: OptionButton = $TargetPlatformButton
 
 
 var main_application
@@ -695,7 +696,9 @@ func generate_tag_list() -> void:
 	tag_list_generator.__explore_parents_v2()
 	final_tag_list_array = tag_list_generator.get_tag_list_v2()
 	final_tag_list.text = tag_list_generator.create_list_from_array(
-			final_tag_list_array)
+			final_tag_list_array,
+			Tagger.site_settings.get_whitespace(tag_list_generator.target_site),
+			Tagger.site_settings.get_separator(tag_list_generator.target_site))
 
 
 func copy_resut_to_clipboard() -> void:
@@ -712,6 +715,9 @@ func on_copy_timer_timeout() -> void:
 
 
 func open_export_dialog() -> void:
+	if final_tag_list.text.is_empty():
+		return
+	
 	tag_file_dialog.tag_string = final_tag_list.text
 	
 	if tag_file_dialog.default_filename.is_empty():
