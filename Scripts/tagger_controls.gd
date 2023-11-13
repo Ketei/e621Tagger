@@ -569,6 +569,8 @@ func disconnect_and_free() -> void:
 
 
 func _ready():
+	
+	tag_list_generator.target_site = target_platform_button.selected as Tagger.Sites
 	# Experimental connects
 	line_edit.text_submitted.connect(add_new_tag)
 	suggested_list.item_activated.connect(add_from_suggested)
