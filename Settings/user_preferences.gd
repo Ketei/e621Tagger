@@ -55,6 +55,8 @@ extends Resource
 
 @export var default_save_path: String = ""
 
+@export var database_location: String = "user://database/"
+
 
 static var settings_version: String = "1.0" 
 

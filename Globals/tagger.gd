@@ -35,11 +35,12 @@ var e6_headers_data: Dictionary = {
 }
 
 
-const implications_path: String = "user://database/implications/"
-const tags_path: String = "user://database/tags/"
-const tag_images_path: String = "user://database/tag_images/"
+var implications_path: String = "user://database/implications/"
+var tags_path: String = "user://database/tags/"
+var tag_images_path: String = "user://database/tag_images/"
 const api_file_path: String = "user://e621_key.txt"
 const tag_exports_folder: String = "user://tag_exports/"
+
 
 var alias_database: AliasDatabase
 var settings: UserSettings
@@ -52,11 +53,17 @@ var common_thread: Thread
 
 
 func _init():
-	verify_folder_structure()
-	tag_manager = TagManager.load_database()
 	settings = UserSettings.load_settings()
+	
+	implications_path = settings.database_location + "implications/"
+	tags_path = settings.database_location + "tags/"
+	tag_images_path = settings.database_location + "tag_images/"
+	
+	verify_folder_structure()
+	
+	tag_manager = TagManager.load_database(implications_path)
 	site_settings = SiteSettings.load_settings()
-	alias_database = AliasDatabase.load_database()
+	alias_database = AliasDatabase.load_database(settings.database_location)
 	settings_lists = SettingLists.load_database()
 
 

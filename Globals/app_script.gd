@@ -182,7 +182,7 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-
+		
 		Tagger.settings.save()
 		Tagger.site_settings.save()
 		Tagger.settings_lists.save()
