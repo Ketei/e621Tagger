@@ -537,6 +537,8 @@ extends Resource
 @export var suggestion_review_blacklist: Array[String] = ["comic"]
 @export var samples_blacklist: Array[String] = ["comic"]
 
+@export var shortcuts: Dictionary = {}
+
 
 static func load_database() -> SettingLists:
 	if ResourceLoader.exists("user://settings_lists.tres"):

@@ -1,0 +1,64 @@
+[gd_scene load_steps=2 format=3 uid="uid://bi1xpxxf8frxt"]
+
+[ext_resource type="Script" path="res://Scripts/shortcut_container_script.gd" id="1_3ak5n"]
+
+[node name="ShortcutContainer" type="Control"]
+custom_minimum_size = Vector2(424, 40)
+layout_mode = 3
+anchor_right = 0.331
+anchor_bottom = 0.044
+offset_right = 16.32
+offset_bottom = 8.32
+script = ExtResource("1_3ak5n")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.32549, 0.360784, 0.427451, 1)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_right = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ShortcutCharLineEdit" type="LineEdit" parent="HBoxContainer"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_vertical = 4
+placeholder_text = "Prefix"
+alignment = 1
+max_length = 5
+editable = false
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+text = "->"
+
+[node name="TurnsIntoLineEdit" type="LineEdit" parent="HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+placeholder_text = "Format"
+alignment = 1
+
+[node name="EditShortcutButton" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Save"
+
+[node name="RemoveShortcutButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+text = "x"

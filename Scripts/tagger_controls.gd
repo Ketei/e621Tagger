@@ -66,6 +66,7 @@ var implied_types_added: int = 0
 var context_tag: String = ""
 var context_menu_item_index: int = -1
 
+
 func append_empty_tag(tag_to_append: String) -> void:
 	tags_inputed[tag_to_append] = {
 		"id": -1,
@@ -204,6 +205,12 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		if add_from_signal:
 			line_edit.clear()
 		return
+
+
+	for shortcut in Tagger.settings_lists.shortcuts.keys(): # Replace shortcuts
+		if tag_name.begins_with(shortcut):
+			var tag: String = tag_name.trim_prefix(shortcut)
+			tag_name = Tagger.settings_lists.shortcuts[shortcut].replace("%", tag)
 	
 	if tags_inputed.has(tag_name): # Then check if it exists already
 		if ensure_visible:
@@ -213,7 +220,7 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 			line_edit.clear()
 		return
 
-	if Tagger.settings_lists.invalid_tags.has(tag_name): # Lastly, check if invalid
+	if Tagger.settings_lists.invalid_tags.has(tag_name): # Check if invalid
 		var invalid_index:int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		full_tag_list.append(tag_name)
 		item_list.set_item_custom_fg_color(invalid_index, Color.html(Tagger.settings.category_color_code["INVALID"]))
