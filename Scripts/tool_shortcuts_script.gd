@@ -18,8 +18,8 @@ func _ready():
 
 
 func create_shortcut() -> void:
-	var _shortcut: String = new_short_shortcut_le.text.strip_edges()
-	var _turns_into: String = new_short_turns_le.text.strip_edges()
+	var _shortcut: String = new_short_shortcut_le.text.strip_edges().to_lower()
+	var _turns_into: String = new_short_turns_le.text.strip_edges().to_lower()
 	
 	new_short_shortcut_le.clear()
 	new_short_turns_le.clear()
