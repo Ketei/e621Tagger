@@ -33,4 +33,4 @@ func create_shortcut() -> void:
 	new_short_display.set_shortcut(_shortcut, _turns_into)
 	
 	shortcuts_container_vbox.add_child(new_short_display)
-
+	create_shortcut_button.release_focus()

@@ -52,9 +52,12 @@ placeholder_text = "Format"
 alignment = 1
 
 [node name="EditShortcutButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(56, 0)
 layout_mode = 2
 size_flags_vertical = 4
 text = "Save"
+text_overrun_behavior = 3
+clip_text = true
 
 [node name="RemoveShortcutButton" type="Button" parent="HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)

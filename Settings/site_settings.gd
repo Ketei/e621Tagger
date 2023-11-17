@@ -2,68 +2,52 @@ class_name SiteSettings
 extends Resource
 
 
-@export var target_site: Tagger.Sites = Tagger.Sites.E621:
-	set(new_target):
-		target_site = new_target
-		whitespace_char = _site_formatting[str(new_target)].whitespace
-		tag_separator = _site_formatting[str(new_target)].separator
+@export var default_site: String = ""
 
-@export var _site_formatting: Dictionary = {
-	"0": {
-		"whitespace": "_",
-		"separator": " "
-		},
-	"1": {
-		"whitespace": " ",
-		"separator": ", "
+@export var valid_sites: Dictionary = {
+	"e621": {
+		"separator": " ",
+		"whitespace": "_"
 	},
-	"2": {
-		"whitespace": " ",
-		"separator": "\n"
+	"postybirb": {
+		"separator": ", ",
+		"whitespace": " "
 	},
+	"hydrus": {
+		"separator": "\n",
+		"whitespace": " "
+	}
 }
 
 
-@export var whitespace_char: String = "_"
-@export var tag_separator: String = " "
-
-
-func get_whitespace(site_key: int) -> String:
-	if _site_formatting.has(str(site_key)):
-		return _site_formatting[str(site_key)]["whitespace"]
-	else:
-		return "_"
-
-
-func get_separator(site_key: int) -> String:
-	if _site_formatting.has(str(site_key)):
-		return _site_formatting[str(site_key)]["separator"]
-	else:
-		return " "
+static var default_sites: Dictionary = {
+	"e621": {
+		"separator": " ",
+		"whitespace": "_"
+	},
+	"postybirb": {
+		"separator": ", ",
+		"whitespace": " "
+	},
+	"hydrus": {
+		"separator": "\n",
+		"whitespace": " "
+	}
+}
 
 
 static func load_settings() -> SiteSettings:
-	var site_formatting_settings: Dictionary = {
-		"0": {
-			"whitespace": "_",
-			"separator": " "
-			},
-		"1": {
-			"whitespace": " ",
-			"separator": ", "
-		},
-		"2": {
-			"whitespace": " ",
-			"separator": "\n"
-		},
-	}
 
 	if ResourceLoader.exists("user://site_settings.tres", "SiteSettings"):
 		var loaded_settings: SiteSettings = ResourceLoader.load("user://site_settings.tres")
-		for site_key in site_formatting_settings.keys():
-			if not loaded_settings._site_formatting.has(site_key):
-				loaded_settings._site_formatting[site_key] = site_formatting_settings[site_key].duplicate()
-				loaded_settings.save()
+		
+		for site_key in loaded_settings.valid_sites.keys():
+			if not loaded_settings.valid_sites.has("separator") or not loaded_settings.valid_sites.has("whitespace"):
+				loaded_settings.valid_sites.erase(site_key)
+			
+		if loaded_settings.valid_sites.is_empty():
+			loaded_settings.valid_sites = default_sites.duplicate()
+			
 		return loaded_settings
 	else:
 		return SiteSettings.new()

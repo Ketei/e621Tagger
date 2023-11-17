@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=48 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -20,7 +20,6 @@
 [ext_resource type="PackedScene" uid="uid://b0uuucfxbjqa2" path="res://Scenes/wiki_display_rt_label.tscn" id="12_rknam"]
 [ext_resource type="Script" path="res://Scripts/invalid_tags_script.gd" id="14_aa6rg"]
 [ext_resource type="Script" path="res://Scripts/default_site_setting_script.gd" id="14_budhs"]
-[ext_resource type="PackedScene" uid="uid://dk57p5vppoe0a" path="res://Scenes/site_option_btn.tscn" id="14_ns2kj"]
 [ext_resource type="Script" path="res://Scenes/sugg_strength_script.gd" id="15_qm1be"]
 [ext_resource type="Script" path="res://Scripts/suggestion_blacklist_script.gd" id="15_sobiw"]
 [ext_resource type="Script" path="res://Scripts/settings_load_images.gd" id="16_c3trt"]
@@ -29,6 +28,8 @@
 [ext_resource type="Script" path="res://Scripts/review_blacklist_script.gd" id="17_g6q24"]
 [ext_resource type="Script" path="res://Scripts/tool_shortcuts_script.gd" id="18_1bj38"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
+[ext_resource type="PackedScene" uid="uid://cp2je846gropp" path="res://Scenes/sites_tool.tscn" id="19_1am3x"]
+[ext_resource type="PackedScene" uid="uid://cj2jifl7bcqn7" path="res://Scenes/available_sites.tscn" id="20_5raky"]
 [ext_resource type="Script" path="res://Scripts/load_blacklist_script.gd" id="21_40puc"]
 [ext_resource type="Script" path="res://Scripts/default_folder_file_dialog.gd" id="28_rjvdb"]
 [ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
@@ -1949,34 +1950,34 @@ offset_right = 1264.0
 offset_bottom = 640.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_6dv02")
 
-[node name="Shortcuts" type="MarginContainer" parent="Tools/ToolsTabContainer"]
+[node name="Prefixes" type="MarginContainer" parent="Tools/ToolsTabContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="ShortcutsHBox" type="HBoxContainer" parent="Tools/ToolsTabContainer/Shortcuts"]
+[node name="ShortcutsHBox" type="HBoxContainer" parent="Tools/ToolsTabContainer/Prefixes"]
 layout_mode = 2
 
-[node name="ShortcutsTool" type="VBoxContainer" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox"]
+[node name="ShortcutsTool" type="VBoxContainer" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 script = ExtResource("18_1bj38")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool"]
 layout_mode = 2
 
-[node name="ShortcutsLabel" type="Label" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
+[node name="ShortcutsLabel" type="Label" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
 layout_mode = 2
 text = "Shortcuts: "
 vertical_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
 layout_mode = 2
 
-[node name="NewShortShortcutLE" type="LineEdit" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
+[node name="NewShortShortcutLE" type="LineEdit" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 tooltip_text = "When a tag starts with this character it'll be formated accordingly."
@@ -1985,27 +1986,27 @@ alignment = 1
 max_length = 5
 caret_blink = true
 
-[node name="Label" type="Label" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "->"
 
-[node name="NewShortTurnsLE" type="LineEdit" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
+[node name="NewShortTurnsLE" type="LineEdit" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 tooltip_text = "Use \"%\" to mark where the tag needs to be inserted
 \"% (artist)\" -> \"tag (artist)\" "
 placeholder_text = "Formatting"
 
-[node name="CreateShortcutButton" type="Button" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
+[node name="CreateShortcutButton" type="Button" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 text = "Add"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ShortcutsContainerVBox" type="VBoxContainer" parent="Tools/ToolsTabContainer/Shortcuts/ShortcutsHBox/ShortcutsTool/ScrollContainer"]
+[node name="ShortcutsContainerVBox" type="VBoxContainer" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/ScrollContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -2143,6 +2144,7 @@ metadata/_edit_use_anchors_ = true
 [node name="MassUpdateButton" type="Button" parent="Tools/ToolsTabContainer/Mass Tags Editor/MassTagEditorHbox/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_vertical = 10
 text = "Update Selected"
 metadata/_edit_use_anchors_ = true
 
@@ -2177,6 +2179,10 @@ layout_mode = 2
 text = "Select all"
 metadata/_edit_use_anchors_ = true
 
+[node name="Sites" parent="Tools/ToolsTabContainer" instance=ExtResource("19_1am3x")]
+visible = false
+layout_mode = 2
+
 [node name="Settings" type="Control" parent="."]
 visible = false
 anchors_preset = 0
@@ -2210,10 +2216,10 @@ text = "Default site:"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="OptionButton" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox" instance=ExtResource("14_ns2kj")]
-custom_minimum_size = Vector2(250, 32)
+[node name="AvailableSites" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox" instance=ExtResource("20_5raky")]
 layout_mode = 2
-size_flags_horizontal = 3
+set_on_load = true
+save_on_set = true
 
 [node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2

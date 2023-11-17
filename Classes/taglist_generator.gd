@@ -5,7 +5,7 @@ const character_amounts: Array[String] = ["zero pictured", "solo", "duo", "trio"
 const character_bodytypes: Array[String] = ["anthro", "semi-anthro", "feral", "humanoid", "human", "taur"]
 const character_genders: Array[String] = ["male", "female", "ambiguous gender", "andromorph", "gynomorph", "herm", "maleherm"]
 
-var target_site := Tagger.Sites.E621
+var target_site: String = ""
 
 var explored_tags: Array = []
 var unexplored_tags: Array = []

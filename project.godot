@@ -22,6 +22,7 @@ boot_splash/minimum_display_time=2000
 [autoload]
 
 Tagger="*res://Globals/tagger.gd"
+Utils="*res://Scripts/Utils.gd"
 
 [display]
 

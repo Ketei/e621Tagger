@@ -23,7 +23,9 @@ class_name TaggerInstance
 @onready var quick_search = $AddAutoComplete/QuickSearch
 @onready var export_tags_button: Button = $HBoxContainer/FinalTags/HBoxContainer/ExportsVBox/ExportTagsButton
 @onready var tag_file_dialog: TagFileDialog = $TagFileDialog
-@onready var target_platform_button: OptionButton = $HBoxContainer/FinalTags/Platform/TargetPlatformButton
+#@onready var target_platform_button: OptionButton = $HBoxContainer/FinalTags/Platform/TargetPlatformButton
+@onready var available_sites:OptionButton = $HBoxContainer/FinalTags/Platform/AvailableSites
+
 
 var main_application
 var tagger_menu_bar: PopupMenu
@@ -65,6 +67,41 @@ var implied_types_added: int = 0
 
 var context_tag: String = ""
 var context_menu_item_index: int = -1
+
+
+func _ready():
+	available_sites.select(Tagger.available_sites.find(Tagger.site_settings.default_site))
+	available_sites.site_selected.connect(change_platform)
+	# Experimental connects
+	line_edit.text_submitted.connect(add_new_tag)
+	suggested_list.item_activated.connect(add_from_suggested)
+	item_list.item_activated.connect(remove_tag)
+	clear_tags_button.pressed.connect(clear_inputted_tags)
+	clear_suggested_button.pressed.connect(clear_suggestion_tags)
+	export_tags_button.pressed.connect(open_export_dialog)
+	# ---------------------
+	
+	check_minimum_requirements()
+	
+	tagger_context_menu.id_pressed.connect(left_click_context_menu_clicked)
+#	item_list.item_clicked.connect(open_context_menu)
+	
+	$AddAutoComplete/QuickSearch.add_tag_signal.connect(append_prefilled_tag)
+	
+	add_auto_complete.visible = false
+	open_auto_complete_btn.pressed.connect(add_auto_complete.show)
+	tagger_menu_bar.id_pressed.connect(tagger_menu_pressed)
+	
+	generate_list.pressed.connect(generate_tag_list)
+	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
+	clean_suggestions_button.pressed.connect(clean_suggestions)
+	
+#	suggestion_timer.timeout.connect(search_suggested)
+	
+	copy_timer.timeout.connect(on_copy_timer_timeout)
+	item_list.open_context_clicked.connect(open_context_menu)
+	suggested_list.open_context_clicked.connect(open_context_menu)
+	implied_list.open_context_clicked.connect(open_context_menu)
 
 
 func append_empty_tag(tag_to_append: String) -> void:
@@ -573,41 +610,6 @@ func disconnect_and_free() -> void:
 	self.queue_free()
 
 
-func _ready():
-	
-	tag_list_generator.target_site = target_platform_button.selected as Tagger.Sites
-	# Experimental connects
-	line_edit.text_submitted.connect(add_new_tag)
-	suggested_list.item_activated.connect(add_from_suggested)
-	item_list.item_activated.connect(remove_tag)
-	clear_tags_button.pressed.connect(clear_inputted_tags)
-	clear_suggested_button.pressed.connect(clear_suggestion_tags)
-	export_tags_button.pressed.connect(open_export_dialog)
-	# ---------------------
-	
-	check_minimum_requirements()
-	
-	tagger_context_menu.id_pressed.connect(left_click_context_menu_clicked)
-#	item_list.item_clicked.connect(open_context_menu)
-	
-	$AddAutoComplete/QuickSearch.add_tag_signal.connect(append_prefilled_tag)
-	
-	add_auto_complete.visible = false
-	open_auto_complete_btn.pressed.connect(add_auto_complete.show)
-	tagger_menu_bar.id_pressed.connect(tagger_menu_pressed)
-	
-	generate_list.pressed.connect(generate_tag_list)
-	copy_to_clipboard.pressed.connect(copy_resut_to_clipboard)
-	clean_suggestions_button.pressed.connect(clean_suggestions)
-	
-#	suggestion_timer.timeout.connect(search_suggested)
-	
-	copy_timer.timeout.connect(on_copy_timer_timeout)
-	item_list.open_context_clicked.connect(open_context_menu)
-	suggested_list.open_context_clicked.connect(open_context_menu)
-	implied_list.open_context_clicked.connect(open_context_menu)
-
-
 func open_context_menu(tag_name: String, itembox_position: Vector2, item_position: Vector2) -> void:
 
 	context_tag = tag_name
@@ -716,13 +718,14 @@ func clean_suggestions() -> void:
 
 
 func generate_tag_list() -> void:
+	var site_key: String = Tagger.available_sites[available_sites.selected]
 	tag_list_generator.generate_tag_list_v2(tags_inputed)
 	tag_list_generator.__explore_parents_v2()
 	final_tag_list_array = tag_list_generator.get_tag_list_v2()
 	final_tag_list.text = tag_list_generator.create_list_from_array(
 			final_tag_list_array,
-			Tagger.site_settings.get_whitespace(tag_list_generator.target_site),
-			Tagger.site_settings.get_separator(tag_list_generator.target_site))
+			Tagger.site_settings.valid_sites[site_key]["whitespace"],
+			Tagger.site_settings.valid_sites[site_key]["separator"])
 
 
 func copy_resut_to_clipboard() -> void:
@@ -751,3 +754,14 @@ func open_export_dialog() -> void:
 		tag_file_dialog.default_path = Tagger.settings.default_save_path
 	
 	tag_file_dialog.show_dialog()
+
+
+func change_platform(site_id: int) -> void:
+	var site_key: String = Tagger.available_sites[site_id]
+	tag_list_generator.target_site = site_key
+	if not final_tag_list_array.is_empty():
+		final_tag_list.text = tag_list_generator.create_list_from_array(
+			final_tag_list_array,
+			Tagger.site_settings.valid_sites[site_key]["whitespace"],
+			Tagger.site_settings.valid_sites[site_key]["separator"])
+

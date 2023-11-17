@@ -29,6 +29,10 @@ enum Sites {
 	HYDRUS,
 }
 
+enum Notifications {
+	SITES_UPDATED,
+}
+
 
 var e6_headers_data: Dictionary = {
 	"User-Agent": "TaglistMaker/0.9.7 (by Ketei)",
@@ -51,6 +55,8 @@ var headers_ini: ConfigFile
 
 var common_thread: Thread
 
+var available_sites: Array[String] = []
+
 
 func _init():
 	settings = UserSettings.load_settings()
@@ -65,6 +71,9 @@ func _init():
 	site_settings = SiteSettings.load_settings()
 	alias_database = AliasDatabase.load_database(settings.database_location)
 	settings_lists = SettingLists.load_database()
+	
+	for site in site_settings.valid_sites.keys():
+		available_sites.append(site)
 
 
 func _ready():
