@@ -2185,7 +2185,6 @@ visible = false
 layout_mode = 2
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -2407,6 +2406,10 @@ size_flags_horizontal = 3
 placeholder_text = "Old name"
 alignment = 1
 caret_blink = true
+
+[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesLineEdits"]
+layout_mode = 2
+text = "->"
 
 [node name="NewAlias" type="LineEdit" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesLineEdits"]
 layout_mode = 2
@@ -2884,6 +2887,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
