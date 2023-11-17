@@ -247,8 +247,12 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		if add_from_signal:
 			line_edit.clear()
 		return
-
-	for shortcut in Tagger.settings_lists.shortcuts.keys(): # Replace shortcuts
+	
+	var shortcuts: Array = Tagger.settings_lists.shortcuts.keys()
+	
+	shortcuts.sort_custom(func(a, b): return b.length() < a.length())
+	
+	for shortcut in shortcuts: # Replace shortcuts
 		if tag_name.begins_with(shortcut):
 			var tag: String = tag_name.trim_prefix(shortcut)
 			tag_name = Tagger.settings_lists.shortcuts[shortcut].replace("%", tag)
