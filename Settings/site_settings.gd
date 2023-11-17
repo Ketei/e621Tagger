@@ -40,10 +40,10 @@ static func load_settings() -> SiteSettings:
 
 	if ResourceLoader.exists("user://site_settings.tres", "SiteSettings"):
 		var loaded_settings: SiteSettings = ResourceLoader.load("user://site_settings.tres")
-		
 		for site_key in loaded_settings.valid_sites.keys():
-			if not loaded_settings.valid_sites.has("separator") or not loaded_settings.valid_sites.has("whitespace"):
+			if not loaded_settings.valid_sites[site_key].has("separator") or not loaded_settings.valid_sites[site_key].has("whitespace"):
 				loaded_settings.valid_sites.erase(site_key)
+				
 			
 		if loaded_settings.valid_sites.is_empty():
 			loaded_settings.valid_sites = default_sites.duplicate()
