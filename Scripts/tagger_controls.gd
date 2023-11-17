@@ -234,20 +234,26 @@ func api_response(dictionary_response: Dictionary) -> void:
 
 
 func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: bool = true, suggested_tags: Array = [], tag_category := Tagger.Categories.GENERAL, ensure_visible: bool = true) -> void: # Connect line submit here
-	tag_name = tag_name.to_lower().strip_edges()
 	tag_name = tag_name.replace("_", " ")
-	tag_name = Tagger.alias_database.get_alias(tag_name)
+	tag_name = tag_name.to_lower().strip_edges()
 	
-	if tag_name.is_empty(): # First check if empty
+	var test_tag: String = tag_name
+	
+	if 0 < test_tag.length():
+		if test_tag.left(1) in Tagger.settings_lists.shortcuts.keys():
+			test_tag = test_tag.erase(0, 1)
+	
+	if test_tag.is_empty(): # First check if empty
 		if add_from_signal:
 			line_edit.clear()
 		return
-
 
 	for shortcut in Tagger.settings_lists.shortcuts.keys(): # Replace shortcuts
 		if tag_name.begins_with(shortcut):
 			var tag: String = tag_name.trim_prefix(shortcut)
 			tag_name = Tagger.settings_lists.shortcuts[shortcut].replace("%", tag)
+
+	tag_name = Tagger.alias_database.get_alias(tag_name)
 	
 	if tags_inputed.has(tag_name): # Then check if it exists already
 		if ensure_visible:
