@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3 uid="uid://cg8vboytiuhfy"]
+
+[ext_resource type="Script" path="res://Scripts/tag_list_item_scene.gd" id="1_47r03"]
+
+[node name="ListTagItem" type="HBoxContainer"]
+offset_right = 960.0
+offset_bottom = 32.0
+theme_override_constants/separation = 16
+script = ExtResource("1_47r03")
+
+[node name="KeyLineEdit" type="LineEdit" parent="."]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+placeholder_text = "Key"
+alignment = 1
+editable = false
+
+[node name="EntriesLineEdit" type="LineEdit" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Save"
+
+[node name="DeleteButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "X"

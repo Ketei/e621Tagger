@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=16 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -8,7 +8,9 @@
 [ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="5_vrc8r"]
 [ext_resource type="Script" path="res://Scripts/tag_quick_search.gd" id="7_gh0lf"]
 [ext_resource type="PackedScene" uid="uid://cj2jifl7bcqn7" path="res://Scenes/available_sites.tscn" id="8_8loaf"]
+[ext_resource type="PackedScene" uid="uid://dtplrc3b5b4i3" path="res://Scenes/add_custom_tag.tscn" id="9_h2x7i"]
 [ext_resource type="PackedScene" uid="uid://d1sacwwwxfxpb" path="res://Scenes/tag_export_dialog.tscn" id="9_q63mv"]
+[ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
 
 [sub_resource type="GDScript" id="GDScript_7uef3"]
 script/source = "extends Control
@@ -97,6 +99,24 @@ func check_for_conflicts() -> void:
 #
 "
 
+[sub_resource type="GDScript" id="GDScript_yg50v"]
+resource_name = "autohide"
+script/source = "extends Control
+
+
+func _ready():
+	hide()
+"
+
+[sub_resource type="GDScript" id="GDScript_q8id4"]
+resource_name = "hide_me"
+script/source = "extends Control
+
+
+func _ready():
+	hide()
+"
+
 [node name="Tagger" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -106,18 +126,24 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_u1cpf")
 
+[node name="CopyTimer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
 [node name="TagListGenerator" type="Node" parent="."]
 script = ExtResource("2_enrd1")
 
 [node name="TaggerContextMenu" type="PopupMenu" parent="."]
 size = Vector2i(119, 100)
-item_count = 3
+item_count = 4
 item_0/text = "Wiki"
 item_0/id = 2
 item_1/text = "Create Tag"
 item_1/id = 0
 item_2/text = "Edit Tag"
 item_2/id = 1
+item_3/text = "Remove Tag"
+item_3/id = 3
 
 [node name="WarningRect" type="TextureRect" parent="."]
 layout_mode = 0
@@ -158,6 +184,7 @@ theme_override_constants/h_separation = 10
 allow_rmb_select = true
 fixed_icon_size = Vector2i(10, 10)
 script = ExtResource("5_fpeot")
+can_remove = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/InputTags"]
 layout_mode = 2
@@ -215,6 +242,7 @@ theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 allow_rmb_select = true
 same_column_width = true
 script = ExtResource("5_fpeot")
+can_remove = true
 
 [node name="ImpliedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
 layout_mode = 2
@@ -517,9 +545,51 @@ offset_right = 376.0
 offset_bottom = 39.0
 text = "X"
 
-[node name="CopyTimer" type="Timer" parent="."]
-wait_time = 2.0
-one_shot = true
+[node name="AddSuggestedSpecial" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 656.0
+script = SubResource("GDScript_yg50v")
+
+[node name="ColorRect" type="ColorRect" parent="AddSuggestedSpecial"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0)
+
+[node name="CenterContainer" type="CenterContainer" parent="AddSuggestedSpecial"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AddCustomTag" parent="AddSuggestedSpecial/CenterContainer" instance=ExtResource("9_h2x7i")]
+layout_mode = 2
+
+[node name="Weezard" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+script = SubResource("GDScript_q8id4")
+
+[node name="ColorRect" type="ColorRect" parent="Weezard"]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 656.0
+color = Color(0, 0, 0, 0.392157)
+
+[node name="CenterContainer" type="CenterContainer" parent="Weezard"]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 656.0
+
+[node name="TagWizard" parent="Weezard/CenterContainer" instance=ExtResource("11_lbguf")]
+layout_mode = 2
 
 [node name="TagFileDialog" parent="." instance=ExtResource("9_q63mv")]
 visible = false
