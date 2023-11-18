@@ -35,13 +35,13 @@ extends Resource
 	"COPYRIGHT": "e769e6",
 	"CHARACTER": "00b900",
 	"SPECIES": "ed5d1f",
-	"GENDER": "d865a7",
+	"GENDER": "3478d6",
 	"BODY_TYPES": "cccccc",
 	"ANATOMY": "cccccc",
 	"MARKINGS": "cccccc",
 	"POSES_AND_STANCES": "cccccc",
 	"ACTIONS_AND_INTERACTIONS": "cccccc",
-	"SEX_AND_POSITIONS": "66e6ff",
+	"SEX_AND_POSITIONS": "cccccc",
 	"PENETRATION": "cccccc",
 	"FLUIDS": "cccccc",
 	"EXPRESSIONS": "cccccc",
@@ -51,6 +51,7 @@ extends Resource
 	"ACCESSORIES": "cccccc",
 	"PROFESSION": "cccccc",
 	"INVALID": "cccccc",
+	"META": "ffffff",
 }
 
 @export var default_save_path: String = ""
