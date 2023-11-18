@@ -82,7 +82,7 @@ func _ready():
 	add_child(text_timer)
 
 
-func show_popup_menu(tag_clicked: String, element_position: Vector2, item_position: Vector2) -> void:
+func show_popup_menu(tag_clicked: String, element_position: Vector2, item_position: Vector2, _is_delete_allowed: bool, _who_called: ItemList, _item_index: int) -> void:
 	left_context_tag = tag_clicked
 	creator_pop_up_menu.position = element_position + item_position
 	creator_pop_up_menu.show()
