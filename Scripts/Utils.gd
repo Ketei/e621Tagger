@@ -25,3 +25,16 @@ func better_capitalize(what: String, underscore_to_spaces: bool = false, separat
 	
 	return construct_string
 
+
+func array_to_string(array_to_stringify: Array, divisor_char: String = ", ") -> String:
+	var return_string: String = ""
+	
+	for item in array_to_stringify:
+		return_string += item
+		return_string += divisor_char
+	
+	if not return_string.is_empty():
+		return_string = return_string.left(-divisor_char.length())
+	
+	return return_string
+
