@@ -21,6 +21,7 @@ enum Categories {
 	CLOTHING,
 	ACCESSORIES,
 	PROFESSION,
+	META,
 }
 
 enum Sites {
