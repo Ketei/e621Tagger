@@ -242,16 +242,8 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	tag_name = tag_name.replace("_", " ")
 	tag_name = tag_name.to_lower().strip_edges()
 	
-	var test_tag: String = tag_name
-	
-	if 0 < test_tag.length():
-		if test_tag.left(1) in Tagger.settings_lists.shortcuts.keys():
-			test_tag = test_tag.erase(0, 1)
-	
-	if test_tag.is_empty(): # First check if empty
-		if add_from_signal:
-			line_edit.clear()
-		return
+	var tag: String = tag_name
+	var prefix_used: String = ""
 	
 	var shortcuts: Array = Tagger.settings_lists.shortcuts.keys()
 	
@@ -259,8 +251,19 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	for shortcut in shortcuts: # Replace shortcuts
 		if tag_name.begins_with(shortcut):
-			var tag: String = tag_name.trim_prefix(shortcut)
-			tag_name = Tagger.settings_lists.shortcuts[shortcut].replace("%", tag)
+			prefix_used = shortcut
+			break
+	
+	tag = tag.trim_prefix(prefix_used)
+	
+	if tag.is_empty(): # First check if empty
+		if add_from_signal:
+			line_edit.clear()
+		return
+	
+	var tag_array: Array = tag.split(",", false)
+	var preformat_tag: String = Tagger.settings_lists.shortcuts[prefix_used].replace("%", "{0}")
+	tag_name = preformat_tag.format(tag_array)
 	
 	tag_name = Tagger.alias_database.get_alias(tag_name)
 	

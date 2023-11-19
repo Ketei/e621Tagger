@@ -2000,8 +2000,8 @@ text = "->"
 [node name="NewShortTurnsLE" type="LineEdit" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-tooltip_text = "Use \"%\" to mark where the tag needs to be inserted
-\"% (artist)\" -> \"tag (artist)\" "
+tooltip_text = "Use \"%\" to mark where the tag needs to be inserted \"% (artist)\" -> \"tag (artist)\" 
+or with {_} where _ is the number of tag inserted. \"{0} kissing {1}\" -> \"bf kissing gf\" where input was !bf,gf"
 placeholder_text = "Formatting"
 
 [node name="CreateShortcutButton" type="Button" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
@@ -2202,7 +2202,6 @@ visible = false
 layout_mode = 2
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -2804,7 +2803,7 @@ alignment = 1
 modulate = Color(0.113725, 0.133333, 0.164706, 0.588235)
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "v 0.9.7"
+text = "v 0.9.8"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -2919,6 +2918,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
