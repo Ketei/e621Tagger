@@ -13,7 +13,7 @@ signal add_tag_signal
 @onready var some_fix_option: OptionButton = $SomeFixOption
 @onready var tagger = $"../.."
 @onready var quick_search_popup_menu: PopupMenu = $QuickSearchPopupMenu
-@onready var quick_search = $"."
+@onready var quick_search = $".."
 
 
 
