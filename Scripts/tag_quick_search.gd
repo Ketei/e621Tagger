@@ -13,6 +13,9 @@ signal add_tag_signal
 @onready var some_fix_option: OptionButton = $SomeFixOption
 @onready var tagger = $"../.."
 @onready var quick_search_popup_menu: PopupMenu = $QuickSearchPopupMenu
+@onready var quick_search = $"."
+
+
 
 var tag_search_dictionary: Dictionary = {}
 var list_order_array: Array = []
@@ -26,7 +29,7 @@ func _ready():
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
 	auto_com_line_edit.text_submitted.connect(search_for_tag_v2)
-	cancel_auto_button.pressed.connect(hide)
+	cancel_auto_button.pressed.connect(hide_autocompleter)
 	add_selected_button.pressed.connect(add_selected_to_list)
 	quick_search_popup_menu.id_pressed.connect(activate_right_click_context_menu)
 
@@ -191,3 +194,7 @@ func clear_all_items() -> void:
 func close_instance() -> void:
 	if not search_queue.is_empty():
 		tagger.tag_holder.remove_from_api_prio_queue(search_queue, self, 50)
+
+
+func hide_autocompleter() -> void:
+	quick_search.hide()
