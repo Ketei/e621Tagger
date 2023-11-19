@@ -179,6 +179,7 @@ text = "Clear"
 [node name="ItemList" type="ItemList" parent="HBoxContainer/InputTags"]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("3_rq6wp")
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 theme_override_constants/h_separation = 10
 allow_rmb_select = true
@@ -238,6 +239,7 @@ text = "Clear"
 [node name="SuggestedList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("3_rq6wp")
 theme_override_colors/guide_color = Color(0.482353, 0.482353, 0.482353, 1)
 allow_rmb_select = true
 same_column_width = true
@@ -259,6 +261,7 @@ metadata/_edit_use_anchors_ = true
 [node name="ImpliedList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/ImpliedTags"]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("3_rq6wp")
 allow_rmb_select = true
 same_column_width = true
 script = ExtResource("5_fpeot")

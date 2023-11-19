@@ -869,6 +869,7 @@ offset_right = 1280.0
 offset_bottom = 672.0
 
 [node name="NewInstanceWindow" type="Control" parent="NewTagger"]
+visible = false
 anchors_preset = 0
 offset_right = 1280.0
 offset_bottom = 720.0
@@ -1325,6 +1326,7 @@ metadata/_edit_use_anchors_ = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 tooltip_text = "Short description to be shown when hoverin on the tag on the Tagger window (Like this one!)"
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Tag tooltip description"
 caret_blink = true
 
@@ -1567,6 +1569,7 @@ anchor_top = 0.235294
 anchor_right = 0.174219
 anchor_bottom = 0.280882
 tooltip_text = "Refers to what tags will come first when GENERATING the tag list. The items added first are the ones of highest priority."
+theme = ExtResource("8_rcl5d")
 allow_greater = true
 allow_lesser = true
 alignment = 1
@@ -2398,6 +2401,7 @@ text = "Open tags folder"
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "If you've added tag files in the tags folder instead of creating them through this software, you'll need to recreate the tag registry."
+theme = ExtResource("8_rcl5d")
 text = "Recreate tag registry"
 
 [node name="Aliases" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
@@ -2409,6 +2413,7 @@ script = ExtResource("16_ojscj")
 [node name="AliasesTree" type="Tree" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("8_rcl5d")
 script = SubResource("GDScript_hr4cx")
 
 [node name="AliasesLineEdits" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
@@ -2466,6 +2471,7 @@ script = ExtResource("14_aa6rg")
 
 [node name="InvalidTagsLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
 layout_mode = 2
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Invalid tags"
 caret_blink = true
 
@@ -2473,6 +2479,7 @@ caret_blink = true
 layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "These tags are invalid tags and won't get added to a final tag list. It'll be displayed red"
+theme = ExtResource("8_rcl5d")
 max_columns = 2
 
 [node name="LoadBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists"]
@@ -2483,11 +2490,13 @@ script = ExtResource("21_40puc")
 [node name="LoadBLLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/LoadBlacklist"]
 layout_mode = 2
 tooltip_text = "When loading a tag list, these tags won't be loaded."
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Load blacklist"
 
 [node name="LoadBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/LoadBlacklist"]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("8_rcl5d")
 
 [node name="SuggestionBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists"]
 layout_mode = 2
@@ -2496,6 +2505,7 @@ script = ExtResource("15_sobiw")
 
 [node name="AddToBlack" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
 layout_mode = 2
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Suggestion blacklist"
 caret_blink = true
 
@@ -2503,6 +2513,7 @@ caret_blink = true
 layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "These tags wont appear on the suggested tags in the tagger window."
+theme = ExtResource("8_rcl5d")
 max_columns = 2
 same_column_width = true
 
@@ -2519,6 +2530,7 @@ script = ExtResource("16_msuae")
 [node name="ConstantsLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
 layout_mode = 2
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Constants"
 caret_blink = true
 
@@ -2526,6 +2538,7 @@ caret_blink = true
 layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "These tags will always be added at the end of a tag list."
+theme = ExtResource("8_rcl5d")
 
 [node name="BlacklistReview" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/SmallLists"]
 layout_mode = 2
@@ -2534,6 +2547,7 @@ script = ExtResource("17_g6q24")
 
 [node name="SuggBlacklistLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/BlacklistReview"]
 layout_mode = 2
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Review blacklist"
 caret_blink = true
 
@@ -2541,6 +2555,7 @@ caret_blink = true
 layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "When loading pictures from e621 on Wiki, the posts with these tags won't be displayed unless the wiki search is the tag in the blacklist."
+theme = ExtResource("8_rcl5d")
 
 [node name="ImgDownloadBlacklist" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsLists/SmallLists"]
 layout_mode = 2
@@ -2550,6 +2565,7 @@ script = ExtResource("18_aw7pf")
 [node name="SampleBlacklistLineEdit" type="LineEdit" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ImgDownloadBlacklist"]
 layout_mode = 2
 tooltip_text = "Add a tag to be blacklisted when downloading samples on tag creation"
+theme = ExtResource("8_rcl5d")
 placeholder_text = "Sample Blacklist"
 caret_blink = true
 
@@ -2557,6 +2573,7 @@ caret_blink = true
 layout_mode = 2
 size_flags_vertical = 3
 tooltip_text = "When dowloading samples, the posts with these tags won't be downloaded."
+theme = ExtResource("8_rcl5d")
 
 [node name="APILoader" type="Control" parent="Settings"]
 visible = false
@@ -2902,7 +2919,6 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
