@@ -1,2 +1,2 @@
-# Tagging-Project
+# TagIt! - A tag list assistant
  
