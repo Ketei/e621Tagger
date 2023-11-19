@@ -36,7 +36,7 @@ enum Notifications {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/0.9.7 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.9.8 (by Ketei)",
 }
 
 
