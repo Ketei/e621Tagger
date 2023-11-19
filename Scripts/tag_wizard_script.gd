@@ -6,6 +6,7 @@ signal wizard_tags_created(tags_array)
 @export var artist_line_edit: LineEdit
 
 @export var char_amount: SpinBox
+@export var focus_amount: SpinBox
 
 @export var male_check_box: CheckBox
 @export var female_check_box: CheckBox
@@ -45,6 +46,8 @@ signal wizard_tags_created(tags_array)
 @export var angle_option_button: OptionButton
 
 @export var media_type_option_button: OptionButton
+@export var defined_media_opt_button: OptionButton
+
 @export var done_button: Button
 @export var cancel_button: Button
 @export var interactions_box: HBoxContainer
@@ -56,9 +59,28 @@ signal wizard_tags_created(tags_array)
 @export var skin_check_box: CheckBox
 @export var exo_check_box: CheckBox
 
+@export var fr_by_fr_anim_chk_btn: CheckBox
+@export var loops_chk_btn: CheckBox
+@export var sound_chk_box: CheckBox
+
+@export var animation_types_btn: OptionButton
+@export var playtime_opt_btn: OptionButton
+@export var format_opt_btn: OptionButton
+
+@export var topwear_checkbox: CheckBox
+@export var underwear_checkbox: CheckBox
+@export var visible_underwear: CheckBox
+@export var bottomwear_checkbox: CheckBox
+@export var leg_wear_checkbox: CheckBox
+@export var arm_wear_checkbox: CheckBox
+@export var hand_wear_checkbox: CheckBox
+@export var foot_wear_checkbox: CheckBox
+@export var head_wear_checkbox: CheckBox
+
+
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
-var media_types: Array = ["digital media (artwork)", "traditional media (artwork)", "photography (artwork)"]
+var media_types: Array = ["digital media (artwork)", "traditional media (artwork)", "photography (artwork)", "animated"]
 
 var suggestions_types: Array = []
 
@@ -115,11 +137,20 @@ func magic_clean() -> void:
 	wool_check_box.set_pressed_no_signal(false)
 	skin_check_box.set_pressed_no_signal(false)
 	exo_check_box.set_pressed_no_signal(false)
+	
+	fr_by_fr_anim_chk_btn.set_pressed_no_signal(false)
+	loops_chk_btn.set_pressed_no_signal(false)
+	sound_chk_box.set_pressed_no_signal(false)
+	animation_types_btn.select(0)
+	playtime_opt_btn.select(0)
+	format_opt_btn.select(0)
+	
+	media_type_option_button.selected = 0
 
 
 func create_basic_tags() -> void:
 	var return_array: Array = []
-	
+
 	if not artist_line_edit.text.strip_edges().is_empty():
 		return_array.append(artist_line_edit.text)
 	
@@ -134,6 +165,14 @@ func create_basic_tags() -> void:
 		return_array.append("group")
 	elif 3 < char_amount.value:
 		return_array.append("group")
+	
+	if char_amount.value != focus_amount.value and focus_amount.value != 0:
+		if focus_amount.value == 1:
+			return_array.append("solo focus")
+		elif focus_amount.value == 2:
+			return_array.append("duo focus")
+		elif focus_amount.value == 3:
+			return_array.append("trio focus")
 	
 	if male_check_box.button_pressed:
 		return_array.append("male")
@@ -206,25 +245,52 @@ func create_basic_tags() -> void:
 	
 	return_array.append(background_types[background_option_button.selected])
 	
+	if completion_option_button.selected == 3: # Shaded
+			return_array.append("shaded")
+	
+	if completion_option_button.selected == 2: # Lineart
+		if color_types_option_button.selected == 1:
+			return_array.append("flat colors")
+		else:
+			return_array.append("lineart")
+	
+	if completion_option_button.selected == 1: # Sketch
+		if color_types_option_button.selected == 1:
+			return_array.append("colored sketch")
+		else:
+			return_array.append("sketch")
+	
 	if color_types_option_button.selected == 0: # Monochrome
 		return_array.append("monochrome")
-		if completion_option_button.selected == 0:
-			return_array.append("sketch")
-		elif completion_option_button.selected == 1:
-			return_array.append("lineart")
-		elif completion_option_button.selected == 2:
-			return_array.append("shaded")
-	elif color_types_option_button.selected == 1: # Colored
-		if completion_option_button.selected == 0:
+		
+	
+	elif color_types_option_button.selected == 2: # Colored
+		if completion_option_button.selected == 1:
 			return_array.append("colored sketch")
-		elif completion_option_button.selected == 1:
-			return_array.append("flat colors")
-		elif completion_option_button.selected == 2:
-			return_array.append("shaded")
 	
 	return_array.append(angle_types[angle_option_button.selected])
 	
 	return_array.append(media_types[media_type_option_button.selected])
+	
+	if media_type_option_button.selected == 3:
+		if fr_by_fr_anim_chk_btn.button_pressed:
+			return_array.append("frame by frame")
+		if loops_chk_btn.button_pressed:
+			return_array.append("loop")
+		if sound_chk_box.button_pressed:
+			return_array.append("sound")
+		
+		var anim_type: String = animation_types_btn.get_item_text(animation_types_btn.selected).to_lower()
+		if not anim_type.is_empty():
+			return_array.append(anim_type)
+		
+		return_array.append(playtime_opt_btn.get_item_text(playtime_opt_btn.selected).to_lower())
+		if format_opt_btn.selected == 1:
+			return_array.append("webm")
+		elif format_opt_btn.selected == 2:
+			return_array.append("animated png")
+		
+	return_array.append(defined_media_opt_button.get_item_text(defined_media_opt_button.selected).to_lower())
 	
 	if fur_check_box.button_pressed:
 		suggestions_types.append("*color* fur")
@@ -239,7 +305,91 @@ func create_basic_tags() -> void:
 	if exo_check_box.button_pressed:
 		suggestions_types.append("*color* exoskeleton")
 	
+	for cloth_tag in calculate_clothing_level():
+		return_array.append(cloth_tag)
+	
 	wizard_tags_created.emit(return_array)
+
+
+func calculate_clothing_level() -> Array:
+	var clothing_score: int = 0
+	var clothing_array: Array = []
+	
+	if topwear_checkbox.button_pressed:
+		clothing_score += 10
+		clothing_array.append("topwear")
+	
+	if bottomwear_checkbox.button_pressed:
+		clothing_score += 10
+		clothing_array.append("bottomwear")
+	
+	if underwear_checkbox.button_pressed:
+		clothing_score += 10
+		if visible_underwear.button_pressed or clothing_score == 10:
+			clothing_array.append("underwear")
+			suggestions_types.append("*color* underwear")
+	
+	if leg_wear_checkbox.button_pressed:
+		clothing_score += 1
+		clothing_array.append("legwear")
+	if arm_wear_checkbox.button_pressed:
+		clothing_score += 1
+		clothing_array.append("armwear")
+	if hand_wear_checkbox.button_pressed:
+		clothing_score += 1
+		clothing_array.append("gloves")
+	if foot_wear_checkbox.button_pressed:
+		clothing_score += 1
+		clothing_array.append("footwear")
+	if head_wear_checkbox.button_pressed:
+		clothing_score += 1
+		clothing_array.append("headwear")
+		clothing_array.append("headgear")
+	
+	if 0 < clothing_score and clothing_score < 6:
+		clothing_array.append("mostly nude")
+	elif 20 < clothing_score and clothing_score < 26:
+		clothing_array.append("mostly clothed")
+	
+	if clothing_score == 0:
+		clothing_array.append("nude")
+	elif 0 < clothing_score and clothing_score < 26:
+		clothing_array.append("partially clothed")
+	elif 25 < clothing_score:
+		clothing_array.append("fully clothed")
+	
+	if bottomwear_checkbox.button_pressed\
+	and not underwear_checkbox.button_pressed\
+	and not topwear_checkbox.button_pressed:
+		clothing_array.append("topless")
+		clothing_array.append("no underwear")
+
+	if underwear_checkbox.button_pressed\
+	and not topwear_checkbox.button_pressed\
+	and not bottomwear_checkbox.button_pressed:
+		clothing_array.append("underwear_only")
+	
+	if not topwear_checkbox.button_pressed\
+	and underwear_checkbox.button_pressed\
+	and bottomwear_checkbox.button_pressed:
+		clothing_array.append("topless")
+	
+	if topwear_checkbox.button_pressed\
+	and not underwear_checkbox.button_pressed\
+	and not bottomwear_checkbox.button_pressed:
+		clothing_array.append("bottomless")
+	
+	if not underwear_checkbox.button_pressed\
+	and topwear_checkbox.button_pressed\
+	and bottomwear_checkbox.button_pressed:
+		clothing_array.append("no underwear")
+	
+	if not bottomwear_checkbox.button_pressed\
+	and underwear_checkbox.button_pressed\
+	and topwear_checkbox.button_pressed:
+		clothing_array.append("pantsless")
+	
+	return clothing_array
 
 
 func cancel_button_pressed() -> void:
