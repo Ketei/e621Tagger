@@ -84,16 +84,18 @@ func clear_wiki() -> void:
 	for child in lewd_pic_container.get_children():
 		child.lewd_pic_pressed.disconnect(display_big_pic)
 		child.queue_free()
-#	tag_search_line_edit.clear()
-#	tag_search_line_edit.placeholder_text = "Search in Wiki"
 	wiki_edit.text = ""
 	wiki_popup_menu.set_item_disabled(
 			wiki_popup_menu.get_item_index(1),
 			true
 	)
+	preview_progress_load.value = 0
+	preview_progress_load.max_value = 1
 
 
 func search_for_tag(new_text: String) -> void:
+	tag_search_line_edit.release_focus()
+	
 	if not tag_search_line_edit.editable:
 		return
 	

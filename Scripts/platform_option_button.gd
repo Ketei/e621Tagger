@@ -1,8 +1,8 @@
 extends OptionButton
 
-@onready var final_tag_list: TextEdit = $"../FinalList/FinalTagList"
-@onready var tag_list_generator = $"../TagListGenerator"
-@onready var tagger = $".."
+@onready var final_tag_list: TextEdit = $"../../FinalTagList"
+@onready var tag_list_generator = $"../../../../TagListGenerator"
+@onready var tagger = $"../../../.."
 
 func _ready():
 	selected = Tagger.site_settings.target_site

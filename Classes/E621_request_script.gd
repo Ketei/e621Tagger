@@ -2,7 +2,7 @@ class_name e621Request
 extends HTTPRequest
 
 
-signal job_finished(reference)
+signal job_finished(reference) # Unused signal
 signal parsed_result(e621_result)
 signal job_failed
 
@@ -27,7 +27,6 @@ enum RequestResult {
 
 var request_mode: RequestType = RequestType.POST
 
-#var request_result: Array = []
 var job_index: int = 0
 var image_format: String = ""
 var image_id: int = 0
@@ -115,7 +114,7 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 		var response_array = JSON.parse_string(body.get_string_from_utf8())
 		
 		if typeof(response_array) == TYPE_DICTIONARY:
-			job_finished.emit()
+			parsed_result.emit([]) # This is the correct signal
 			return
 		
 		var tags_array: Array[e621Tag] = []

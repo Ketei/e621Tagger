@@ -5,15 +5,15 @@ extends Resource
 @export var aliases: Dictionary = {}
 
 
-static func load_database() -> AliasDatabase:
-	if ResourceLoader.exists("user://database/aliases.tres", "AliasDatabase"):
-		return ResourceLoader.load("user://database/aliases.tres", "AliasDatabase")
+static func load_database(database_path: String) -> AliasDatabase:
+	if ResourceLoader.exists(database_path + "aliases.tres", "AliasDatabase"):
+		return ResourceLoader.load(database_path + "aliases.tres", "AliasDatabase")
 	else:
 		return AliasDatabase.new()
 
 
 func save() -> void:
-	ResourceSaver.save(self, "user://database/aliases.tres")
+	ResourceSaver.save(self, Tagger.settings.database_location + "aliases.tres")
 
 
 func add_alias(old_name: String, new_name: String):

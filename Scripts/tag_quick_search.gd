@@ -4,22 +4,18 @@ signal add_tag_signal
 
 @export var tags_to_get: int = 10
 
-#@onready var e6_requester_quick_search: e621Requester = $e621RequesterQuickSearch
 @onready var auto_com_line_edit: LineEdit = $AutoComLineEdit
 @onready var auto_complete_item_list: ItemList = $AutoCompleteItemList
 @onready var cancel_auto_button = $CancelAutoButton
-#@onready var main_application = $"../../.."
 
-@onready var add_auto_complete_node = $".."
+#@onready var add_auto_complete_node = $".."
 @onready var add_selected_button = $AddSelectedButton
 @onready var some_fix_option: OptionButton = $SomeFixOption
-@onready var request_cooldown_timer = $"../RequestCooldownTimer"
 @onready var tagger = $"../.."
 @onready var quick_search_popup_menu: PopupMenu = $QuickSearchPopupMenu
+@onready var quick_search = $".."
 
 
-var tag_search_array: Array[String] = [] # To be removed
-#var is_tagger_requesting: float = false
 
 var tag_search_dictionary: Dictionary = {}
 var list_order_array: Array = []
@@ -27,16 +23,13 @@ var selected_tag: String = ""
 
 var search_queue: String = ""
 
+
 func _ready():
 	auto_complete_item_list.item_clicked.connect(open_right_click_context_menu)
-#	e6_requester_quick_search.post_limit = tags_to_get
-	
 	some_fix_option.item_selected.connect(save_search_select)
 	some_fix_option.select(some_fix_option.get_item_index(Tagger.settings.tag_search_setting))
-	request_cooldown_timer.timeout.connect(timer_timeout)
-#	e6_requester_quick_search.get_finished.connect(add_online_to_list)
 	auto_com_line_edit.text_submitted.connect(search_for_tag_v2)
-	cancel_auto_button.pressed.connect(add_auto_complete_node.hide)
+	cancel_auto_button.pressed.connect(hide_autocompleter)
 	add_selected_button.pressed.connect(add_selected_to_list)
 	quick_search_popup_menu.id_pressed.connect(activate_right_click_context_menu)
 
@@ -66,11 +59,11 @@ func activate_right_click_context_menu(id_pressed: int) -> void:
 				[], 
 				tag_search_dictionary[selected_tag]["related_tags"],
 				tag_search_dictionary[selected_tag]["category"])
-		add_auto_complete_node.hide()
+		hide()
 	
 	elif id_pressed == 1:
 		tagger.main_application.go_to_edit_tag(selected_tag)
-		add_auto_complete_node.hide()
+		hide()
 
 
 func save_search_select(item_index: int) -> void:
@@ -94,6 +87,7 @@ func add_selected_to_list() -> void:
 
 func search_for_tag_v2(tag_to_search: String) -> void:
 	clear_all_items()
+	auto_com_line_edit.release_focus()
 	auto_com_line_edit.editable = false
 	tag_to_search = tag_to_search.replace("_", " ").strip_edges().to_lower()
 	
@@ -134,10 +128,7 @@ func search_for_tag_v2(tag_to_search: String) -> void:
 				auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
 				list_order_array.append(tag)
 
-	auto_com_line_edit.clear()
 	tagger.tag_holder.add_to_api_prio_queue(tag_for_url, 50, self)
-#	is_tagger_requesting = true
-#	request_cooldown_timer.start()
 
 
 func api_response(response_dictionary: Dictionary) -> void:
@@ -193,7 +184,6 @@ func api_response(response_dictionary: Dictionary) -> void:
 
 
 func clear_all_items() -> void:
-	auto_com_line_edit.clear()
 	auto_complete_item_list.clear()
 	
 	tag_search_dictionary.clear()
@@ -201,14 +191,10 @@ func clear_all_items() -> void:
 	list_order_array.clear()
 
 
-func close_add() -> void: # Unused
-	add_auto_complete_node.hide()
-
-
-func timer_timeout() -> void:
-	auto_com_line_edit.editable = true
-
-
 func close_instance() -> void:
 	if not search_queue.is_empty():
 		tagger.tag_holder.remove_from_api_prio_queue(search_queue, self, 50)
+
+
+func hide_autocompleter() -> void:
+	quick_search.hide()

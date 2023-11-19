@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://cp2je846gropp"]
+
+[ext_resource type="Script" path="res://Scripts/sites_tool_script.gd" id="1_54c8k"]
+
+[node name="SitesTool" type="MarginContainer"]
+offset_right = 768.0
+offset_bottom = 640.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+
+[node name="AllElementsVBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+script = ExtResource("1_54c8k")

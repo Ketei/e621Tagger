@@ -32,5 +32,5 @@ func parent_clicked(index: int, at_position: Vector2, mouse_button_index: int) -
 			suggestions_items_pop_up_menu.set_item_disabled(suggestions_items_pop_up_menu.get_item_index(1), false)
 			suggestions_items_pop_up_menu.set_item_disabled(suggestions_items_pop_up_menu.get_item_index(0), true)
 		
-		suggestions_items_pop_up_menu.position = at_position + Vector2(216, 280)
+		suggestions_items_pop_up_menu.position = at_position + global_position
 		suggestions_items_pop_up_menu.show()

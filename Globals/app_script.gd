@@ -7,7 +7,7 @@ extends Control
 @onready var settings = $Settings
 @onready var tag_creator = $TagCreator
 @onready var tag_reviewer = $"TagReviewer"
-@onready var tag_category_searcher = $TagCategorySearcher
+@onready var tools_window = $Tools
 @onready var wiki = $Wiki
 @onready var splash_screen_texture: TextureRect = $SplashScreenTexture
 
@@ -52,7 +52,7 @@ func trigger_options(id: int) -> void:
 		settings.visible = false
 		tag_creator.visible = false
 		tag_reviewer.hide()
-		tag_category_searcher.hide()
+		tools_window.hide()
 		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, false) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -66,7 +66,7 @@ func trigger_options(id: int) -> void:
 		tag_creator.visible = false
 		list_loader.hide()
 		tag_reviewer.hide()
-		tag_category_searcher.hide()
+		tools_window.hide()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
@@ -78,7 +78,7 @@ func trigger_options(id: int) -> void:
 		settings.visible = false
 		tag_creator.visible = false
 		tag_reviewer.hide()
-		tag_category_searcher.hide()
+		tools_window.hide()
 		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -91,7 +91,7 @@ func trigger_options(id: int) -> void:
 		list_loader.visible = false
 		tag_creator.visible = false
 		tag_reviewer.hide()
-		tag_category_searcher.hide()
+		tools_window.hide()
 		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -104,7 +104,7 @@ func trigger_options(id: int) -> void:
 		list_loader.visible = false
 		tag_creator.visible = false
 		settings.visible = false
-		tag_category_searcher.hide()
+		tools_window.hide()
 		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
@@ -124,14 +124,14 @@ func trigger_options(id: int) -> void:
 		menu_bar.set_menu_hidden(3, true) # Review
 		menu_bar.set_menu_hidden(4, true) # Wiki
 		menu_bar.set_menu_hidden(5, true) # Settings
-		tag_category_searcher.show()
+		tools_window.show()
 		
 	elif id == 4:
 		tagger.visible = false
 		list_loader.visible = false
 		settings.visible = false
 		tag_reviewer.hide()
-		tag_category_searcher.hide()
+		tools_window.hide()
 		wiki.hide_node()
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, false) # Tag Creator
@@ -182,7 +182,7 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-
+		
 		Tagger.settings.save()
 		Tagger.site_settings.save()
 		Tagger.settings_lists.save()

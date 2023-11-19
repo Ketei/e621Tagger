@@ -7,17 +7,18 @@ extends Resource
 @export var relation_paths: Dictionary = {}
 
 
-static func load_database() -> TagManager:
+static func load_database(implications_path: String) -> TagManager:
 	var _relation_return: TagManager = TagManager.new()
 	
-	for external_resource in DirAccess.get_files_at(Tagger.implications_path):
+	for external_resource in DirAccess.get_files_at(implications_path):
 		if external_resource.get_extension() != "tres":
 			continue
 		
-		var _resource: ImplicationDictionary = ResourceLoader.load(Tagger.implications_path + external_resource, "ImplicationDictionary")
+		var _resource: ImplicationDictionary = ResourceLoader.load(implications_path + external_resource, "ImplicationDictionary")
+		
 		if _resource:
 			_relation_return.relation_database[_resource.implication_index] = _resource.tag_implications
-			_relation_return.relation_paths[_resource.implication_index] = Tagger.implications_path + external_resource
+			_relation_return.relation_paths[_resource.implication_index] = implications_path + external_resource
 	
 	return _relation_return
 
@@ -64,14 +65,20 @@ func recreate_implications() -> void:
 	
 	for tag in DirAccess.get_files_at(Tagger.tags_path):
 		
-		if not sorted_files.has(tag.left(1).to_lower()):
-			sorted_files[tag.left(1).to_lower()] = []
+		var tag_file: Tag = ResourceLoader.load(Tagger.tags_path + tag, "Tag")
 		
-		sorted_files[tag.left(1).to_lower()].append(tag)
-		
+		if tag_file:
+			if tag_file.file_name != tag:
+				tag_file.file_name = tag
+				tag_file.save()
+			
+			if not sorted_files.has(tag.left(1).to_lower()):
+				sorted_files[tag.left(1).to_lower()] = []
+			
+			sorted_files[tag.left(1).to_lower()].append(tag)
 		
 	for chara in sorted_files.keys():
-		var _implication: ImplicationDictionary
+		var _implication: ImplicationDictionary = null
 		
 		if relation_paths.has(chara):
 			_implication = ResourceLoader.load(relation_paths[chara])

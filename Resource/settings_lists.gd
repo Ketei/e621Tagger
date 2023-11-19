@@ -532,11 +532,39 @@ extends Resource
 
 @export var constant_tags: Array[String] = []
 
-@export var loader_blacklist: Array[String] = []
+@export var loader_blacklist: Array[String] = [
+		"hi res",
+		"digital media (artwork)",
+		"2023",
+		"conditional dnp",
+		]
 
-@export var suggestion_review_blacklist: Array[String] = ["comic"]
-@export var samples_blacklist: Array[String] = ["comic"]
+@export var suggestion_review_blacklist: Array[String] = [
+		"comic",
+		"rating:questionable",
+		"rating:safe"
+		]
 
+@export var samples_blacklist: Array[String] = [
+		"comic",
+		"ambiguous gender",
+		"female",
+		"rating:safe",
+		"rating:questionable",
+		"herm",
+		"andromorph",
+		"maleherm",
+		"comic",
+		]
+
+@export var shortcuts: Dictionary = {}
+
+@export var tag_types: Dictionary = {
+	"color": ["black", "blue", "brown", "green", "grey", "orange", "pink", "purple", "red", "tan", "teal", "white", "yellow"],
+	"body-type": ["anthro", "semi-anthro", "feral", "human", "humanoid", "taur"],
+	"orifice": ["ass", "cloaca", "mouth", "pussy", "slit", "uterus"],
+	"gender": ["male", "female", "andromorph", "gynomorph", "herm", "maleherm"]
+}
 
 static func load_database() -> SettingLists:
 	if ResourceLoader.exists("user://settings_lists.tres"):

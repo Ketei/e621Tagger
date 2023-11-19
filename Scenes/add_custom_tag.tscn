@@ -1,0 +1,123 @@
+[gd_scene load_steps=2 format=3 uid="uid://dtplrc3b5b4i3"]
+
+[ext_resource type="Script" path="res://Scripts/add_custom_tag_script.gd" id="1_wvy7k"]
+
+[node name="AddCustomTag" type="Control"]
+custom_minimum_size = Vector2(384, 136)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 384.0
+offset_bottom = 136.0
+script = ExtResource("1_wvy7k")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.145098, 0.168627, 0.203922, 1)
+
+[node name="ColorRect2" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="FieldsHBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PrefixVBox" type="VBoxContainer" parent="VBoxContainer/FieldsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PrefixOptionButton" type="OptionButton" parent="VBoxContainer/FieldsHBox/PrefixVBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="CustomPrefixLineEdit" type="LineEdit" parent="VBoxContainer/FieldsHBox/PrefixVBox"]
+visible = false
+layout_mode = 2
+
+[node name="TagNameVbox" type="VBoxContainer" parent="VBoxContainer/FieldsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="TagNameLineEdit" type="Label" parent="VBoxContainer/FieldsHBox/TagNameVbox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "TagName"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="VBoxContainer/FieldsHBox/TagNameVbox/TagNameLineEdit"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = -1.0
+offset_right = 5.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.145098, 0.156863, 0.176471, 0.509804)
+
+[node name="SuffixVBox" type="VBoxContainer" parent="VBoxContainer/FieldsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SuffixOptionButton" type="OptionButton" parent="VBoxContainer/FieldsHBox/SuffixVBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="CustomSuffixLineEdit" type="LineEdit" parent="VBoxContainer/FieldsHBox/SuffixVBox"]
+visible = false
+layout_mode = 2
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/separation = 16
+
+[node name="CancelButton" type="Button" parent="VBoxContainer/ButtonsHBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Cancel"
+
+[node name="AddButton" type="Button" parent="VBoxContainer/ButtonsHBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "Add"

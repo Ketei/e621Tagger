@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cj2jifl7bcqn7"]
+
+[ext_resource type="Script" path="res://Scripts/available_sites_script.gd" id="1_er64p"]
+
+[node name="AvailableSites" type="OptionButton"]
+custom_minimum_size = Vector2(0, 28)
+offset_right = 14.0
+offset_bottom = 20.0
+size_flags_horizontal = 3
+script = ExtResource("1_er64p")

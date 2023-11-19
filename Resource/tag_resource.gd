@@ -53,7 +53,7 @@ func save() -> String:
 		if not file_name.is_valid_filename():
 			file_name = file_name.validate_filename()
 	
-	ResourceSaver.save(self, "user://database/tags/" + file_name)
+	ResourceSaver.save(self, Tagger.tags_path + file_name)
 	return file_name
 
 ## Gets the tag name appropiate for the site selected. Will be removed most likely.

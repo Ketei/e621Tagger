@@ -38,9 +38,9 @@ static func create_implication(implication_filename: String, index_string: Strin
 
 func save(save_to_local: bool = false) -> void:
 	if not save_to_local:
-		ResourceSaver.save(self, "user://database/implications/" + file_name)
+		ResourceSaver.save(self, Tagger.implications_path + file_name)
 	else:
-		ResourceSaver.save(self, "res://Database/implications/" + file_name)
+		ResourceSaver.save(self, Tagger.implications_path + file_name)
 
 
 func save_with_path(path_name: String) -> void:

@@ -93,14 +93,16 @@ func create_new_tagger(unique_name: String) -> void:
 
 func load_tags(tags_array: Array, tagger_name: String = "") -> void:
 	if tagger_name.is_empty():
-		var new_tab_name: String = "Loaded_"
+		var new_tab_name: String = "loaded_"
 		var int_value: String = str(randi_range(0, 9999))
 		
 		while instance_dictionary.has(new_tab_name + int_value):
 			int_value = str(randi_range(0, 9999))
 		
-		create_new_tagger(new_tab_name + int_value)
-		instance_dictionary[new_tab_name + int_value].load_tag_list(tags_array, true)
+		tagger_name = new_tab_name + int_value
+	
+	if instance_dictionary.has(tagger_name):
+		instance_dictionary[tagger_name].load_tag_list(tags_array, false)
 	else:
 		create_new_tagger(tagger_name)
 		instance_dictionary[tagger_name].load_tag_list(tags_array, true)
@@ -134,6 +136,9 @@ func update_menus() -> void:
 		tagger_popup_menu.set_item_disabled(
 			tagger_popup_menu.get_item_index(4),
 			true)
+		tagger_popup_menu.set_item_disabled(
+			tagger_popup_menu.get_item_index(9),
+			true)
 	else:
 		tagger_popup_menu.set_item_disabled(
 			tagger_popup_menu.get_item_index(8),
@@ -147,11 +152,14 @@ func update_menus() -> void:
 		tagger_popup_menu.set_item_disabled(
 			tagger_popup_menu.get_item_index(4),
 			false)
+		tagger_popup_menu.set_item_disabled(
+			tagger_popup_menu.get_item_index(9),
+			false)
 
 
 func can_create_instance(instance_name: String) -> bool:
-	instance_name = instance_name.strip_edges().to_lower()
-	return (not instance_dictionary.has(instance_name) and not instance_name.is_empty())
+	instance_name = instance_name.strip_edges().strip_escapes().to_lower()
+	return not instance_name.is_empty()
 
 
 func update_tag(tag_to_update: String) -> void:

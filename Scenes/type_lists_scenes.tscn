@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3 uid="uid://cuvrqmprpps48"]
+
+[ext_resource type="Script" path="res://Scripts/type_lists_tool.gd" id="1_ko6go"]
+
+[node name="TypeLists" type="VBoxContainer"]
+custom_minimum_size = Vector2(840, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+script = ExtResource("1_ko6go")
+
+[node name="AddMenu" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="KeyAdd" type="LineEdit" parent="AddMenu"]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+placeholder_text = "Key"
+alignment = 1
+max_length = 10
+select_all_on_focus = true
+
+[node name="KeyAddButton" type="Button" parent="AddMenu"]
+layout_mode = 2
+text = "Add Key"
+
+[node name="ListsVBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8

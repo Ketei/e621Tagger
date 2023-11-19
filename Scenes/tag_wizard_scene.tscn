@@ -1,0 +1,849 @@
+[gd_scene load_steps=10 format=3 uid="uid://4qhx65ld3k1q"]
+
+[ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
+[ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
+[ext_resource type="Script" path="res://Scripts/char_amount_wiz_sbx.gd" id="2_rxa8d"]
+[ext_resource type="Script" path="res://Scripts/wizard_gender_focus_script.gd" id="3_7swhf"]
+[ext_resource type="ButtonGroup" uid="uid://bt30a00t1ruw5" path="res://ButtonGroups/focus_gender_bgroup.tres" id="3_i2m3m"]
+[ext_resource type="Script" path="res://Scripts/inter_add_script.gd" id="4_4f1bk"]
+[ext_resource type="ButtonGroup" uid="uid://b2q8omqdlcld0" path="res://ButtonGroups/focus_bodytype_bgroup.tres" id="6_k7yj6"]
+[ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
+[ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
+
+[node name="TagWizard" type="Control" node_paths=PackedStringArray("artist_line_edit", "char_amount", "focus_amount", "male_check_box", "female_check_box", "ambig_check_box", "andro_check_box", "gyno_check_box", "herm_check_box", "male_herm_check_box", "male_focus_check_box", "female_focus_check_box", "ambig_focus_check_box", "andro_focus_check_box", "gyno_focus_check_box", "herm_focus_check_box", "male_focus_herm_check_box", "anthro_check_box", "semi_anthro_check_box", "feral_check_box", "human_check_box", "humanoid_check_box", "taur_check_box", "anthro_focus_check_box", "semi_focus_anthro_check_box", "feral_focus_check_box", "human_focus_check_box", "humanoid_focus_check_box", "taur_focus_check_box", "background_option_button", "completion_option_button", "color_types_option_button", "angle_option_button", "media_type_option_button", "defined_media_opt_button", "done_button", "cancel_button", "interactions_box", "fur_check_box", "scales_check_box", "feathers_check_box", "wool_check_box", "skin_check_box", "exo_check_box", "fr_by_fr_anim_chk_btn", "loops_chk_btn", "sound_chk_box", "animation_types_btn", "playtime_opt_btn", "format_opt_btn", "topwear_checkbox", "underwear_checkbox", "visible_underwear", "bottomwear_checkbox", "leg_wear_checkbox", "arm_wear_checkbox", "hand_wear_checkbox", "foot_wear_checkbox", "head_wear_checkbox")]
+custom_minimum_size = Vector2(1128, 600)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+script = ExtResource("1_itg1i")
+artist_line_edit = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ArtistHBox/LineEdit")
+char_amount = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterCountHBox/SpinBox")
+focus_amount = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterFocusHBox/FocusSpinBox")
+male_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleCheckBox")
+female_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleCheckBox")
+ambig_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox/AmbigCheckBox")
+andro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroCheckBox")
+gyno_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoCheckBox")
+herm_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermCheckBox")
+male_herm_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermCheckBox")
+male_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleFocusCheckBox")
+female_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleFocusCheckBox")
+ambig_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox/AmbigFocusCheckBox")
+andro_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroFocusCheckBox")
+gyno_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoFocusCheckBox")
+herm_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermFocusCheckBox")
+male_focus_herm_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermFocusCheckBox")
+anthro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox/AnthroCheckBox")
+semi_anthro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox/SemiAnthroCheckBox")
+feral_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox/FeralCheckBox")
+human_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox/HumanCheckBox")
+humanoid_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox/HumanoidCheckBox")
+taur_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox/TaurCheckBox")
+anthro_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox/AnthroFocusCheckBox")
+semi_focus_anthro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox/SemiAnthroFocusCheckBox")
+feral_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox/FeralFocusCheckBox")
+human_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox/HumanFocusCheckBox")
+humanoid_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox/HumanoidFocusCheckBox")
+taur_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox/TaurFocusCheckBox")
+background_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundOptionButton")
+completion_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox/CompletionOptionButton")
+color_types_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox/ColorTypesOptionButton")
+angle_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/CompletionOptionButton")
+media_type_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/MediaTypeButton")
+defined_media_opt_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/DefinedMediaOptButton")
+done_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox/DoneButton")
+cancel_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox/CancelButton")
+interactions_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/InterHBox/AllInteractions")
+fur_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/FurCheckBox")
+scales_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/ScalesCheckBox")
+feathers_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/FeathersCheckBox")
+wool_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/WoolCheckBox")
+skin_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/SkinCheckBox")
+exo_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/ExoCheckBox")
+fr_by_fr_anim_chk_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/FrByFrAnimChkBtn")
+loops_chk_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/LoopsChkBtn")
+sound_chk_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/SoundChkBox")
+animation_types_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/AnimationTypesBTN")
+playtime_opt_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/PlaytimeOptBtn")
+format_opt_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/FormatOptBtn")
+topwear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/TopwearCheckBox")
+underwear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox/UnderwearCheckBox")
+visible_underwear = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox/VisibleUnderwear")
+bottomwear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/BottomwearCheckBox")
+leg_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/LegWearCheckBox")
+arm_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/ArmWearCheckBox")
+hand_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/HandWearCheckBox")
+foot_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/FootWearCheckBox")
+head_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/HeadWearCheckBox")
+
+[node name="WizardBGRect" type="ColorRect" parent="."]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.470588, 0.513726, 0.596078, 1)
+
+[node name="WizardBGRectLight" type="ColorRect" parent="."]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="ArtistHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ArtistHBox"]
+layout_mode = 2
+text = "Artist:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LineEdit" type="LineEdit" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ArtistHBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="CharacterAmountHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox"]
+layout_mode = 2
+text = "Characters:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="CharacterCountHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterCountHBox"]
+layout_mode = 2
+text = "Amount:"
+
+[node name="SpinBox" type="SpinBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterCountHBox"]
+layout_mode = 2
+alignment = 1
+script = ExtResource("2_rxa8d")
+
+[node name="CharacterFocusHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterFocusHBox"]
+layout_mode = 2
+text = "Character focus:"
+
+[node name="FocusSpinBox" type="SpinBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterFocusHBox"]
+layout_mode = 2
+max_value = 0.0
+
+[node name="ClothingLevelHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox"]
+layout_mode = 2
+text = "Clothing:"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox"]
+layout_mode = 2
+
+[node name="TopwearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the upper body. (Hips up)"
+text = "Topwear"
+
+[node name="UnderVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+
+[node name="UnderwearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox"]
+layout_mode = 2
+tooltip_text = "Clothing intended to be worn under other clothing."
+text = "Underwear"
+
+[node name="VisibleUnderwear" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox"]
+layout_mode = 2
+text = "Visible"
+
+[node name="BottomwearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the lower body. (Hips down)"
+text = "Bottomwear"
+
+[node name="LegWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the lower body. (Hips down)"
+text = "Legwear"
+
+[node name="ArmWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the lower body. (Hips down)"
+text = "Armwear"
+
+[node name="HandWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the lower body. (Hips down)"
+text = "Gloves"
+
+[node name="FootWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the lower body. (Hips down)"
+text = "Footwear"
+
+[node name="HeadWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clothing worn on the lower body. (Hips down)"
+text = "Headwear"
+
+[node name="GenderHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox"]
+layout_mode = 2
+text = "Genders:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MaleVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="MaleCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox" node_paths=PackedStringArray("focus_checkbox", "main_checkboxes")]
+layout_mode = 2
+tooltip_text = "Male traits. No female traits visible."
+text = "Male"
+script = ExtResource("2_o35pq")
+is_main_checkbox = true
+focus_checkbox = NodePath("../MaleFocusCheckBox")
+main_checkboxes = [NodePath("."), NodePath("../../FemaleVBox/FemaleCheckBox"), NodePath("../../AmbiguousVBox/AmbigCheckBox"), NodePath("../../AndromorphVBox/AndroCheckBox"), NodePath("../../GynomorphVBox/GynoCheckBox"), NodePath("../../HermVBox/HermCheckBox"), NodePath("../../MaleHermVBox/MaleHermCheckBox")]
+
+[node name="MaleFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox" node_paths=PackedStringArray("parent_checkbox", "focused_array")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+main_checkbox = true
+parent_checkbox = NodePath("../MaleCheckBox")
+focused_array = [NodePath("."), NodePath("../../FemaleVBox/FemaleFocusCheckBox"), NodePath("../../AmbiguousVBox/AmbigFocusCheckBox"), NodePath("../../AndromorphVBox/AndroFocusCheckBox"), NodePath("../../GynomorphVBox/GynoFocusCheckBox"), NodePath("../../HermVBox/HermFocusCheckBox"), NodePath("../../MaleHermVBox/MaleHermFocusCheckBox")]
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="FemaleVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="FemaleCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+tooltip_text = "Female traits. No male traits visible."
+text = "Female"
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../FemaleFocusCheckBox")
+
+[node name="FemaleFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../FemaleCheckBox")
+
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="AmbiguousVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="AmbigCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+tooltip_text = "No gender-exclusive traits visible"
+text = "Ambiguous"
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../AmbigFocusCheckBox")
+
+[node name="AmbigFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../AmbigCheckBox")
+
+[node name="ColorRect3" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="AndromorphVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="AndroCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+tooltip_text = "Male body-type. Female genitalia ONLY."
+text = "Andromorph"
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../AndroFocusCheckBox")
+
+[node name="AndroFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../AndroCheckBox")
+
+[node name="ColorRect4" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="GynomorphVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="GynoCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+tooltip_text = "Female body-type. Male genitalia ONLY."
+text = "Gynomorph
+"
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../GynoFocusCheckBox")
+
+[node name="GynoFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../GynoCheckBox")
+
+[node name="ColorRect5" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="HermVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="HermCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+tooltip_text = "Female body-type. Male AND female genitalia"
+text = "Herm"
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../HermFocusCheckBox")
+
+[node name="HermFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../HermCheckBox")
+
+[node name="ColorRect6" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="MaleHermVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="MaleHermCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+tooltip_text = "Male body-type. Male AND female genitalia"
+text = "MaleHerm"
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../MaleHermFocusCheckBox")
+
+[node name="MaleHermFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+tooltip_text = "Is the main focus of the picture."
+disabled = true
+button_group = ExtResource("3_i2m3m")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../MaleHermCheckBox")
+
+[node name="GenderInteractionHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox"]
+layout_mode = 2
+text = "Interactions:"
+
+[node name="InterHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox"]
+layout_mode = 2
+theme_override_constants/separation = 32
+script = ExtResource("4_4f1bk")
+
+[node name="AddInteractButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/InterHBox"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+size_flags_vertical = 4
+text = "+"
+
+[node name="AllInteractions" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/InterHBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BodyTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes"]
+layout_mode = 2
+text = "Body Types:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyTypesHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AnthroVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+layout_mode = 2
+
+[node name="AnthroCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox" node_paths=PackedStringArray("focus_checkbox", "main_checkboxes")]
+layout_mode = 2
+text = "Anthro"
+alignment = 1
+script = ExtResource("2_o35pq")
+is_main_checkbox = true
+focus_checkbox = NodePath("../AnthroFocusCheckBox")
+main_checkboxes = [NodePath("."), NodePath("../../SemiAnthroVBox/SemiAnthroCheckBox"), NodePath("../../FeralVBox/FeralCheckBox"), NodePath("../../HumanVBox/HumanCheckBox"), NodePath("../../HumanoidVBox/HumanoidCheckBox"), NodePath("../../TaurVBox/TaurCheckBox")]
+
+[node name="AnthroFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox" node_paths=PackedStringArray("parent_checkbox", "focused_array")]
+layout_mode = 2
+disabled = true
+button_group = ExtResource("6_k7yj6")
+text = "Focus"
+script = ExtResource("3_7swhf")
+main_checkbox = true
+parent_checkbox = NodePath("../AnthroCheckBox")
+focused_array = [NodePath("."), NodePath("../../SemiAnthroVBox/SemiAnthroFocusCheckBox"), NodePath("../../FeralVBox/FeralFocusCheckBox"), NodePath("../../HumanVBox/HumanFocusCheckBox"), NodePath("../../HumanoidVBox/HumanoidFocusCheckBox"), NodePath("../../TaurVBox/TaurFocusCheckBox")]
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="SemiAnthroVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+layout_mode = 2
+
+[node name="SemiAnthroCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+text = "Semi-Anthro"
+alignment = 1
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../SemiAnthroFocusCheckBox")
+
+[node name="SemiAnthroFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+disabled = true
+button_group = ExtResource("6_k7yj6")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../SemiAnthroCheckBox")
+
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="FeralVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+layout_mode = 2
+
+[node name="FeralCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+text = "Feral"
+alignment = 1
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../FeralFocusCheckBox")
+
+[node name="FeralFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+disabled = true
+button_group = ExtResource("6_k7yj6")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../FeralCheckBox")
+
+[node name="ColorRect3" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="HumanVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+layout_mode = 2
+
+[node name="HumanCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+text = "Human"
+alignment = 1
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../HumanFocusCheckBox")
+
+[node name="HumanFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+disabled = true
+button_group = ExtResource("6_k7yj6")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../HumanCheckBox")
+
+[node name="ColorRect4" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="HumanoidVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+layout_mode = 2
+
+[node name="HumanoidCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+text = "Humanoid"
+alignment = 1
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../HumanoidFocusCheckBox")
+
+[node name="HumanoidFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+disabled = true
+button_group = ExtResource("6_k7yj6")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../HumanoidCheckBox")
+
+[node name="ColorRect5" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="TaurVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+layout_mode = 2
+
+[node name="TaurCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox" node_paths=PackedStringArray("focus_checkbox")]
+layout_mode = 2
+text = "Taur"
+alignment = 1
+script = ExtResource("2_o35pq")
+focus_checkbox = NodePath("../TaurFocusCheckBox")
+
+[node name="TaurFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox" node_paths=PackedStringArray("parent_checkbox")]
+layout_mode = 2
+disabled = true
+button_group = ExtResource("6_k7yj6")
+text = "Focus"
+script = ExtResource("3_7swhf")
+parent_checkbox = NodePath("../TaurCheckBox")
+
+[node name="BodyPropertiesHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox"]
+layout_mode = 2
+text = "Body Properties:"
+
+[node name="CheckHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FurCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+layout_mode = 2
+text = "Fur"
+
+[node name="ScalesCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+layout_mode = 2
+text = "Scales"
+
+[node name="FeathersCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+layout_mode = 2
+text = "Feathers"
+
+[node name="WoolCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+layout_mode = 2
+text = "Wool"
+
+[node name="SkinCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+layout_mode = 2
+text = "Skin
+"
+
+[node name="ExoCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+layout_mode = 2
+text = "Exoskeleton"
+
+[node name="BackgroundTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes"]
+layout_mode = 2
+text = "Background:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackgroundOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes"]
+layout_mode = 2
+tooltip_text = "Detailed: A picture where you can clearly distinguish what location it's in. (Kitchen, beach, etc.)"
+item_count = 2
+selected = 0
+popup/item_0/text = "Simple"
+popup/item_0/id = 0
+popup/item_1/text = "Detailed"
+popup/item_1/id = 1
+
+[node name="CompletionTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes"]
+layout_mode = 2
+text = "Completion:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CompletionOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox"]
+layout_mode = 2
+item_count = 4
+selected = 0
+popup/item_0/text = ""
+popup/item_0/id = 3
+popup/item_1/text = "Sketch"
+popup/item_1/id = 0
+popup/item_2/text = "Line art"
+popup/item_2/id = 1
+popup/item_3/text = "Shaded"
+popup/item_3/id = 2
+
+[node name="ColorTypesOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox"]
+layout_mode = 2
+item_count = 2
+selected = 0
+popup/item_0/text = "Monochrome"
+popup/item_0/id = 0
+popup/item_1/text = "Colored"
+popup/item_1/id = 1
+
+[node name="AngleTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes"]
+layout_mode = 2
+text = "View:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CompletionOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox"]
+layout_mode = 2
+item_count = 6
+selected = 0
+popup/item_0/text = "Front"
+popup/item_0/id = 0
+popup/item_1/text = "Three-quarters"
+popup/item_1/id = 1
+popup/item_2/text = "Side"
+popup/item_2/id = 2
+popup/item_3/text = "Rear"
+popup/item_3/id = 3
+popup/item_4/text = "High-angle"
+popup/item_4/id = 4
+popup/item_5/text = "Low-angle"
+popup/item_5/id = 5
+
+[node name="MediaTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes"]
+layout_mode = 2
+text = "Media:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MediaTypeButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox" node_paths=PackedStringArray("defined_options")]
+layout_mode = 2
+size_flags_vertical = 4
+item_count = 4
+selected = 0
+popup/item_0/text = "Digital"
+popup/item_0/id = 0
+popup/item_1/text = "Traditional"
+popup/item_1/id = 1
+popup/item_2/text = "Photography"
+popup/item_2/id = 2
+popup/item_3/text = "Animated"
+popup/item_3/id = 3
+script = ExtResource("7_li4an")
+defined_options = NodePath("../DefinedMediaOptButton")
+
+[node name="DefinedMediaOptButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="AnimationsVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox"]
+layout_mode = 2
+
+[node name="AnimationsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="FrByFrAnimChkBtn" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
+layout_mode = 2
+size_flags_horizontal = 2
+tooltip_text = "An animated file that was created by hand-drawing each individual frames."
+theme = ExtResource("9_pvv55")
+text = "Frame by frame"
+
+[node name="LoopsChkBtn" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
+layout_mode = 2
+size_flags_horizontal = 6
+tooltip_text = "An animation designed to repeat itself indefinitely by ending exactly at the starting point."
+theme = ExtResource("9_pvv55")
+text = "Loops"
+
+[node name="SoundChkBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Has sound"
+
+[node name="Animations2HBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AnimationTypesBTN" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Motion Tweening: 2d ONLY"
+theme = ExtResource("9_pvv55")
+item_count = 5
+selected = 0
+popup/item_0/text = ""
+popup/item_0/id = 0
+popup/item_1/text = "wiggle stereogram"
+popup/item_1/id = 1
+popup/item_2/text = "subtle animation"
+popup/item_2/id = 2
+popup/item_3/text = "turntable (animation)"
+popup/item_3/id = 3
+popup/item_4/text = "motion tweening"
+popup/item_4/id = 4
+
+[node name="PlaytimeOptBtn" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Short: Less than 30s
+Long: More than 30s"
+theme = ExtResource("9_pvv55")
+item_count = 2
+selected = 0
+popup/item_0/text = "short playtime"
+popup/item_0/id = 0
+popup/item_1/text = "long playtime"
+popup/item_1/id = 1
+
+[node name="FormatOptBtn" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 3
+selected = 0
+popup/item_0/text = "GIF"
+popup/item_0/id = 0
+popup/item_1/text = "WEBM"
+popup/item_1/id = 1
+popup/item_2/text = "Animated PNG"
+popup/item_2/id = 2
+
+[node name="FinishButtonsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox"]
+custom_minimum_size = Vector2(256, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="DoneButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Done"
