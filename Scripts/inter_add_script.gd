@@ -1,6 +1,6 @@
-extends HBoxContainer
+extends ScrollContainer
 
-@onready var add_interact_button: Button = $AddInteractButton
+@export var add_interact_button: Button
 @onready var all_interactions: HBoxContainer = $AllInteractions
 
 var interaction_scene = preload("res://Scenes/interact_selection_item_scene.tscn")

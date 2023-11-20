@@ -3,7 +3,10 @@ extends Control
 
 signal wizard_tags_created(tags_array)
 
+@export var items_scroll_container: ScrollContainer
 @export var artist_line_edit: LineEdit
+@export var known_artist_chkbtn: CheckButton
+@export var work_year: SpinBox
 
 @export var char_amount: SpinBox
 @export var focus_amount: SpinBox
@@ -39,9 +42,13 @@ signal wizard_tags_created(tags_array)
 @export var taur_focus_check_box: CheckBox
 
 @export var background_option_button: OptionButton
+@export var background_dets_option_button: OptionButton
+@export var daytime_option_button: OptionButton
 
 @export var completion_option_button: OptionButton
 @export var color_types_option_button: OptionButton
+@export var is_shaded_checkbox: CheckBox
+@export var shaded_style_optbtn: OptionButton
 
 @export var angle_option_button: OptionButton
 
@@ -76,7 +83,10 @@ signal wizard_tags_created(tags_array)
 @export var hand_wear_checkbox: CheckBox
 @export var foot_wear_checkbox: CheckBox
 @export var head_wear_checkbox: CheckBox
+@export var collar_checkbox: CheckBox
 
+@export var is_comic: CheckButton
+@export var has_multiple_scenes: CheckBox
 
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
@@ -87,10 +97,16 @@ var suggestions_types: Array = []
 func _ready():
 	done_button.pressed.connect(create_basic_tags)
 	cancel_button.pressed.connect(cancel_button_pressed)
+	items_scroll_container.set_deferred("scroll_vertical", 0)
 
 
 func magic_clean() -> void:
+	items_scroll_container.scroll_vertical = 0
+	is_comic.button_pressed = false
+	has_multiple_scenes.set_pressed_no_signal(false)
 	artist_line_edit.clear()
+	known_artist_chkbtn.button_pressed = true
+	work_year.set_art_year()
 	char_amount.value = 0
 	male_check_box.set_pressed_no_signal(false)
 	female_check_box.set_pressed_no_signal(false)
@@ -126,6 +142,7 @@ func magic_clean() -> void:
 	taur_focus_check_box.set_pressed_no_signal(false)
 	
 	background_option_button.select(0)
+	background_dets_option_button.select(0)
 	completion_option_button.select(0)
 	color_types_option_button.select(0)
 	angle_option_button.select(0)
@@ -145,14 +162,32 @@ func magic_clean() -> void:
 	playtime_opt_btn.select(0)
 	format_opt_btn.select(0)
 	
+	topwear_checkbox.set_pressed_no_signal(false)
+	underwear_checkbox.set_pressed_no_signal(false)
+	visible_underwear.set_pressed_no_signal(false)
+	bottomwear_checkbox.set_pressed_no_signal(false)
+	leg_wear_checkbox.set_pressed_no_signal(false)
+	arm_wear_checkbox.set_pressed_no_signal(false)
+	hand_wear_checkbox.set_pressed_no_signal(false)
+	foot_wear_checkbox.set_pressed_no_signal(false)
+	head_wear_checkbox.set_pressed_no_signal(false)
+	collar_checkbox.set_pressed_no_signal(false)
+	
+	is_shaded_checkbox.button_pressed = false
+	
 	media_type_option_button.selected = 0
 
 
 func create_basic_tags() -> void:
 	var return_array: Array = []
-
-	if not artist_line_edit.text.strip_edges().is_empty():
-		return_array.append(artist_line_edit.text)
+	
+	if known_artist_chkbtn.button_pressed:
+		if not artist_line_edit.text.strip_edges().is_empty():
+			return_array.append(artist_line_edit.text)
+	else:
+		return_array.append("unknown artist")
+	
+	return_array.append(str(work_year.value))
 	
 	if char_amount.value == 0:
 		return_array.append("zero pictured")
@@ -244,9 +279,24 @@ func create_basic_tags() -> void:
 			return_array.append(child.final_selection)
 	
 	return_array.append(background_types[background_option_button.selected])
+	return_array.append(background_dets_option_button.get_item_text(
+			background_dets_option_button.selected).to_lower())
+			
+	if daytime_option_button.selected != 0:
+		return_array.append(daytime_option_button.get_item_text(
+				daytime_option_button.selected).to_lower())
 	
-	if completion_option_button.selected == 3: # Shaded
-			return_array.append("shaded")
+	if is_shaded_checkbox.button_pressed:
+		return_array.append("shaded")
+		if shaded_style_optbtn.selected != 0:
+			return_array.append(
+					shaded_style_optbtn.get_item_text(
+							shaded_style_optbtn.selected).to_lower())
+	
+	if completion_option_button.selected == 3: # Lineless
+		return_array.append("lineless")
+		if color_types_option_button.selected == 1:
+			return_array.append("flat colors")
 	
 	if completion_option_button.selected == 2: # Lineart
 		if color_types_option_button.selected == 1:
@@ -267,8 +317,14 @@ func create_basic_tags() -> void:
 	elif color_types_option_button.selected == 2: # Colored
 		if completion_option_button.selected == 1:
 			return_array.append("colored sketch")
+		elif completion_option_button.selected == 2 or completion_option_button.selected == 3:
+			if not is_shaded_checkbox.button_pressed:
+				return_array.append("flat colors")
 	
-	return_array.append(angle_types[angle_option_button.selected])
+	if angle_option_button.selected != 0:
+		return_array.append(
+			angle_types[angle_option_button.selected - 1]
+		)
 	
 	return_array.append(media_types[media_type_option_button.selected])
 	
@@ -280,9 +336,10 @@ func create_basic_tags() -> void:
 		if sound_chk_box.button_pressed:
 			return_array.append("sound")
 		
-		var anim_type: String = animation_types_btn.get_item_text(animation_types_btn.selected).to_lower()
-		if not anim_type.is_empty():
-			return_array.append(anim_type)
+		if animation_types_btn.selected != 0:
+			return_array.append(
+					animation_types_btn.get_item_text(
+							animation_types_btn.selected).to_lower())
 		
 		return_array.append(playtime_opt_btn.get_item_text(playtime_opt_btn.selected).to_lower())
 		if format_opt_btn.selected == 1:
@@ -307,6 +364,11 @@ func create_basic_tags() -> void:
 	
 	for cloth_tag in calculate_clothing_level():
 		return_array.append(cloth_tag)
+	
+	if is_comic.button_pressed:
+		return_array.append("comic")
+	if has_multiple_scenes.button_pressed:
+		return_array.append("multiple scenes")
 	
 	wizard_tags_created.emit(return_array)
 
@@ -345,17 +407,21 @@ func calculate_clothing_level() -> Array:
 		clothing_score += 1
 		clothing_array.append("headwear")
 		clothing_array.append("headgear")
+	if collar_checkbox.button_pressed:
+		clothing_score += 1
+		clothing_array.append("collar")
+		suggestions_types.append("*color* collar")
 	
-	if 0 < clothing_score and clothing_score < 6:
+	if 0 < clothing_score and clothing_score < 10:
 		clothing_array.append("mostly nude")
-	elif 20 < clothing_score and clothing_score < 26:
+	elif 20 < clothing_score and clothing_score < 30:
 		clothing_array.append("mostly clothed")
 	
 	if clothing_score == 0:
 		clothing_array.append("nude")
-	elif 0 < clothing_score and clothing_score < 26:
+	elif 0 < clothing_score and clothing_score < 30:
 		clothing_array.append("partially clothed")
-	elif 25 < clothing_score:
+	elif 30 <= clothing_score:
 		clothing_array.append("fully clothed")
 	
 	if bottomwear_checkbox.button_pressed\
@@ -364,10 +430,6 @@ func calculate_clothing_level() -> Array:
 		clothing_array.append("topless")
 		clothing_array.append("no underwear")
 
-	if underwear_checkbox.button_pressed\
-	and not topwear_checkbox.button_pressed\
-	and not bottomwear_checkbox.button_pressed:
-		clothing_array.append("underwear_only")
 	
 	if not topwear_checkbox.button_pressed\
 	and underwear_checkbox.button_pressed\
@@ -389,6 +451,17 @@ func calculate_clothing_level() -> Array:
 	and topwear_checkbox.button_pressed:
 		clothing_array.append("pantsless")
 	
+	if underwear_checkbox.button_pressed and clothing_score == 10:
+		clothing_array.append("underwear_only")
+	elif clothing_score == 1 and collar_checkbox.button_pressed:
+		clothing_array.append("collar only")
+	elif foot_wear_checkbox.button_pressed and clothing_score == 1:
+		clothing_array.append("footwear only")
+	elif hand_wear_checkbox.button_pressed and clothing_score == 1:
+		clothing_array.append("gloves only")
+	elif head_wear_checkbox.button_pressed and clothing_score == 1:
+		clothing_array.append("headwear only")
+
 	return clothing_array
 
 
