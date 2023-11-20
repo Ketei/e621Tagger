@@ -2202,6 +2202,7 @@ visible = false
 layout_mode = 2
 
 [node name="Settings" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -2424,6 +2425,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Old name"
 alignment = 1
+select_all_on_focus = true
 caret_blink = true
 
 [node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesLineEdits"]
@@ -2435,6 +2437,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "New name"
 alignment = 1
+select_all_on_focus = true
 caret_blink = true
 
 [node name="AliasesButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
@@ -2472,6 +2475,7 @@ script = ExtResource("14_aa6rg")
 layout_mode = 2
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Invalid tags"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="InvalidItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
@@ -2491,6 +2495,7 @@ layout_mode = 2
 tooltip_text = "When loading a tag list, these tags won't be loaded."
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Load blacklist"
+select_all_on_focus = true
 
 [node name="LoadBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/LoadBlacklist"]
 layout_mode = 2
@@ -2506,6 +2511,7 @@ script = ExtResource("15_sobiw")
 layout_mode = 2
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Suggestion blacklist"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="BlackList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
@@ -2531,6 +2537,7 @@ layout_mode = 2
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Constants"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
@@ -2548,6 +2555,7 @@ script = ExtResource("17_g6q24")
 layout_mode = 2
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Review blacklist"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/BlacklistReview"]
@@ -2566,6 +2574,7 @@ layout_mode = 2
 tooltip_text = "Add a tag to be blacklisted when downloading samples on tag creation"
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Sample Blacklist"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="SampleBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ImgDownloadBlacklist"]
@@ -2918,7 +2927,6 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

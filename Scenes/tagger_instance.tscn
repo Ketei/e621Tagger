@@ -195,6 +195,8 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Add Tag"
+select_all_on_focus = true
+caret_blink = true
 
 [node name="OpenAutoCompleteBTN" type="Button" parent="HBoxContainer/InputTags/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
