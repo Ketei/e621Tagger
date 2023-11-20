@@ -22,6 +22,8 @@ enum Categories {
 	ACCESSORIES,
 	PROFESSION,
 	META,
+	LOCATION,
+	FURNITURE
 }
 
 enum Sites {
