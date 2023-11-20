@@ -19,8 +19,8 @@ const simple_bacground: Array = [
 ]
 
 const detailed_background: Array = [
-	"inside",
-	"outside"
+	"Inside",
+	"Outside"
 ]
 
 

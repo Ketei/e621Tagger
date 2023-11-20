@@ -85,7 +85,7 @@ custom_minimum_size = Vector2(1200, 600)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1280.0
-offset_bottom = 720.0
+offset_bottom = 808.0
 script = ExtResource("1_itg1i")
 items_scroll_container = NodePath("MarginContainer/ScrollContainer")
 artist_line_edit = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox/ArtistLineHBox/LineEdit")
@@ -220,7 +220,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox"]
 layout_mode = 2
-text = "Artist:"
+text = "Artist"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -267,7 +267,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox"]
 layout_mode = 2
-text = "Characters:"
+text = "Characters"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -307,8 +307,8 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox"]
 layout_mode = 2
-text = "Properly
-worn clothing"
+text = "Properly worn
+clothing"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox"]
 layout_mode = 2
@@ -411,7 +411,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox"]
 layout_mode = 2
-text = "Genders:"
+text = "Genders"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -599,7 +599,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/LabelButtonHBox"]
 layout_mode = 2
-text = "Gender interactions:"
+text = "Gender interactions"
 
 [node name="AddInteractButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/LabelButtonHBox"]
 custom_minimum_size = Vector2(32, 0)
@@ -625,7 +625,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes"]
 layout_mode = 2
-text = "Body Types:"
+text = "Body Types"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -776,7 +776,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox"]
 layout_mode = 2
-text = "Body Properties:"
+text = "Body Properties"
 
 [node name="CheckHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox"]
 layout_mode = 2
@@ -813,7 +813,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes"]
 layout_mode = 2
-text = "Background:"
+text = "Background"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -852,7 +852,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes"]
 layout_mode = 2
-text = "Completion:"
+text = "Completion"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -909,7 +909,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes"]
 layout_mode = 2
-text = "View:"
+text = "View"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -947,7 +947,7 @@ theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes"]
 layout_mode = 2
-text = "Media:"
+text = "Media"
 horizontal_alignment = 1
 vertical_alignment = 1
 

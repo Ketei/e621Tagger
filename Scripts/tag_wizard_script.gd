@@ -183,7 +183,7 @@ func create_basic_tags() -> void:
 	
 	if known_artist_chkbtn.button_pressed:
 		if not artist_line_edit.text.strip_edges().is_empty():
-			return_array.append(artist_line_edit.text)
+			return_array.append(artist_line_edit.text.to_lower())
 	else:
 		return_array.append("unknown artist")
 	
@@ -362,8 +362,9 @@ func create_basic_tags() -> void:
 	if exo_check_box.button_pressed:
 		suggestions_types.append("*color* exoskeleton")
 	
-	for cloth_tag in calculate_clothing_level():
-		return_array.append(cloth_tag)
+	if 0 < char_amount.value:
+		for cloth_tag in calculate_clothing_level():
+			return_array.append(cloth_tag)
 	
 	if is_comic.button_pressed:
 		return_array.append("comic")
