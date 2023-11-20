@@ -30,6 +30,10 @@ class_name TaggerInstance
 @onready var add_suggested_special = $AddSuggestedSpecial
 @onready var weezard = $Weezard
 @onready var tag_wizard: TagWizard = $Weezard/CenterContainer/TagWizard
+@onready var or_adder = $OrAdder
+@onready var suggestion_or_adder: SuggestionOrAdder = $OrAdder/CenterContainer/SuggestionOrAdder
+@onready var spinbox_adder = $SpinboxAdder
+@onready var number_tag_tool: NumberTagTool = $SpinboxAdder/CenterContainer/NumerTag
 
 
 var main_application
@@ -109,9 +113,9 @@ func _ready():
 	item_list.open_context_clicked.connect(open_context_menu)
 	suggested_list.open_context_clicked.connect(open_context_menu)
 	implied_list.open_context_clicked.connect(open_context_menu)
-	
-	
-	
+	item_list.associated_dict = tags_inputed
+	item_list.associated_array = full_tag_list
+	suggested_list.associated_array = suggestion_tags_array
 	
 
 func append_empty_tag(tag_to_append: String) -> void:
@@ -254,16 +258,18 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 			prefix_used = shortcut
 			break
 	
-	tag = tag.trim_prefix(prefix_used)
+	if not prefix_used.is_empty():
+		tag = tag.trim_prefix(prefix_used)
 	
 	if tag.is_empty(): # First check if empty
 		if add_from_signal:
 			line_edit.clear()
 		return
 	
-	var tag_array: Array = tag.split(",", false)
-	var preformat_tag: String = Tagger.settings_lists.shortcuts[prefix_used].replace("%", "{0}")
-	tag_name = preformat_tag.format(tag_array)
+	if not prefix_used.is_empty():
+		var tag_array: Array = tag.split(",", false)
+		var preformat_tag: String = Tagger.settings_lists.shortcuts[prefix_used].replace("%", "{0}")
+		tag_name = preformat_tag.format(tag_array)
 	
 	tag_name = Tagger.alias_database.get_alias(tag_name)
 	
@@ -320,8 +326,9 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		implied_list.remove_item(implied_tags_array.find(tag_name))
 		implied_tags_array.erase(tag_name)
 	
-	for suggested_tag in suggested_tags:
-		add_suggested_tag(suggested_tag)
+	if search_online:
+		for suggested_tag in suggested_tags:
+			add_suggested_tag(suggested_tag)
 	
 	if ensure_visible:
 		item_list.select(add_index)
@@ -360,11 +367,18 @@ func add_suggested_tag(tag_name: String) -> void:
 	
 	var suggested_pos: int = suggested_list.add_item(tag_name)
 	
+	if Tagger.tag_manager.has_tag(tag_name):
+		suggested_list.set_item_tooltip(
+			suggested_pos,
+			Tagger.tag_manager.get_tag(tag_name).tooltip)
 	
 	if tag_name.begins_with("*") or tag_name.ends_with("*"):
-		suggested_list.set_item_custom_bg_color(suggested_pos, Color.hex(0x2a394f))
-
-
+		suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.31, 0.145, 0.475))
+	elif tag_name.begins_with("|") and tag_name.ends_with("|"):
+		suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.078, 0.282, 0.169))
+	elif tag_name.begins_with("#"):
+		suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.467, 0.173, 0.263))
+		
 func update_parents(tag_resource: Tag) -> void:
 	if not tags_inputed.has(tag_resource.tag):
 		return
@@ -503,6 +517,7 @@ func check_minimum_requirements() -> void: #Add one call on ready
 
 func add_from_suggested(item_activated: int) -> void: # Connect to item activated
 	var _tag_text = suggested_list.get_item_text(item_activated)
+	
 	if _tag_text.begins_with("*") or _tag_text.ends_with("*"):
 		var tag_sh_key: String = add_custom_tag.get_valid_somefix(_tag_text)
 		if not _tag_text.is_empty():
@@ -510,8 +525,19 @@ func add_from_suggested(item_activated: int) -> void: # Connect to item activate
 			add_suggested_special.show()
 			_tag_text = await add_custom_tag.tag_confirmed
 			add_suggested_special.hide()
-			if _tag_text.is_empty():
-				return
+	elif _tag_text.begins_with("|") and _tag_text.ends_with("|"):
+		suggestion_or_adder.populate_menu(_tag_text)
+		or_adder.show()
+		_tag_text = await suggestion_or_adder.option_selected
+		or_adder.hide()
+	elif _tag_text.begins_with("#"):
+		number_tag_tool.set_tool(_tag_text.trim_prefix("#"))
+		spinbox_adder.show()
+		_tag_text = await number_tag_tool.number_chosen
+		spinbox_adder.hide()
+		
+	if _tag_text.is_empty():
+		return
 		
 	suggested_list.remove_item(item_activated)
 	suggestion_tags_array.remove_at(item_activated)
@@ -666,7 +692,7 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 	elif id_pressed == 2:
 		main_application.go_to_wiki(context_tag)
 	elif id_pressed == 3:
-		list_called.remove_item(called_index)
+		list_called.remove_item_from_list(called_index)
 
 
 func sort_tags_by_category() -> void:
@@ -705,7 +731,7 @@ func sort_tags_by_category() -> void:
 	clear_inputted_tags()
 	
 	for item in final_array:
-		add_new_tag(item, false, true, [], Tagger.Categories.GENERAL, false)
+		add_new_tag(item, false, false, [], Tagger.Categories.GENERAL, false)
 
 
 func tagger_menu_pressed(option_id: int) -> void:
