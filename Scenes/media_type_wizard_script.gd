@@ -12,7 +12,7 @@ var elements_array: Array = [
 			"pixel (artwork)",
 			"3d (artwork)",
 			"oekaki",
-		],
+		], # Digital
 		[
 			"colored pencil (artwork)",
 			"marker (artwork)",
@@ -26,7 +26,7 @@ var elements_array: Array = [
 			"charcoal (artwork)",
 			"engraving (artwork)",
 			"airbrush (artwork)",
-		],
+		], # Traditional
 		[""], # Photography
 		[
 			"2d animation",

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=20 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" uid="uid://cj2jifl7bcqn7" path="res://Scenes/available_sites.tscn" id="8_8loaf"]
 [ext_resource type="PackedScene" uid="uid://dtplrc3b5b4i3" path="res://Scenes/add_custom_tag.tscn" id="9_h2x7i"]
 [ext_resource type="PackedScene" uid="uid://d1sacwwwxfxpb" path="res://Scenes/tag_export_dialog.tscn" id="9_q63mv"]
+[ext_resource type="PackedScene" uid="uid://61qwtnsjohnu" path="res://Scenes/suggestion_or_adder.tscn" id="10_8knu4"]
+[ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="11_hi7i4"]
 [ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
 
 [sub_resource type="GDScript" id="GDScript_7uef3"]
@@ -101,6 +103,24 @@ func check_for_conflicts() -> void:
 
 [sub_resource type="GDScript" id="GDScript_yg50v"]
 resource_name = "autohide"
+script/source = "extends Control
+
+
+func _ready():
+	hide()
+"
+
+[sub_resource type="GDScript" id="GDScript_fw4sy"]
+resource_name = "start_hidden"
+script/source = "extends Control
+
+
+func _ready():
+	hide()
+"
+
+[sub_resource type="GDScript" id="GDScript_0bw6e"]
+resource_name = "start_hidden"
 script/source = "extends Control
 
 
@@ -575,6 +595,53 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="AddCustomTag" parent="AddSuggestedSpecial/CenterContainer" instance=ExtResource("9_h2x7i")]
+layout_mode = 2
+
+[node name="OrAdder" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 0.911111
+mouse_filter = 2
+script = SubResource("GDScript_fw4sy")
+metadata/_edit_use_anchors_ = true
+
+[node name="DimLights" type="ColorRect" parent="OrAdder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.392157)
+
+[node name="CenterContainer" type="CenterContainer" parent="OrAdder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SuggestionOrAdder" parent="OrAdder/CenterContainer" instance=ExtResource("10_8knu4")]
+layout_mode = 2
+
+[node name="SpinboxAdder" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 0.911111
+script = SubResource("GDScript_0bw6e")
+
+[node name="CenterContainer" type="CenterContainer" parent="SpinboxAdder"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NumerTag" parent="SpinboxAdder/CenterContainer" instance=ExtResource("11_hi7i4")]
 layout_mode = 2
 
 [node name="Weezard" type="Control" parent="."]
