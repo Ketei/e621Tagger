@@ -1,0 +1,65 @@
+[gd_scene load_steps=2 format=3 uid="uid://61qwtnsjohnu"]
+
+[ext_resource type="Script" path="res://Scripts/suggestion_or_adder.gd" id="1_qiiam"]
+
+[node name="SuggestionOrAdder" type="Control"]
+custom_minimum_size = Vector2(512, 72)
+layout_mode = 3
+anchor_right = 0.4
+anchor_bottom = 0.1
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qiiam")
+metadata/_edit_use_anchors_ = true
+
+[node name="EdgeColor" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.364706, 0.407843, 0.478431, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="BackgroundBase" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+alignment = 1
+
+[node name="TagsOptionButton" type="OptionButton" parent="HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="AcceptButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(128, 32)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Add"
+
+[node name="CancelButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Cancel"
