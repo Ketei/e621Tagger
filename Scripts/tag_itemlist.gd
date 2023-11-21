@@ -11,6 +11,10 @@ signal open_context_clicked(
 
 @export var can_remove: bool = false
 
+var associated_array: Array
+var associated_dict: Dictionary
+
+
 func _ready():
 	item_clicked.connect(tag_clicked)
 	empty_clicked.connect(empty_click_deselect)
@@ -31,3 +35,13 @@ func tag_clicked(index: int, at_position: Vector2, mouse_button_index: int) -> v
 func empty_click_deselect(_at_position: Vector2, _mouse_button_index: int) -> void:
 	deselect_all()
 
+
+func remove_item_from_list(item_index: int) -> void:
+	var item_text: String = get_item_text(item_index)
+	if associated_array:
+		associated_array.erase(item_text)
+	if associated_dict:
+		associated_dict.erase(item_text)
+	remove_item(item_index)
+	
+	

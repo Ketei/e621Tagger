@@ -1,5 +1,8 @@
 extends Node
 
+
+signal register_aliases(old_alias, new_alias)
+
 enum Categories {
 	GENERAL,
 	ARTIST,
@@ -22,6 +25,8 @@ enum Categories {
 	ACCESSORIES,
 	PROFESSION,
 	META,
+	LOCATION,
+	FURNITURE
 }
 
 enum Sites {
@@ -36,7 +41,7 @@ enum Notifications {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/0.9.7 (by Ketei)",
+	"User-Agent": "TaglistMaker/0.9.8 (by Ketei)",
 }
 
 

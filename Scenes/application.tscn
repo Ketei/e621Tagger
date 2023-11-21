@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=50 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -58,6 +58,17 @@ script/source = "extends Control
 func _ready():
 	hide()
 	close_button.pressed.connect(hide)
+"
+
+[sub_resource type="GDScript" id="GDScript_j0n25"]
+resource_name = "done_hideme"
+script/source = "extends Control
+
+@onready var done_aliasing_button: Button = $CenterContainer/AliasControl/VBoxContainer/InteractHBox/DoneAliasingButton
+
+func _ready():
+	hide()
+	done_aliasing_button.pressed.connect(hide)
 "
 
 [sub_resource type="GDScript" id="GDScript_j50ay"]
@@ -245,6 +256,8 @@ bg_color = Color(0.6, 0.6, 0.6, 0)
 resource_name = "settings_set_up"
 script/source = "extends Control
 
+@export var aliases_vbox: VBoxContainer
+
 @onready var strength_slider = $SettingsContainer/SettingsSets/SuggestionStrength/HSlider
 @onready var recreate_database_btn = $SettingsContainer/SettingsSets/UtilityButtons/RecreateDatabaseBtn
 @onready var str_percentage_spinbox: SpinBox = $SettingsContainer/SettingsSets/SuggestionStrength/PercentageSpinBox
@@ -319,6 +332,10 @@ func set_default_save_path(new_path: String) -> void:
 
 func show_folder_dialog() -> void:
 	default_folder_file_dialog.show()
+
+
+func register_alias(old_name: String, new_name: String) -> void:
+	aliases_vbox.add_alias(old_name, new_name, true)
 
 "
 
@@ -718,129 +735,6 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
-[node name="MenuBar" type="MenuBar" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 0.056
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 0.32
-offset_bottom = 48.0
-
-[node name="Menu" type="PopupMenu" parent="MenuBar"]
-unique_name_in_owner = true
-size = Vector2i(132, 224)
-item_count = 8
-item_0/text = "Tag list"
-item_0/id = 0
-item_1/text = "Load"
-item_1/id = 2
-item_2/text = "Wiki"
-item_2/id = 7
-item_3/text = "Create Tag"
-item_3/id = 4
-item_4/text = "Edit Tag"
-item_4/id = 5
-item_5/text = "Tools"
-item_5/id = 6
-item_6/text = "Settings"
-item_6/id = 3
-item_7/text = "Exit"
-item_7/id = 1
-
-[node name="Tagger" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(250, 251)
-hide_on_checkable_item_selection = false
-item_count = 10
-item_0/text = "New List"
-item_0/id = 7
-item_1/text = "Tagger Options"
-item_1/id = 99
-item_1/disabled = true
-item_1/separator = true
-item_2/text = "Tag Wizard"
-item_2/id = 9
-item_2/disabled = true
-item_3/text = "Sort Tags"
-item_3/id = 8
-item_3/disabled = true
-item_4/text = "Clear all"
-item_4/id = 0
-item_4/disabled = true
-item_5/text = "Clear suggestions"
-item_5/id = 1
-item_5/disabled = true
-item_6/text = "Conflicts"
-item_6/id = 4
-item_6/disabled = true
-item_7/text = "Global Options"
-item_7/id = 100
-item_7/disabled = true
-item_7/separator = true
-item_8/text = "Enable online suggestions"
-item_8/checkable = 1
-item_8/checked = true
-item_8/id = 2
-item_9/text = "Enable offline suggestions"
-item_9/checkable = 1
-item_9/checked = true
-item_9/id = 3
-
-[node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
-title = "Tag Creator"
-size = Vector2i(280, 143)
-hide_on_checkable_item_selection = false
-item_count = 4
-item_0/text = "Conflicts"
-item_0/id = 2
-item_1/text = "Options"
-item_1/id = 0
-item_1/separator = true
-item_2/text = "Clear fields"
-item_2/id = 3
-item_3/text = "Open image folder on creaton"
-item_3/checkable = 1
-item_3/checked = true
-item_3/id = 1
-
-[node name="Tag Editor" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(274, 197)
-hide_on_checkable_item_selection = false
-item_count = 6
-item_0/text = "Tags"
-item_0/id = 100
-item_0/separator = true
-item_1/text = "Reload tag"
-item_1/id = 0
-item_1/disabled = true
-item_2/text = "Tag conflicts"
-item_2/id = 1
-item_2/disabled = true
-item_3/text = "Delete Tag"
-item_3/id = 2
-item_3/disabled = true
-item_4/text = "Settings"
-item_4/id = 101
-item_4/disabled = true
-item_4/separator = true
-item_5/text = "Delete images"
-item_5/checkable = 1
-item_5/id = 3
-
-[node name="Wiki" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(123, 54)
-item_count = 2
-item_0/text = "Refresh Wiki"
-item_0/id = 0
-item_1/text = "Edit tag"
-item_1/id = 1
-item_1/disabled = true
-
-[node name="API" type="PopupMenu" parent="MenuBar"]
-item_count = 1
-item_0/text = "API key"
-item_0/id = 0
-
 [node name="NewTagger" type="Control" parent="."]
 anchors_preset = 0
 offset_top = 48.0
@@ -1170,13 +1064,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Load Tags"
 
-[node name="TagCreator" type="Control" parent="."]
+[node name="TagCreator" type="Control" parent="." node_paths=PackedStringArray("aliased_itemlist", "alias_lineedit", "alias_window_control")]
 visible = false
 layout_mode = 1
 anchor_top = 0.0666667
 anchor_right = 1.0
 anchor_bottom = 1.00278
 script = ExtResource("5_wk1wy")
+aliased_itemlist = NodePath("Aliases/CenterContainer/AliasControl/VBoxContainer/AliasedItemList")
+alias_lineedit = NodePath("Aliases/CenterContainer/AliasControl/VBoxContainer/InteractHBox/AddAliasLineEdit")
+alias_window_control = NodePath("Aliases")
 metadata/_edit_use_anchors_ = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TagCreator"]
@@ -1341,9 +1238,9 @@ metadata/_edit_use_anchors_ = true
 visible = false
 layout_mode = 0
 offset_left = 184.0
-offset_top = -58.0
+offset_top = -40.0
 offset_right = 360.0
-offset_bottom = -34.0
+offset_bottom = -8.0
 text = "Downloading Samples"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -1361,9 +1258,9 @@ visible = false
 layout_mode = 1
 anchor_top = 0.012
 anchor_bottom = 0.012
-offset_top = -7.872
+offset_top = 7.91196
 offset_right = 1280.0
-offset_bottom = 648.128
+offset_bottom = 663.912
 grow_horizontal = 2
 grow_vertical = 2
 script = SubResource("GDScript_plco6")
@@ -1426,9 +1323,9 @@ metadata/_edit_use_anchors_ = true
 visible = false
 layout_mode = 3
 anchors_preset = 0
-offset_top = -24.0
+offset_top = -8.00002
 offset_right = 40.0
-offset_bottom = 16.0
+offset_bottom = 32.0
 script = SubResource("GDScript_g08ck")
 
 [node name="DimLight" type="ColorRect" parent="TagCreator/PreviewBBCWindow"]
@@ -1479,13 +1376,81 @@ offset_right = 641.0
 offset_bottom = -1.0
 text = "X"
 
+[node name="Aliases" type="Control" parent="TagCreator"]
+visible = false
+anchors_preset = 0
+anchor_top = -0.0712164
+anchor_right = 1.0
+anchor_bottom = 0.99703
+script = SubResource("GDScript_j0n25")
+metadata/_edit_use_anchors_ = true
+
+[node name="CenterContainer" type="CenterContainer" parent="TagCreator/Aliases"]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+
+[node name="AliasControl" type="Control" parent="TagCreator/Aliases/CenterContainer"]
+custom_minimum_size = Vector2(320, 384)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="LightEdges" type="ColorRect" parent="TagCreator/Aliases/CenterContainer/AliasControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.403922, 0.443137, 0.52549, 1)
+
+[node name="DarkWindow" type="ColorRect" parent="TagCreator/Aliases/CenterContainer/AliasControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TagCreator/Aliases/CenterContainer/AliasControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="AliasedItemList" type="ItemList" parent="TagCreator/Aliases/CenterContainer/AliasControl/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InteractHBox" type="HBoxContainer" parent="TagCreator/Aliases/CenterContainer/AliasControl/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddAliasLineEdit" type="LineEdit" parent="TagCreator/Aliases/CenterContainer/AliasControl/VBoxContainer/InteractHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Add Alias"
+
+[node name="DoneAliasingButton" type="Button" parent="TagCreator/Aliases/CenterContainer/AliasControl/VBoxContainer/InteractHBox"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Done"
+
 [node name="CreatorPopUpMenu" type="PopupMenu" parent="TagCreator"]
 size = Vector2i(132, 31)
 item_count = 1
 item_0/text = "Search in Wiki"
 item_0/id = 0
 
-[node name="TagReviewer" type="Control" parent="."]
+[node name="TagReviewer" type="Control" parent="." node_paths=PackedStringArray("alias_itemlist", "add_alias_lineedit", "aliases_window")]
 visible = false
 layout_mode = 1
 anchor_left = 0.001
@@ -1497,6 +1462,9 @@ offset_top = -0.32
 offset_right = 1.0
 mouse_filter = 1
 script = ExtResource("5_o42l3")
+alias_itemlist = NodePath("Aliases/CenterContainer/AliasControl/VBoxContainer/AliasedItemList")
+add_alias_lineedit = NodePath("Aliases/CenterContainer/AliasControl/VBoxContainer/InteractHBox/AddAliasLineEdit")
+aliases_window = NodePath("Aliases")
 metadata/_edit_use_anchors_ = true
 
 [node name="TagSearcher" type="LineEdit" parent="TagReviewer"]
@@ -1780,6 +1748,78 @@ offset_right = 147.0
 offset_bottom = -145.0
 text = "x"
 
+[node name="Aliases" type="Control" parent="TagReviewer"]
+visible = false
+layout_mode = 1
+anchor_top = 0.00418911
+anchor_right = 1.0
+anchor_bottom = 1.07244
+offset_left = -1.0
+offset_top = -43.8486
+offset_right = -1.0
+offset_bottom = -43.8486
+script = SubResource("GDScript_j0n25")
+metadata/_edit_use_anchors_ = true
+
+[node name="CenterContainer" type="CenterContainer" parent="TagReviewer/Aliases"]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+
+[node name="AliasControl" type="Control" parent="TagReviewer/Aliases/CenterContainer"]
+custom_minimum_size = Vector2(320, 384)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="LightEdges" type="ColorRect" parent="TagReviewer/Aliases/CenterContainer/AliasControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.403922, 0.443137, 0.52549, 1)
+
+[node name="DarkWindow" type="ColorRect" parent="TagReviewer/Aliases/CenterContainer/AliasControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TagReviewer/Aliases/CenterContainer/AliasControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="AliasedItemList" type="ItemList" parent="TagReviewer/Aliases/CenterContainer/AliasControl/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InteractHBox" type="HBoxContainer" parent="TagReviewer/Aliases/CenterContainer/AliasControl/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddAliasLineEdit" type="LineEdit" parent="TagReviewer/Aliases/CenterContainer/AliasControl/VBoxContainer/InteractHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Add Alias"
+
+[node name="DoneAliasingButton" type="Button" parent="TagReviewer/Aliases/CenterContainer/AliasControl/VBoxContainer/InteractHBox"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Done"
+
 [node name="TextChangeTimer" type="Timer" parent="TagReviewer"]
 one_shot = true
 
@@ -2000,8 +2040,8 @@ text = "->"
 [node name="NewShortTurnsLE" type="LineEdit" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-tooltip_text = "Use \"%\" to mark where the tag needs to be inserted
-\"% (artist)\" -> \"tag (artist)\" "
+tooltip_text = "Use \"%\" to mark where the tag needs to be inserted \"% (artist)\" -> \"tag (artist)\" 
+or with {_} where _ is the number of tag inserted. \"{0} kissing {1}\" -> \"bf kissing gf\" where input was !bf,gf"
 placeholder_text = "Formatting"
 
 [node name="CreateShortcutButton" type="Button" parent="Tools/ToolsTabContainer/Prefixes/ShortcutsHBox/ShortcutsTool/HBoxContainer"]
@@ -2201,13 +2241,13 @@ metadata/_edit_use_anchors_ = true
 visible = false
 layout_mode = 2
 
-[node name="Settings" type="Control" parent="."]
-visible = false
+[node name="Settings" type="Control" parent="." node_paths=PackedStringArray("aliases_vbox")]
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
 offset_bottom = 720.0
 script = SubResource("GDScript_chh5e")
+aliases_vbox = NodePath("SettingsContainer/SettingsSets/Aliases")
 
 [node name="SettingsContainer" type="HBoxContainer" parent="Settings"]
 layout_mode = 0
@@ -2425,6 +2465,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Old name"
 alignment = 1
+select_all_on_focus = true
 caret_blink = true
 
 [node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/Aliases/AliasesLineEdits"]
@@ -2436,6 +2477,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "New name"
 alignment = 1
+select_all_on_focus = true
 caret_blink = true
 
 [node name="AliasesButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
@@ -2473,6 +2515,7 @@ script = ExtResource("14_aa6rg")
 layout_mode = 2
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Invalid tags"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="InvalidItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/InvalidTags"]
@@ -2492,6 +2535,7 @@ layout_mode = 2
 tooltip_text = "When loading a tag list, these tags won't be loaded."
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Load blacklist"
+select_all_on_focus = true
 
 [node name="LoadBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/LoadBlacklist"]
 layout_mode = 2
@@ -2507,6 +2551,7 @@ script = ExtResource("15_sobiw")
 layout_mode = 2
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Suggestion blacklist"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="BlackList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/TopBlacklists/SuggestionBlacklist"]
@@ -2532,6 +2577,7 @@ layout_mode = 2
 tooltip_text = "A constant tag is a tag that will always be included in the final tag list. They are always added last."
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Constants"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="ConstantsItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ConstantList"]
@@ -2549,6 +2595,7 @@ script = ExtResource("17_g6q24")
 layout_mode = 2
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Review blacklist"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="SuggBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/BlacklistReview"]
@@ -2567,6 +2614,7 @@ layout_mode = 2
 tooltip_text = "Add a tag to be blacklisted when downloading samples on tag creation"
 theme = ExtResource("8_rcl5d")
 placeholder_text = "Sample Blacklist"
+select_all_on_focus = true
 caret_blink = true
 
 [node name="SampleBlacklistItemList" type="ItemList" parent="Settings/SettingsContainer/SettingsLists/SmallLists/ImgDownloadBlacklist"]
@@ -2804,7 +2852,7 @@ alignment = 1
 modulate = Color(0.113725, 0.133333, 0.164706, 0.588235)
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "v 0.9.7"
+text = "v 0.9.8"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -2918,7 +2966,140 @@ file_mode = 2
 access = 2
 script = ExtResource("32_3ueat")
 
+[node name="MenuBar" type="MenuBar" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.056
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 321.32
+offset_bottom = 48.0
+
+[node name="Menu" type="PopupMenu" parent="MenuBar"]
+unique_name_in_owner = true
+size = Vector2i(132, 224)
+item_count = 8
+item_0/text = "Tag list"
+item_0/id = 0
+item_1/text = "Load"
+item_1/id = 2
+item_2/text = "Wiki"
+item_2/id = 7
+item_3/text = "Create Tag"
+item_3/id = 4
+item_4/text = "Edit Tag"
+item_4/id = 5
+item_5/text = "Tools"
+item_5/id = 6
+item_6/text = "Settings"
+item_6/id = 3
+item_7/text = "Exit"
+item_7/id = 1
+
+[node name="Tagger" type="PopupMenu" parent="MenuBar"]
+size = Vector2i(250, 251)
+hide_on_checkable_item_selection = false
+item_count = 11
+item_0/text = "New List"
+item_0/id = 7
+item_1/text = "Tagger Options"
+item_1/id = 99
+item_1/disabled = true
+item_1/separator = true
+item_2/text = "Tag Wizard"
+item_2/id = 9
+item_2/disabled = true
+item_3/text = ""
+item_3/id = 101
+item_3/disabled = true
+item_3/separator = true
+item_4/text = "Sort Tags"
+item_4/id = 8
+item_4/disabled = true
+item_5/text = "Clear all"
+item_5/id = 0
+item_5/disabled = true
+item_6/text = "Clear suggestions"
+item_6/id = 1
+item_6/disabled = true
+item_7/text = "Conflicts"
+item_7/id = 4
+item_7/disabled = true
+item_8/text = "Global Options"
+item_8/id = 100
+item_8/disabled = true
+item_8/separator = true
+item_9/text = "Enable online suggestions"
+item_9/checkable = 1
+item_9/checked = true
+item_9/id = 2
+item_10/text = "Enable offline suggestions"
+item_10/checkable = 1
+item_10/checked = true
+item_10/id = 3
+
+[node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
+title = "Tag Creator"
+size = Vector2i(271, 123)
+hide_on_checkable_item_selection = false
+item_count = 5
+item_0/text = "Tag aliases"
+item_0/id = 4
+item_1/text = "Conflicts"
+item_1/id = 2
+item_2/text = "Options"
+item_2/id = 0
+item_2/separator = true
+item_3/text = "Clear fields"
+item_3/id = 3
+item_4/text = "Open image folder on creaton"
+item_4/checkable = 1
+item_4/checked = true
+item_4/id = 1
+
+[node name="Tag Editor" type="PopupMenu" parent="MenuBar"]
+size = Vector2i(274, 197)
+hide_on_checkable_item_selection = false
+item_count = 7
+item_0/text = "Tags"
+item_0/id = 100
+item_0/separator = true
+item_1/text = "Reload tag"
+item_1/id = 0
+item_1/disabled = true
+item_2/text = "Tag conflicts"
+item_2/id = 1
+item_2/disabled = true
+item_3/text = "Delete Tag"
+item_3/id = 2
+item_3/disabled = true
+item_4/text = "Tag Aliases"
+item_4/id = 4
+item_4/disabled = true
+item_5/text = "Settings"
+item_5/id = 101
+item_5/disabled = true
+item_5/separator = true
+item_6/text = "Delete images"
+item_6/checkable = 1
+item_6/id = 3
+
+[node name="Wiki" type="PopupMenu" parent="MenuBar"]
+size = Vector2i(123, 54)
+item_count = 2
+item_0/text = "Refresh Wiki"
+item_0/id = 0
+item_1/text = "Edit tag"
+item_1/id = 1
+item_1/disabled = true
+
+[node name="API" type="PopupMenu" parent="MenuBar"]
+item_count = 1
+item_0/text = "API key"
+item_0/id = 0
+
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

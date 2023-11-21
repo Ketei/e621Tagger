@@ -3,6 +3,10 @@ extends Control
 signal _finished_loading_local()
 signal tag_updated
 
+@export var alias_itemlist: ItemList
+@export var add_alias_lineedit: LineEdit
+@export var aliases_window: Control
+
 @onready var tag_searcher = $TagSearcher
 @onready var tag_search_button = $TagSearcher/TagSearchButton
 @onready var name_line: LineEdit = $NameLine
@@ -47,6 +51,8 @@ var is_downloading_samples: bool = false:
 		downloading_samples_label.visible = is_downloading_samples
 var delete_with_folder: bool = false
 
+var tag_aliases_array: Array = []
+
 
 func _ready():
 	hide()
@@ -86,11 +92,84 @@ func _ready():
 	parents_item_list.search_for_tag.connect(search_for_tag)
 	
 	add_parent_line_edit.text_submitted.connect(add_parent)
+	alias_itemlist.item_activated.connect(remove_alias)
+	add_alias_lineedit.text_submitted.connect(add_tag_alias)
 
 
-func preview_bcc() -> void:
-	rich_text_label.text = wiki_edit.text
-	preview_bbc_window.show()
+func search_for_tag(new_text: String) -> void:
+	if new_text.is_empty():
+		clear_and_disable()
+		return
+	
+	new_text = new_text.to_lower().strip_edges()
+	new_text = Tagger.alias_database.get_alias(new_text)
+	
+	if not Tagger.tag_manager.has_tag(new_text):
+		clear_and_disable()
+		return
+	
+	conflicts_array.clear()
+	conflicts_item_list.clear()
+	
+	parents.clear()
+	parents_item_list.clear()
+	
+	tag_suggestion_list.clear()
+	suggestions_array.clear()
+	tag_suggestion_line_edit.clear()
+	
+	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
+
+	name_line.text = _tag.tag
+	categories_menu.select(_tag.category)
+
+	for parent_tag in _tag.parents:
+		parents.append(parent_tag)
+		parents_item_list.add_item(parent_tag)
+	
+	for suggested_tag in _tag.suggestions:
+		suggestions_array.append(suggested_tag)
+		tag_suggestion_list.add_item(suggested_tag)
+	
+	for conflicting_tag in _tag.conflicts:
+		conflicts_item_list.add_item(conflicting_tag)
+		conflicts_array.append(conflicting_tag)
+	
+	for alias in _tag.aliases:
+		alias_itemlist.add_item(alias)
+		tag_aliases_array.append(alias)
+	
+	wiki_edit.clear()
+	wiki_edit.text = _tag.wiki_entry
+	tag_prio_box.set_value_no_signal(_tag.tag_priority)
+	
+	tag_tooltip_line_edit.clear()
+	tag_tooltip_line_edit.text = _tag.tooltip
+	
+	has_images_check_box.button_pressed = _tag.has_pictures
+	
+	if has_images_check_box.button_pressed:
+		open_pic_folder_button.disabled = false
+	
+	add_conflict_line_edit.editable = true
+	has_images_check_box.disabled = false
+	tag_suggestion_line_edit.editable = true
+	tag_prio_box.editable = true
+	add_parent_line_edit.editable = true
+	categories_menu.disabled = false
+	wiki_edit.editable = true
+	tag_tooltip_line_edit.editable = true
+	tag_update_button.disabled = false
+	add_alias_lineedit.editable = true
+	review_menu.set_item_disabled(review_menu.get_item_index(0), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
+	tag_searcher.clear()
+
+
+func open_alias_window() -> void:
+	aliases_window.show()
 
 
 func update_tag() -> void:
@@ -104,12 +183,34 @@ func update_tag() -> void:
 	_tag.has_pictures = has_images_check_box.button_pressed
 	_tag.conflicts = conflicts_array.duplicate()
 	_tag.tooltip = tag_tooltip_line_edit.text.strip_edges()
+	_tag.aliases = PackedStringArray(tag_aliases_array)
 	_tag.save()
 	
 	tag_updated.emit(_tag.tag)
 	
 	tag_update_button.text = "Updated!"
 	text_change_timer.start()
+
+
+func preview_bcc() -> void:
+	rich_text_label.text = wiki_edit.text
+	preview_bbc_window.show()
+
+
+func add_tag_alias(alias_text: String) -> void:
+	alias_text = alias_text.strip_edges().to_lower()
+	add_alias_lineedit.clear()
+	if tag_aliases_array.has(alias_text):
+		return
+	
+	tag_aliases_array.append(alias_text)
+	alias_itemlist.add_item(alias_text)
+
+
+func remove_alias(alias_index: int) -> void:
+	var alias_text: String = alias_itemlist.get_item_text(alias_index)
+	tag_aliases_array.erase(alias_text)
+	alias_itemlist.remove_item(alias_index)
 
 
 func add_tag_conflict(tag_conflict: String) -> void:
@@ -184,9 +285,16 @@ func activate_menu_bar(id_button: int) -> void:
 			
 		Tagger.settings.delete_with_pictures = is_enabled
 		delete_with_folder = is_enabled
+	elif id_button == 4:
+		if not aliases_window.visible:
+			aliases_window.show()
 
 
 func clear_and_disable() -> void:
+	alias_itemlist.clear()
+	tag_aliases_array.clear()
+	add_alias_lineedit.clear()
+	add_alias_lineedit.editable = false
 	tag_tooltip_line_edit.clear()
 	tag_tooltip_line_edit.editable = false
 	conflicts_array.clear()
@@ -212,79 +320,12 @@ func clear_and_disable() -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(0), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
-#	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
+	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
 	tag_update_button.disabled = true
 
 
 func button_search_pressed() -> void:
 	search_for_tag(tag_searcher.text)
-
-
-func search_for_tag(new_text: String) -> void:
-	if new_text.is_empty():
-		clear_and_disable()
-		return
-	
-	new_text = new_text.to_lower().strip_edges()
-	new_text = Tagger.alias_database.get_alias(new_text)
-	
-	if not Tagger.tag_manager.has_tag(new_text):
-		clear_and_disable()
-		return
-	
-	conflicts_array.clear()
-	conflicts_item_list.clear()
-	
-	parents.clear()
-	parents_item_list.clear()
-	
-	tag_suggestion_list.clear()
-	suggestions_array.clear()
-	tag_suggestion_line_edit.clear()
-	
-	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
-
-	name_line.text = _tag.tag
-	categories_menu.select(_tag.category)
-
-	for parent_tag in _tag.parents:
-		parents.append(parent_tag)
-		parents_item_list.add_item(parent_tag)
-	
-	for suggested_tag in _tag.suggestions:
-		suggestions_array.append(suggested_tag)
-		tag_suggestion_list.add_item(suggested_tag)
-	
-	for conflicting_tag in _tag.conflicts:
-		conflicts_item_list.add_item(conflicting_tag)
-		conflicts_array.append(conflicting_tag)
-	
-	wiki_edit.clear()
-	wiki_edit.text = _tag.wiki_entry
-	tag_prio_box.set_value_no_signal(_tag.tag_priority)
-	
-	tag_tooltip_line_edit.clear()
-	tag_tooltip_line_edit.text = _tag.tooltip
-	
-	has_images_check_box.button_pressed = _tag.has_pictures
-	
-	if has_images_check_box.button_pressed:
-		open_pic_folder_button.disabled = false
-	
-	add_conflict_line_edit.editable = true
-	has_images_check_box.disabled = false
-	tag_suggestion_line_edit.editable = true
-	tag_prio_box.editable = true
-	add_parent_line_edit.editable = true
-	categories_menu.disabled = false
-	wiki_edit.editable = true
-	tag_tooltip_line_edit.editable = true
-	tag_update_button.disabled = false
-	review_menu.set_item_disabled(review_menu.get_item_index(0), false)
-	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
-	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
-#	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
-	tag_searcher.clear()
 
 
 func add_parent(parent_text: String) -> void:

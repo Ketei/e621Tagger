@@ -532,38 +532,33 @@ extends Resource
 
 @export var constant_tags: Array[String] = []
 
-@export var loader_blacklist: Array[String] = [
-		"hi res",
-		"digital media (artwork)",
-		"2023",
-		"conditional dnp",
-		]
+@export var loader_blacklist: Array[String] = []
 
 @export var suggestion_review_blacklist: Array[String] = [
-		"comic",
-		"rating:questionable",
-		"rating:safe"
+		"comic"
 		]
 
 @export var samples_blacklist: Array[String] = [
-		"comic",
-		"ambiguous gender",
-		"female",
-		"rating:safe",
-		"rating:questionable",
-		"herm",
-		"andromorph",
-		"maleherm",
-		"comic",
+		"comic"
 		]
 
-@export var shortcuts: Dictionary = {}
+@export var shortcuts: Dictionary = {
+	"@": "% (character)",
+	"!": "{0}/{1}"
+}
 
 @export var tag_types: Dictionary = {
-	"color": ["black", "blue", "brown", "green", "grey", "orange", "pink", "purple", "red", "tan", "teal", "white", "yellow"],
+	"body-part": ["ears", "head", "face", "neck", "arms", "hands", "torso", "wings", "genitalia", "penis", "balls", "pussy", "anus", "butt", "legs", "tail", "feet"],
 	"body-type": ["anthro", "semi-anthro", "feral", "human", "humanoid", "taur"],
+	"color": ["black", "blue", "brown", "green", "grey", "orange", "pink", "purple", "red", "tan", "teal", "white", "yellow"],
+	"gender": ["male", "female", "andromorph", "gynomorph", "herm", "maleherm"],
+	"length": ["short", "long"],
 	"orifice": ["ass", "cloaca", "mouth", "pussy", "slit", "uterus"],
-	"gender": ["male", "female", "andromorph", "gynomorph", "herm", "maleherm"]
+	"p-view": ["anus", "balls", "belly", "breasts", "cloaca", "crotch", "hindquarters", "mouth", "penis", "pussy", "sheath", "slit"], # Presenting
+	"scale": ["smaller", "larger"],
+	"sex-pen": ["oral", "anal", "vaginal", "cloacal"],
+	"size": ["small", "big", "huge", "hyper"],
+	"tuft": ["arm", "elbow", "wrist", "ball", "cheek", "crotch", "ear", "inner ear", "feather", "head", "hip", "leg", "ankle", "knee", "neck", "nipple", "shoulder", "tail", "toe"]
 }
 
 static func load_database() -> SettingLists:
@@ -633,5 +628,4 @@ func remove_from_constant_tags(tag_to_remove: String) -> void:
 	
 	constant_tags[target_index] = constant_tags.back()
 	constant_tags.resize(constant_tags.size() - 1)
-
 

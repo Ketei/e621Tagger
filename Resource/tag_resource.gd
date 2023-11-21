@@ -37,8 +37,8 @@ class_name Tag
 ## looking for files.
 @export var has_pictures: bool = true
 
-## Unused for now. Planed for different sites but will likely be removed.
-@export var variants: Dictionary = {}
+## Forces aliases registration
+@export var aliases: PackedStringArray = []
 
 ## A short description to be showed on hovering the tag on the tagger window.
 @export var tooltip: String = ""
@@ -56,10 +56,8 @@ func save() -> String:
 	ResourceSaver.save(self, Tagger.tags_path + file_name)
 	return file_name
 
+
 ## Gets the tag name appropiate for the site selected. Will be removed most likely.
 func get_tag() -> String:
-	if variants.has(str(Tagger.settings.target_site)):
-		return variants[Tagger.settings.target_site]
-	else:
-		return tag
+	return tag
 

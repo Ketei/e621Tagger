@@ -1,6 +1,11 @@
 extends Control
 
 signal tag_created(tag_name)
+signal register_alias(old_name, new_name)
+
+@export var aliased_itemlist: ItemList
+@export var alias_lineedit: LineEdit
+@export var alias_window_control: Control
 
 @onready var main_application = $".."
 @onready var tag_to_add_line_edit: LineEdit = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/TagToAddLineEdit
@@ -30,6 +35,7 @@ signal tag_created(tag_name)
 
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
+var aliased_tags: Array = []
 
 var text_timer: Timer
 
@@ -80,6 +86,9 @@ func _ready():
 	text_timer.one_shot = true
 	text_timer.timeout.connect(on_timer_timeout)
 	add_child(text_timer)
+	
+	alias_lineedit.text_submitted.connect(add_new_alias)
+	aliased_itemlist.item_activated.connect(remove_alias_item)
 
 
 func show_popup_menu(tag_clicked: String, element_position: Vector2, item_position: Vector2, _is_delete_allowed: bool, _who_called: ItemList, _item_index: int) -> void:
@@ -89,8 +98,10 @@ func show_popup_menu(tag_clicked: String, element_position: Vector2, item_positi
 
 
 func menu_id_pressed(menu_id: int) -> void:
+	print(menu_id)
 	if menu_id == 0:
 		main_application.go_to_wiki(left_context_tag)
+	
 
 
 func preview_bcc() -> void:
@@ -128,6 +139,9 @@ func tag_creator_menu_changed(id_selected: int) -> void:
 		conflict_window.show()
 	elif id_selected == 3:
 		clear_menu_items("", false)
+	elif id_selected == 4:
+		if not alias_window_control.visible:
+			alias_window_control.show()
 
 
 func add_suggestion(new_suggestion: String) -> void:
@@ -197,7 +211,8 @@ func create_tag() -> void:
 			tag_suggestion_array,
 			has_images_check_box.button_pressed,
 			conflicts_array,
-			tooltip_line_edit.text.strip_edges()
+			tooltip_line_edit.text.strip_edges(),
+			aliased_tags
 			)
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
@@ -220,7 +235,10 @@ func create_tag() -> void:
 
 		e_621api_request.add_to_queue(search_tags, 5, E621API.SEARCH_TYPES.DOWNLOAD, self, Tagger.tag_images_path + _tag_path.get_file().get_basename() + "/")
 		downloads_queued += 1
-		
+	
+	for alias in aliased_tags:
+		register_alias.emit(alias, target_tag)
+	
 	clear_menu_items("Done!")
 	
 	tag_created.emit(target_tag)
@@ -231,6 +249,9 @@ func api_response(_response) -> void:
 
 
 func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
+	aliased_tags.clear()
+	aliased_itemlist.clear()
+	alias_lineedit.clear()
 	download_samples_check_box.button_pressed = false
 	has_images_check_box.button_pressed = true
 	tooltip_line_edit.clear()
@@ -254,4 +275,20 @@ func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
 
 func on_timer_timeout() -> void:
 	create_tags_button.text = "Create Tag"
+
+
+func add_new_alias(alias_string: String) -> void:
+	alias_string = alias_string.strip_edges().to_lower()
+	alias_lineedit.clear()
+	if aliased_tags.has(alias_string):
+		return
+	
+	aliased_tags.append(alias_string)
+	aliased_itemlist.add_item(alias_string)
+
+
+func remove_alias_item(item_index: int) -> void:
+	var aliased_string: String = aliased_itemlist.get_item_text(item_index)
+	aliased_tags.erase(aliased_string)
+	aliased_itemlist.remove_item(item_index)
 

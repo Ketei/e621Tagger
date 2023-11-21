@@ -3,12 +3,12 @@
 [ext_resource type="Script" path="res://Scripts/add_custom_tag_script.gd" id="1_wvy7k"]
 
 [node name="AddCustomTag" type="Control"]
-custom_minimum_size = Vector2(384, 136)
+custom_minimum_size = Vector2(512, 144)
 layout_mode = 3
-anchors_preset = 0
-offset_right = 384.0
-offset_bottom = 136.0
+anchor_right = 0.4
+anchor_bottom = 0.2
 script = ExtResource("1_wvy7k")
+metadata/_edit_use_anchors_ = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
@@ -53,20 +53,22 @@ alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
-alignment = 1
+alignment = 2
 
 [node name="PrefixOptionButton" type="OptionButton" parent="VBoxContainer/FieldsHBox/PrefixVBox"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
+fit_to_longest_item = false
 
 [node name="CustomPrefixLineEdit" type="LineEdit" parent="VBoxContainer/FieldsHBox/PrefixVBox"]
 visible = false
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 
 [node name="TagNameVbox" type="VBoxContainer" parent="VBoxContainer/FieldsHBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
-alignment = 1
+alignment = 2
 
 [node name="TagNameLineEdit" type="Label" parent="VBoxContainer/FieldsHBox/TagNameVbox"]
 custom_minimum_size = Vector2(0, 32)
@@ -94,14 +96,16 @@ color = Color(0.145098, 0.156863, 0.176471, 0.509804)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
-alignment = 1
+alignment = 2
 
 [node name="SuffixOptionButton" type="OptionButton" parent="VBoxContainer/FieldsHBox/SuffixVBox"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
+fit_to_longest_item = false
 
 [node name="CustomSuffixLineEdit" type="LineEdit" parent="VBoxContainer/FieldsHBox/SuffixVBox"]
 visible = false
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="VBoxContainer"]

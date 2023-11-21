@@ -104,7 +104,11 @@ func recreate_implications() -> void:
 					relation_database[chara] = {}
 				
 				relation_database[chara][_valid_tag.tag] = Tagger.tags_path + tag_filename
-		
+				
+				for alias in _valid_tag.aliases:
+					Tagger.register_aliases.emit(alias, _valid_tag.tag)
+				
+				
 		relation_paths[chara] = Tagger.implications_path + _implication.file_name
 		_implication.save()
 		
