@@ -29,7 +29,8 @@ func _ready():
 	tag_reviewer.parents_item_list.create_tag.connect(go_to_create_tag)
 	tag_reviewer.tag_suggestion_list.create_tag.connect(go_to_create_tag)
 	tag_creator.tag_created.connect(load_tag_if_added)
-	
+	tag_creator.register_alias.connect(register_alias)
+	Tagger.register_aliases.connect(register_alias)
 	menu.id_pressed.connect(trigger_options)
 	
 	trigger_options(0)
@@ -39,7 +40,7 @@ func _ready():
 	var intro_tween: Tween = create_tween()
 	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 0.5)
 	intro_tween.tween_callback(splash_screen_texture.queue_free)
-
+	
 
 func trigger_options(id: int) -> void:
 	if id == current_menu:
@@ -174,6 +175,10 @@ func load_tags(tags_array: Array) -> void:
 
 func load_tag_if_added(tag_to_add: String) -> void:
 	tagger.update_tag(tag_to_add)
+
+
+func register_alias(old_name: String, new_name: String) -> void:
+	settings.register_alias(old_name, new_name)
 
 
 func quit_app() -> void:
