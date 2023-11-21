@@ -17,14 +17,14 @@ func _ready():
 	new_alias.text_submitted.connect(submit_new_alias)
 
 
-func submit_new_alias(_text_submitted: String) -> void:
+func submit_new_alias(text_submitted: String) -> void:
 	if not add_alias_button.disabled:
-		add_alias()
+		add_alias(old_alias.text, text_submitted)
 
 
-func submit_old_alias(_text_submitted: String) -> void:
+func submit_old_alias(text_submitted: String) -> void:
 	if not remove_alias_button.disabled:
-		remove_alias()
+		remove_alias(text_submitted)
 
 
 func old_alias_update(new_text: String) -> void:
@@ -47,21 +47,20 @@ func new_alias_update(new_text: String) -> void:
 		add_alias_button.disabled = true
 
 
-func add_alias() -> void:
-	var _old_string: String = old_alias.text.strip_edges().to_lower()
-	var _new_string: String = new_alias.text.strip_edges().to_lower()
+func add_alias(_old_string: String, _new_string: String, add_from_signal := false) -> void:
+	_old_string = _old_string.strip_edges().to_lower()
+	_new_string = _new_string.strip_edges().to_lower()
 	
 	if _old_string.is_empty() or _new_string.is_empty():
-		old_alias.clear()
-		new_alias.clear()
+		if not add_from_signal:
+			old_alias.clear()
+			new_alias.clear()
 		return
-	
-	_old_string = _old_string.strip_edges().to_lower().replace("_", " ")
-	_new_string = _new_string.strip_edges().to_lower().replace("_", " ")
-	
+
 	if Tagger.alias_database.alias_exitst(_old_string, _new_string):
-		old_alias.clear()
-		new_alias.clear()
+		if not add_from_signal:
+			old_alias.clear()
+			new_alias.clear()
 		return
 	
 	if Tagger.alias_database.aliases.values().has(_new_string): # Level exists
@@ -80,22 +79,18 @@ func add_alias() -> void:
 		aliases_tree.create_item_and_subitem(_new_string, aliases_tree.get_root(), _old_string)
 	
 	Tagger.alias_database.add_alias(_old_string, _new_string)
-#	Tagger.alias_database.save()
-	old_alias.clear()
-	new_alias.clear()
+	if not add_from_signal:
+		old_alias.clear()
+		new_alias.clear()
 
 
-func remove_alias() -> void:
-	var _old_string: String = old_alias.text.strip_edges()
+func remove_alias(_old_string: String) -> void:
+	_old_string = old_alias.text.strip_edges().to_lower()
 	
 	if _old_string.is_empty():
 		old_alias.clear()
 		return
-	
-	
-	_old_string = _old_string.strip_edges().to_lower()
-	
-	
+
 	if not Tagger.alias_database.has_alias(_old_string):
 		old_alias.clear()
 		return
@@ -121,6 +116,5 @@ func remove_alias() -> void:
 			_level = _level.get_next()
 	
 	Tagger.alias_database.remove_alias(_old_string)
-#	Tagger.alias_database.save()
 	old_alias.clear()
 
