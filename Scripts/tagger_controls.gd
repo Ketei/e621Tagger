@@ -2,6 +2,8 @@ extends Control
 class_name TaggerInstance
 
 
+const valid_fixes: Array[String] = ["*", "|", "#"]
+
 @onready var line_edit: LineEdit = $HBoxContainer/InputTags/HBoxContainer/LineEdit
 @onready var item_list: ItemList = $HBoxContainer/InputTags/ItemList
 @onready var suggested_list: ItemList = $HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SuggestedList
@@ -13,6 +15,7 @@ class_name TaggerInstance
 @onready var clean_suggestions_button: Button = $HBoxContainer/SuggestedImpliedTags/CleanSuggestionsButton
 @onready var add_auto_complete: Control = $AddAutoComplete
 @onready var open_auto_complete_btn: Button = $HBoxContainer/InputTags/HBoxContainer/OpenAutoCompleteBTN
+@onready var special_suggestions_item_list: ItemList = $HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialSuggestionsItemList
 
 @onready var conflicting_tags: Control = $ConflictingTags
 
@@ -34,6 +37,7 @@ class_name TaggerInstance
 @onready var suggestion_or_adder: SuggestionOrAdder = $OrAdder/CenterContainer/SuggestionOrAdder
 @onready var spinbox_adder = $SpinboxAdder
 @onready var number_tag_tool: NumberTagTool = $SpinboxAdder/CenterContainer/NumerTag
+@onready var clear_special_button: Button = $HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer/ClearSpecialButton
 
 
 var main_application
@@ -47,6 +51,7 @@ var suggestion_tags_array: Array[String] = []
 var implied_tags_array: Array[String] = []
 
 var final_tag_list_array: Array[String] = []
+var special_suggestions: Array[String] = []
 
 # ---------- Experimental / More efficient processes -----------------------
 # Instead of directly passing resources, we pass dictionaries.
@@ -85,11 +90,13 @@ func _ready():
 	available_sites.site_selected.connect(change_platform)
 	# Experimental connects
 	line_edit.text_submitted.connect(add_new_tag)
-	suggested_list.item_activated.connect(add_from_suggested)
+	suggested_list.item_activated.connect(add_from_suggested.bind(suggested_list))
+	special_suggestions_item_list.item_activated.connect(add_from_suggested.bind(special_suggestions_item_list))
 	item_list.item_activated.connect(remove_tag)
 	clear_tags_button.pressed.connect(clear_inputted_tags)
 	clear_suggested_button.pressed.connect(clear_suggestion_tags)
 	export_tags_button.pressed.connect(open_export_dialog)
+	clear_special_button.pressed.connect(clear_special_tags)
 	# ---------------------
 	
 	check_minimum_requirements()
@@ -113,10 +120,17 @@ func _ready():
 	item_list.open_context_clicked.connect(open_context_menu)
 	suggested_list.open_context_clicked.connect(open_context_menu)
 	implied_list.open_context_clicked.connect(open_context_menu)
+	special_suggestions_item_list.open_context_clicked.connect(open_context_menu)
 	item_list.associated_dict = tags_inputed
 	item_list.associated_array = full_tag_list
 	suggested_list.associated_array = suggestion_tags_array
+	special_suggestions_item_list.associated_array = special_suggestions
 	
+
+func clear_special_tags() -> void:
+	special_suggestions.clear()
+	special_suggestions_item_list.clear()
+
 
 func append_empty_tag(tag_to_append: String) -> void:
 	tags_inputed[tag_to_append] = {
@@ -191,7 +205,7 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 	check_minimum_requirements()
 
 
-func append_registered_tag(tag_resource: Tag) -> void:
+func append_registered_tag(tag_resource: Tag, add_suggested: bool = true) -> void:
 	if tags_inputed.has(tag_resource.tag):
 		tags_inputed[tag_resource.tag]["priority"] = tag_resource.tag_priority
 		tags_inputed[tag_resource.tag]["parents"] = PackedStringArray(tag_resource.parents.duplicate())
@@ -213,9 +227,12 @@ func append_registered_tag(tag_resource: Tag) -> void:
 			"is_registered": true
 		}
 	
-	update_parents(tag_resource)
-
-	if Tagger.settings.search_suggested:
+	update_parents(tag_resource, add_suggested)
+	
+	if not add_suggested:
+		print("append_registered_tag isn't allowed to add suggestions")
+	
+	if Tagger.settings.search_suggested and add_suggested:
 		for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
 			add_suggested_tag(related_tag)
 	add_to_category(tag_resource.category)
@@ -301,7 +318,9 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	if Tagger.tag_manager.has_tag(tag_name):
 		var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
-		append_registered_tag(tag_load)
+		print("First Append")
+		append_registered_tag(tag_load, search_online)
+		print("------------")
 		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]
 		add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 		
@@ -326,10 +345,13 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		implied_list.remove_item(implied_tags_array.find(tag_name))
 		implied_tags_array.erase(tag_name)
 	
+	print("Second add")
 	if search_online:
 		for suggested_tag in suggested_tags:
 			add_suggested_tag(suggested_tag)
-	
+	else:
+			print("add_new_tag is not allowed to add suggestions")
+	print("---------------")
 	if ensure_visible:
 		item_list.select(add_index)
 		item_list.ensure_current_is_visible()
@@ -360,26 +382,39 @@ func close_instance() -> void:
 
 
 func add_suggested_tag(tag_name: String) -> void:
-	if suggestion_tags_array.has(tag_name) or tags_inputed.has(tag_name) or implied_tags_array.has(tag_name):
-		return
+	var is_prefixed: bool = false
+	if valid_fixes.has(tag_name.left(1)) or valid_fixes.has(tag_name.right(1)):
+		is_prefixed = true
 	
-	suggestion_tags_array.append(tag_name)
+	var suggested_pos: int = 0
 	
-	var suggested_pos: int = suggested_list.add_item(tag_name)
-	
-	if Tagger.tag_manager.has_tag(tag_name):
-		suggested_list.set_item_tooltip(
-			suggested_pos,
-			Tagger.tag_manager.get_tag(tag_name).tooltip)
-	
-	if tag_name.begins_with("*") or tag_name.ends_with("*"):
-		suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.31, 0.145, 0.475))
-	elif tag_name.begins_with("|") and tag_name.ends_with("|"):
-		suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.078, 0.282, 0.169))
-	elif tag_name.begins_with("#"):
-		suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.467, 0.173, 0.263))
+	if not is_prefixed:
+		if suggestion_tags_array.has(tag_name) or tags_inputed.has(tag_name) or implied_tags_array.has(tag_name):
+			return
+		suggested_pos = suggested_list.add_item(tag_name)
+		suggestion_tags_array.append(tag_name)
 		
-func update_parents(tag_resource: Tag) -> void:
+		if Tagger.tag_manager.has_tag(tag_name):
+			suggested_list.set_item_tooltip(
+				suggested_pos,
+				Tagger.tag_manager.get_tag(tag_name).tooltip)
+			
+	else:
+		if special_suggestions.has(tag_name):
+			return
+		
+		suggested_pos = special_suggestions_item_list.add_item(tag_name)
+		special_suggestions.append(tag_name)
+		
+#		if tag_name.begins_with("*") or tag_name.ends_with("*"):
+#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.31, 0.145, 0.475))
+#		elif tag_name.begins_with("|") and tag_name.ends_with("|"):
+#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.078, 0.282, 0.169))
+#		elif tag_name.begins_with("#"):
+#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.467, 0.173, 0.263))
+
+		
+func update_parents(tag_resource: Tag, add_suggestions: bool = true) -> void:
 	if not tags_inputed.has(tag_resource.tag):
 		return
 	
@@ -400,7 +435,7 @@ func update_parents(tag_resource: Tag) -> void:
 			elif implied_parent in character_bodytypes:
 				implied_types_added += 1
 	
-	if Tagger.settings.load_suggested:
+	if Tagger.settings.load_suggested and add_suggestions:
 		for suggested_tag in tag_list_generator._offline_suggestions:
 			if not suggestion_tags_array.has(suggested_tag):
 				add_suggested_tag(suggested_tag)
@@ -515,13 +550,13 @@ func check_minimum_requirements() -> void: #Add one call on ready
 		warning_rect.tooltip_text = suggestions_string + warnings_string
 
 
-func add_from_suggested(item_activated: int) -> void: # Connect to item activated
-	var _tag_text = suggested_list.get_item_text(item_activated)
+func add_from_suggested(item_activated: int, list_reference: ItemList) -> void: # Connect to item activated
+	var _tag_text = list_reference.get_item_text(item_activated)
 	
 	if _tag_text.begins_with("*") or _tag_text.ends_with("*"):
-		var tag_sh_key: String = add_custom_tag.get_valid_somefix(_tag_text)
+		var tag_sh_key: Dictionary = add_custom_tag.get_valid_somefix(_tag_text)
 		if not _tag_text.is_empty():
-			add_custom_tag.open_with_tag(_tag_text, tag_sh_key)
+			add_custom_tag.open_with_tag(_tag_text, tag_sh_key["prefix"], tag_sh_key["suffix"])
 			add_suggested_special.show()
 			_tag_text = await add_custom_tag.tag_confirmed
 			add_suggested_special.hide()
@@ -538,9 +573,10 @@ func add_from_suggested(item_activated: int) -> void: # Connect to item activate
 		
 	if _tag_text.is_empty():
 		return
-		
-	suggested_list.remove_item(item_activated)
-	suggestion_tags_array.remove_at(item_activated)
+	
+	list_reference.remove_item_from_list(item_activated)
+#	suggested_list.remove_item(item_activated)
+#	suggestion_tags_array.remove_at(item_activated)
 	
 	if not full_tag_list.has(_tag_text):
 		add_new_tag(_tag_text, false)
@@ -579,7 +615,8 @@ func regenerate_parents() -> void:
 func clear_all_tags() -> void: # Connect to clear all dropdown menu
 	if tag_holder.active_instance != instance_name:
 		return
-	
+	special_suggestions.clear()
+	special_suggestions_item_list.clear()
 	full_tag_list.clear()
 	tags_inputed.clear()
 	suggestion_tags_array.clear()
@@ -730,9 +767,10 @@ func sort_tags_by_category() -> void:
 	
 	clear_inputted_tags()
 	
+	print("***Adding sorted items***")
 	for item in final_array:
 		add_new_tag(item, false, false, [], Tagger.Categories.GENERAL, false)
-
+	print("**Finished adding sorted items**")
 
 func tagger_menu_pressed(option_id: int) -> void:
 	if option_id == 0:

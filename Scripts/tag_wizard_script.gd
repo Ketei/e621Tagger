@@ -102,6 +102,7 @@ func _ready():
 
 func magic_clean() -> void:
 	items_scroll_container.scroll_vertical = 0
+	daytime_option_button.select(0)
 	is_comic.button_pressed = false
 	has_multiple_scenes.set_pressed_no_signal(false)
 	artist_line_edit.clear()
@@ -454,12 +455,16 @@ func calculate_clothing_level() -> Array:
 	
 	if underwear_checkbox.button_pressed and clothing_score == 10:
 		clothing_array.append("underwear_only")
+		clothing_array.append("clothed")
 	elif clothing_score == 1 and collar_checkbox.button_pressed:
 		clothing_array.append("collar only")
+		clothing_array.append("nude")
+		if clothing_array.has("mostly nude"):
+			clothing_array.erase("mostly nude")
 	elif foot_wear_checkbox.button_pressed and clothing_score == 1:
 		clothing_array.append("footwear only")
 	elif hand_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("gloves only")
+		clothing_array.append("handwear only")
 	elif head_wear_checkbox.button_pressed and clothing_score == 1:
 		clothing_array.append("headwear only")
 

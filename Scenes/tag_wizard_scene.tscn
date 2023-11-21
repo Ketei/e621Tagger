@@ -373,7 +373,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 [node name="HandWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the lower body. (Hips down)"
-text = "Gloves"
+text = "Handwear"
 
 [node name="ColorRect6" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)

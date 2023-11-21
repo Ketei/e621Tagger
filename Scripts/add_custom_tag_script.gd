@@ -1,22 +1,16 @@
 class_name AutofillOptionTag
 extends Control
 
+
 signal tag_confirmed(tag_string)
 
-enum Modes {
-	PREFIX,
-	SUFFIX,
-}
-
-var prefix_array: Array = []
 var prefix_custom_id: int = 0
-var suffix_array: Array = []
 var suffix_custom_id: int = 0
 
-var mode := Modes.PREFIX
+var using_prefix: bool = false
+var using_suffix: bool = false
 
 var typed_tag: String = ""
-var types_array: Array = []
 
 @onready var prefix_option_button: OptionButton = $VBoxContainer/FieldsHBox/PrefixVBox/PrefixOptionButton
 @onready var custom_prefix_line_edit: LineEdit = $VBoxContainer/FieldsHBox/PrefixVBox/CustomPrefixLineEdit
@@ -38,8 +32,8 @@ func _ready():
 	
 
 func clear_fields() -> void:
-	prefix_array.clear()
-	suffix_array.clear()
+	using_prefix = false
+	using_suffix = false
 	prefix_custom_id = 0
 	suffix_custom_id = 0
 	prefix_option_button.clear()
@@ -65,49 +59,35 @@ func prefix_item_select(item_index: int) -> void:
 		custom_prefix_line_edit.visible = false
 
 
-func open_with_tag(suggested_custom: String, somefix_key: String) -> void:
+func open_with_tag(suggested_custom: String, prefix_key: String = "", suffix_key: String = "") -> void:
 	clear_fields()
 	
-	if suggested_custom.begins_with("*"):
-		mode = Modes.PREFIX
-#		var types_key = suggested_custom.left(3)
-#		types_key = types_key.trim_prefix("*").trim_suffix("*")
+	suggested_custom = suggested_custom.trim_prefix("*"+prefix_key+"*").trim_suffix("*"+suffix_key+"*").strip_edges()
+	
+	if not prefix_key.is_empty():
+		using_prefix = true
 		
-		types_array.clear()
-		
-		if Tagger.settings_lists.tag_types.has(somefix_key):
-			types_array = Tagger.settings_lists.tag_types[somefix_key].duplicate()
-		
-		suggested_custom = suggested_custom.trim_prefix("*" + somefix_key + "*").strip_edges()
-		
-		for prefix in types_array:
-			prefix_option_button.add_item(prefix.trim_suffix(suggested_custom).strip_edges())
+		if Tagger.settings_lists.tag_types.has(prefix_key):
+			for prefix in Tagger.settings_lists.tag_types[prefix_key]:
+				prefix_option_button.add_item(prefix.trim_suffix(suggested_custom).strip_edges())
 		
 		prefix_option_button.add_item("- custom -")
 		prefix_custom_id = prefix_option_button.item_count - 1
 		prefix_option_button.select(0)
-		prefix_item_select(prefix_option_button.selected)
+		prefix_item_select(0)
 		prefix_vbox.show()
 
-	elif suggested_custom.ends_with("*"):
-		mode = Modes.SUFFIX
-#		var types_key = suggested_custom.right(3)
-#		types_key = types_key.trim_prefix("*").trim_suffix("*")
+	if not suffix_key.is_empty():
+		using_suffix = true
 		
-		types_array.clear()
-		
-		if Tagger.settings_lists.tag_types.has(somefix_key):
-			types_array = Tagger.settings_lists.tag_types[somefix_key].duplicate()
-		
-		suggested_custom = suggested_custom.trim_suffix("*" + somefix_key + "*").strip_edges()
-		
-		for suffix in types_array:
-			suffix_option_button.add_item(suffix.trim_prefix(suggested_custom).strip_edges())
+		if Tagger.settings_lists.tag_types.has(suffix_key):
+			for suffix in Tagger.settings_lists.tag_types[suffix_key]:
+				suffix_option_button.add_item(suffix.trim_prefix(suggested_custom).strip_edges())
 		
 		suffix_option_button.add_item("- custom -")
 		suffix_custom_id = suffix_option_button.item_count - 1
 		suffix_option_button.select(0)
-		suffix_item_select(suffix_option_button.selected)
+		suffix_item_select(0)
 		suffix_vbox.show()
 	
 	tag_name_line_edit.text = suggested_custom
@@ -115,50 +95,53 @@ func open_with_tag(suggested_custom: String, somefix_key: String) -> void:
 
 
 func accept_tag() -> void:
-	if mode == Modes.PREFIX:
+	var constructed_string: String = ""
+	
+	if using_prefix:
 		if prefix_option_button.selected == prefix_custom_id:
-			tag_confirmed.emit(
-				custom_prefix_line_edit.text + " " + typed_tag
-			)
+			constructed_string += custom_prefix_line_edit.text + " "
 		else:
-			tag_confirmed.emit(
-				types_array[prefix_option_button.selected] + " " + typed_tag
-			)
-	else:
+			constructed_string += get_prefix_selected() + " "
+	
+	constructed_string += typed_tag
+	
+	if using_suffix:
 		if suffix_option_button.selected == suffix_custom_id:
-			tag_confirmed.emit(
-				typed_tag + " " + custom_suffix_line_edit.text
-			)
+			constructed_string += " " + custom_suffix_line_edit.text
 		else:
-			tag_confirmed.emit(
-				typed_tag + " " + types_array[suffix_option_button.selected]
-			)
+			constructed_string += " " + get_suffix_selected()
+	
+	tag_confirmed.emit(constructed_string)
 
 
 func cancel_tag() -> void:
 	tag_confirmed.emit("")
 
 
-func get_valid_somefix(string_tag: String) -> String:
-	var from_start: bool = false
-	var tag_construct: String = ""
+func get_valid_somefix(string_tag: String) -> Dictionary:
 	var is_valid_fix: bool = false
 	
+	var prefix_found: String = ""
+	var suffix_found: String = ""
+	
 	if string_tag.begins_with("*"):
-		from_start = true
-
-	if from_start:
 		for character in string_tag.erase(0, 1):
 			if character == "*":
 				is_valid_fix = true
 				break
 			else:
-				tag_construct += character
+				prefix_found += character
+	
+	if is_valid_fix:
+		is_valid_fix = false
 	else:
+		prefix_found = ""
+	
+	if string_tag.ends_with("*"):
 		var reversed_string_array: Array = string_tag.left(-1).split()
 		var string_construct: PackedStringArray = []
 		reversed_string_array.reverse()
-		
+	
 		for character in reversed_string_array:
 			if character == "*":
 				is_valid_fix = true
@@ -166,15 +149,20 @@ func get_valid_somefix(string_tag: String) -> String:
 			else:
 				string_construct.insert(0, character)
 		
-		tag_construct = "".join(string_construct)
+		if is_valid_fix:
+			suffix_found = "".join(string_construct)
+		else:
+			suffix_found = ""
 		
-	if is_valid_fix:
-		return tag_construct
-	else:
-		return ""
+	return {"prefix": prefix_found, "suffix": suffix_found}
 
 
+func get_suffix_selected() -> String:
+	return suffix_option_button.get_item_text(
+			suffix_option_button.selected)
 
 
-
+func get_prefix_selected() -> String:
+	return prefix_option_button.get_item_text(
+			prefix_option_button.selected)
 

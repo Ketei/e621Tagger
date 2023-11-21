@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=21 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -13,6 +13,27 @@
 [ext_resource type="PackedScene" uid="uid://61qwtnsjohnu" path="res://Scenes/suggestion_or_adder.tscn" id="10_8knu4"]
 [ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="11_hi7i4"]
 [ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
+
+[sub_resource type="GDScript" id="GDScript_82xvn"]
+resource_name = "special_show_hide"
+script/source = "extends Button
+
+@onready var special_suggestions_item_list: ItemList = $\"../../SpecialSuggestionsItemList\"
+@onready var clear_special_button: Button = $\"../ClearSpecialButton\"
+
+
+func _ready():
+	pressed.connect(show_hide_list)
+
+
+func show_hide_list() -> void:
+	special_suggestions_item_list.visible = not special_suggestions_item_list.visible
+	clear_special_button.visible = special_suggestions_item_list.visible
+	if special_suggestions_item_list.visible:
+		text = \"Hide\"
+	else:
+		text = \"Show\"
+"
 
 [sub_resource type="GDScript" id="GDScript_7uef3"]
 script/source = "extends Control
@@ -268,6 +289,28 @@ same_column_width = true
 script = ExtResource("5_fpeot")
 can_remove = true
 
+[node name="SpecialLabelContainer" type="HBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
+layout_mode = 2
+
+[node name="SpecialShowHideButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
+layout_mode = 2
+text = "Hide"
+script = SubResource("GDScript_82xvn")
+
+[node name="SPecialSuggestions" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
+layout_mode = 2
+text = "Special Suggestions:"
+
+[node name="ClearSpecialButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Clear"
+
+[node name="SpecialSuggestionsItemList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
+custom_minimum_size = Vector2(0, 192)
+layout_mode = 2
+script = ExtResource("5_fpeot")
+
 [node name="ImpliedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -292,6 +335,7 @@ script = ExtResource("5_fpeot")
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
+theme = ExtResource("3_rq6wp")
 text = "Clean Suggestions"
 
 [node name="FinalTags" type="VBoxContainer" parent="HBoxContainer"]

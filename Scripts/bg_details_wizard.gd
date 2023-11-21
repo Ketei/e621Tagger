@@ -5,12 +5,12 @@ extends OptionButton
 @onready var day_time_option_button: OptionButton = $"../DayTimeOptionButton"
 
 const simple_bacground: Array = [
+	"Monotone background",
 	"Abstract background",
 	"Spiral background",
 	"Geometric background",
 	"Heart background",
 	"Gradient background",
-	"Monotone background",
 	"Pattern background",
 	"Dotted background",
 	"Stripped background",
