@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=25 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -15,6 +15,73 @@
 [ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
 [ext_resource type="Script" path="res://Scripts/set_as_tag_script.gd" id="14_j3vng"]
 [ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="15_du82a"]
+
+[sub_resource type="GDScript" id="GDScript_ogbc5"]
+script/source = "extends LineEdit
+
+@onready var timer: Timer = $Timer
+@onready var item_list: ItemList = $VBoxContainer/ItemList
+
+
+func _ready():
+	text_changed.connect(lineedit_text_changed)
+	timer.timeout.connect(timer_timeout)
+	item_list.item_activated.connect(smart_selected)
+
+
+func _unhandled_key_input(event: InputEvent):
+	if item_list.visible:
+		if has_focus() and event.is_action(\"ui_up\"):
+#			release_focus()
+			item_list.grab_focus()
+			item_list.select(item_list.item_count - 1)
+			item_list.ensure_current_is_visible()
+		elif item_list.has_focus() and event.is_action_pressed(\"ui_down\")\\
+		and item_list.is_selected(item_list.item_count - 1):
+#			item_list.release_focus()
+			item_list.deselect_all()
+			grab_focus()
+		elif not has_focus() and not item_list.has_focus():
+			item_list.hide()
+		elif event.is_action(\"ui_cancel\"):
+			item_list.deselect_all()
+			item_list.hide()
+			grab_focus()
+			
+
+
+func timer_timeout() -> void:
+	if text.is_empty():
+		return
+	item_list.clear()
+	var packt: PackedStringArray = Tagger.tag_manager.get_n_tags_prefix(text, 10)
+	for item in packt:
+		item_list.add_item(item)
+	item_list.show()
+
+
+func smart_selected(index_selected: int) -> void:
+	text_submitted.emit(item_list.get_item_text(index_selected))
+	item_list.hide()
+	item_list.release_focus()
+	grab_focus()
+
+
+func lineedit_text_changed(new_text: String) -> void:
+	if item_list.visible:
+		item_list.hide()
+	
+	if new_text.is_empty():
+		if not timer.is_stopped():
+			timer.stop()
+	else:
+		timer.start()
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fgiki"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.113725, 0.133333, 0.160784, 1)
 
 [sub_resource type="GDScript" id="GDScript_82xvn"]
 resource_name = "special_show_hide"
@@ -242,6 +309,21 @@ size_flags_horizontal = 3
 placeholder_text = "Add Tag"
 select_all_on_focus = true
 caret_blink = true
+script = SubResource("GDScript_ogbc5")
+
+[node name="Timer" type="Timer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
+one_shot = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
+layout_mode = 0
+offset_top = -304.0
+offset_right = 304.0
+alignment = 2
+
+[node name="ItemList" type="ItemList" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fgiki")
+auto_height = true
 
 [node name="OpenAutoCompleteBTN" type="Button" parent="HBoxContainer/InputTags/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)

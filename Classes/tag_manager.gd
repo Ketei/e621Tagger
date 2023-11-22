@@ -149,6 +149,27 @@ func search_with_prefix(prefix_search: String) -> Dictionary:
 	return return_dictionary
 
 
+func get_n_tags_prefix(prefix_search: String, amount: int) -> PackedStringArray:
+	prefix_search = prefix_search.strip_edges().to_lower()
+	amount = maxi(amount, 0)
+	
+	var return_array := PackedStringArray()
+	
+	if not relation_database.has(prefix_search.left(1)):
+		return return_array
+	
+	var tags_counter: int = 0
+	
+	for tag_result in relation_database[prefix_search.left(1)].keys():
+		if tag_result.begins_with(prefix_search):
+			return_array.append(tag_result)
+			tags_counter += 1
+			if amount <= tags_counter:
+				break
+	
+	return return_array
+
+
 func search_with_suffix(suffix_search: String) -> Dictionary:
 	suffix_search = suffix_search.replace(" ", "_").strip_edges().to_lower()
 	var valid_tags: Array = []
