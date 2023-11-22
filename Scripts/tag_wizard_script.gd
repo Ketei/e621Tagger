@@ -296,7 +296,7 @@ func create_basic_tags() -> void:
 	
 	if completion_option_button.selected == 3: # Lineless
 		return_array.append("lineless")
-		if color_types_option_button.selected == 1:
+		if color_types_option_button.selected == 1 and not is_shaded_checkbox.button_pressed:
 			return_array.append("flat colors")
 	
 	if completion_option_button.selected == 2: # Lineart
