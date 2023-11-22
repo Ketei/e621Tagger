@@ -57,7 +57,7 @@ signal wizard_tags_created(tags_array)
 
 @onready var done_button: Button = $MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox/DoneWizardButton
 @onready var cancel_button: Button = $MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox/CancelWizardButton
-@onready var interactions_box: HBoxContainer =$MarginContainer/Margin/MarginContainer/All/InteractionHBox
+@onready var interactions_box: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Interactions/InterScrollBox/AllInteractions
 
 @onready var fur_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FurCheckBox
 @onready var scales_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ScalesCheckBox
@@ -74,16 +74,18 @@ signal wizard_tags_created(tags_array)
 @onready var playtime_opt_btn: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/PlaytimeOptBtn
 @onready var format_opt_btn: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/FormatOptBtn
 
-@onready var topwear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/TopwearCheckBox
-@onready var underwear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/UnderVBox/UnderwearCheckBox
-@onready var visible_underwear: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/UnderVBox/VisibleUnderwear
-@onready var bottomwear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/BottomwearCheckBox
-@onready var leg_wear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/LegWearCheckBox
-@onready var arm_wear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/ArmWearCheckBox
-@onready var hand_wear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/HandWearCheckBox
-@onready var foot_wear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/FootWearCheckBox
-@onready var head_wear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/HeadWearCheckBox
-@onready var collar_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/CollarCheckBox
+@onready var topwear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/TopwearCheckBox
+@onready var underwear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox/UnderwearCheckBox
+@onready var visible_underwear: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox/VisibleUnderwear
+@onready var bottomwear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/BottomwearCheckBox
+@onready var leg_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/LegWearCheckBox
+@onready var arm_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/ArmWearCheckBox
+@onready var hand_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/HandWearCheckBox
+@onready var foot_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/FootWearCheckBox
+@onready var head_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/HeadWearCheckBox
+@onready var collar_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/CollarCheckBox
+@onready var eyewear_check_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/EyewearCheckBox
+
 
 @onready var is_comic: CheckButton =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/IsComicCheckBox
 @onready var has_multiple_scenes: CheckBox =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/ShowsMultipleCheckBox
@@ -377,20 +379,24 @@ func create_basic_tags() -> void:
 
 
 func calculate_clothing_level() -> Array:
+	
+#	var covering_clothing_score: int = 0
 	var clothing_score: int = 0
+#	var non_clothing_score: int = 0
+	
 	var clothing_array: Array = []
 	
 	if topwear_checkbox.button_pressed:
-		clothing_score += 10
+		clothing_score += 100
 		clothing_array.append("topwear")
 	
 	if bottomwear_checkbox.button_pressed:
-		clothing_score += 10
+		clothing_score += 100
 		clothing_array.append("bottomwear")
 	
 	if underwear_checkbox.button_pressed:
-		clothing_score += 10
-		if visible_underwear.button_pressed or clothing_score == 10:
+		clothing_score += 100
+		if visible_underwear.button_pressed or clothing_score == 100:
 			clothing_array.append("underwear")
 			suggestions_types.append("*color* underwear")
 	
@@ -410,10 +416,13 @@ func calculate_clothing_level() -> Array:
 		clothing_score += 1
 		clothing_array.append("headwear")
 		clothing_array.append("headgear")
-	if collar_checkbox.button_pressed:
-		clothing_score += 1
+	if collar_checkbox.button_pressed: # Non-clothing
+#		clothing_score += 1
 		clothing_array.append("collar")
 		suggestions_types.append("*color* collar")
+	if eyewear_check_box.button_pressed: # Non-clothing
+#		clothing_score += 1
+		clothing_array.append("eyewear")
 	
 	if 0 < clothing_score and clothing_score < 10:
 		clothing_array.append("mostly nude")
@@ -454,20 +463,22 @@ func calculate_clothing_level() -> Array:
 	and topwear_checkbox.button_pressed:
 		clothing_array.append("pantsless")
 	
-	if underwear_checkbox.button_pressed and clothing_score == 10:
-		clothing_array.append("underwear_only")
-		clothing_array.append("clothed")
-	elif clothing_score == 1 and collar_checkbox.button_pressed:
-		clothing_array.append("collar only")
-		clothing_array.append("nude")
-		if clothing_array.has("mostly nude"):
-			clothing_array.erase("mostly nude")
-	elif foot_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("footwear only")
-	elif hand_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("handwear only")
-	elif head_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("headwear only")
+	if clothing_score == 0: # Only Accessories
+		if collar_checkbox.button_pressed:
+			clothing_array.append("collar only")
+		elif eyewear_check_box.button_pressed:
+			clothing_array.append("eyewear only")
+	elif clothing_score == 1: # Only small dress
+		if foot_wear_checkbox.button_pressed:
+			clothing_array.append("footwear only")
+		elif hand_wear_checkbox.button_pressed:
+			clothing_array.append("handwear only")
+		elif head_wear_checkbox.button_pressed:
+			clothing_array.append("headwear only")
+	elif clothing_score == 100:
+		if underwear_checkbox.button_pressed:
+			clothing_array.append("underwear_only")
+			clothing_array.append("clothed")
 
 	return clothing_array
 
