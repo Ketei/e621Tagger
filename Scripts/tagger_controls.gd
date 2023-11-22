@@ -229,9 +229,6 @@ func append_registered_tag(tag_resource: Tag, add_suggested: bool = true) -> voi
 	
 	update_parents(tag_resource, add_suggested)
 	
-	if not add_suggested:
-		print("append_registered_tag isn't allowed to add suggestions")
-	
 	if Tagger.settings.search_suggested and add_suggested:
 		for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
 			add_suggested_tag(related_tag)
@@ -318,9 +315,7 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	if Tagger.tag_manager.has_tag(tag_name):
 		var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
-		print("First Append")
 		append_registered_tag(tag_load, search_online)
-		print("------------")
 		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]
 		add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 		
@@ -345,13 +340,10 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		implied_list.remove_item(implied_tags_array.find(tag_name))
 		implied_tags_array.erase(tag_name)
 	
-	print("Second add")
 	if search_online:
 		for suggested_tag in suggested_tags:
 			add_suggested_tag(suggested_tag)
-	else:
-			print("add_new_tag is not allowed to add suggestions")
-	print("---------------")
+
 	if ensure_visible:
 		item_list.select(add_index)
 		item_list.ensure_current_is_visible()
@@ -767,10 +759,8 @@ func sort_tags_by_category() -> void:
 	
 	clear_inputted_tags()
 	
-	print("***Adding sorted items***")
 	for item in final_array:
 		add_new_tag(item, false, false, [], Tagger.Categories.GENERAL, false)
-	print("**Finished adding sorted items**")
 
 func tagger_menu_pressed(option_id: int) -> void:
 	if option_id == 0:
