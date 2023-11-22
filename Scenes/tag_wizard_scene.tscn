@@ -246,110 +246,126 @@ layout_mode = 2
 text = "Properly worn
 clothing"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
 
-[node name="TopwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="TopwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the upper body. (Hips up)"
 theme = ExtResource("9_pvv55")
 text = "Topwear"
 
-[node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="UnderVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="UnderVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="UnderwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/UnderVBox"]
+[node name="UnderwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox"]
 layout_mode = 2
 tooltip_text = "Clothing intended to be worn under other clothing."
 theme = ExtResource("9_pvv55")
 text = "Underwear"
 
-[node name="VisibleUnderwear" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer/UnderVBox"]
+[node name="VisibleUnderwear" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox"]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Visible"
 
-[node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="BottomwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="BottomwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the lower body. (Hips down)"
 theme = ExtResource("9_pvv55")
 text = "Bottomwear"
 
-[node name="ColorRect3" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect3" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="LegWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="LegWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the legs."
 theme = ExtResource("9_pvv55")
 text = "Legwear"
 
-[node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="ArmWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ArmWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the arms."
 theme = ExtResource("9_pvv55")
 text = "Armwear"
 
-[node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HandWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="HandWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the hands."
 theme = ExtResource("9_pvv55")
 text = "Handwear"
 
-[node name="ColorRect6" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect6" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="FootWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="FootWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the feet."
 theme = ExtResource("9_pvv55")
 text = "Footwear"
 
-[node name="ColorRect7" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect7" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HeadWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="HeadWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the head"
 theme = ExtResource("9_pvv55")
 text = "Headwear"
 
-[node name="ColorRect8" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="ColorRect8" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="CollarCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/HBoxContainer"]
+[node name="CollarCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Accessory worn on the neck."
 theme = ExtResource("9_pvv55")
 text = "Collar"
+
+[node name="ColorRect9" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="EyewearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Items designed to be worn over the eyes."
+text = "Eyewear"
 
 [node name="GenderHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
@@ -550,31 +566,31 @@ text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../MaleHermCheckBox")
 
-[node name="InteractionHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+[node name="Interactions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="LabelButtonHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionHBox"]
+[node name="Base" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Interactions"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/InteractionHBox/LabelButtonHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/Interactions/Base"]
 layout_mode = 2
 text = "Gender interactions"
 
-[node name="AddInteractButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/InteractionHBox/LabelButtonHBox"]
+[node name="AddInteractButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/Interactions/Base"]
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 size_flags_vertical = 4
 text = "+"
 
-[node name="InterScrollBox" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionHBox" node_paths=PackedStringArray("add_interact_button")]
+[node name="InterScrollBox" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/Interactions" node_paths=PackedStringArray("add_interact_button")]
 layout_mode = 2
 size_flags_horizontal = 3
 vertical_scroll_mode = 0
 script = ExtResource("4_4f1bk")
-add_interact_button = NodePath("../LabelButtonHBox/AddInteractButton")
+add_interact_button = NodePath("../Base/AddInteractButton")
 
-[node name="AllInteractions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionHBox/InterScrollBox"]
+[node name="AllInteractions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Interactions/InterScrollBox"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_constants/separation = 8
