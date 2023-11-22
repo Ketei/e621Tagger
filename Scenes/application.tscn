@@ -1798,6 +1798,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.403922, 0.443137, 0.52549, 1)
 
 [node name="DarkWindow" type="ColorRect" parent="TagCreator/Aliases/CenterContainer/AliasControl"]
@@ -1809,6 +1811,8 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TagCreator/Aliases/CenterContainer/AliasControl"]
@@ -2489,6 +2493,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.403922, 0.443137, 0.52549, 1)
 
 [node name="DarkWindow" type="ColorRect" parent="TagReviewer/Aliases/CenterContainer/AliasControl"]
@@ -2500,6 +2506,8 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TagReviewer/Aliases/CenterContainer/AliasControl"]
