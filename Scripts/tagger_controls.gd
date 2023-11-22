@@ -39,6 +39,8 @@ const valid_fixes: Array[String] = ["*", "|", "#"]
 @onready var number_tag_tool: NumberTagTool = $SpinboxAdder/CenterContainer/NumerTag
 @onready var clear_special_button: Button = $HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer/ClearSpecialButton
 
+@onready var set_as_tag = $SetAsTag
+
 
 var main_application
 var tagger_menu_bar: PopupMenu
@@ -709,6 +711,14 @@ func open_context_menu(tag_name: String, itembox_position: Vector2, item_positio
 		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(2), true)
 	
 	tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), not is_delete_allowed)
+	if who_called == item_list:
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), false)
+	else:
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), true)
+	
+	if 720 < (tagger_context_menu.position.y + tagger_context_menu.size.y):
+		var extrapiece = tagger_context_menu.size.y - (720 - tagger_context_menu.position.y)
+		tagger_context_menu.position.y -= extrapiece 
 	
 	tagger_context_menu.show()
 
@@ -722,6 +732,8 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		main_application.go_to_wiki(context_tag)
 	elif id_pressed == 3:
 		list_called.remove_item_from_list(called_index)
+	elif id_pressed == 4:
+		open_set_tagger()
 
 
 func sort_tags_by_category() -> void:
@@ -773,6 +785,21 @@ func tagger_menu_pressed(option_id: int) -> void:
 		sort_tags_by_category()
 	elif option_id == 9:
 		open_wizard()
+
+
+func open_set_tagger() -> void:
+	var tag_to_set: String = context_tag
+	set_as_tag.set_target_tag(tag_to_set)
+	set_as_tag.show()
+	
+	var selected_category: int = await set_as_tag.category_selected
+	
+	if selected_category != -1:
+		tags_inputed[context_tag]["category"] = selected_category
+		add_to_category(selected_category as Tagger.Categories)
+	
+	set_as_tag.hide()
+	
 
 
 func open_wizard() -> void:
