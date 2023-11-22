@@ -75,13 +75,12 @@ static func load_settings() -> UserSettings:
 	
 	if ResourceLoader.exists("user://user_settings.tres", "UserSettings"):
 		settings_load = ResourceLoader.load("user://user_settings.tres", "UserSettings")
-		var new_compare := UserSettings.new()
-		for color_cat in new_compare.category_color_code.keys():
+		for color_cat in Tagger.Categories.keys():
 			if settings_load.category_color_code.has(color_cat):
 				if not Color.html_is_valid(settings_load.category_color_code[color_cat]):
-					settings_load.category_color_code[color_cat] = new_compare.category_color_code[color_cat]
+					settings_load.category_color_code[color_cat] = "cccccc"
 			else:
-				settings_load.category_color_code[color_cat] = new_compare.category_color_code[color_cat]
+				settings_load.category_color_code[color_cat] = "cccccc"
 		if not DirAccess.dir_exists_absolute(settings_load.default_save_path) or settings_load.default_save_path.is_empty():
 			settings_load.default_save_path = ProjectSettings.globalize_path(Tagger.tag_exports_folder)
 		if not settings_load.default_save_path.ends_with("/"):
