@@ -7,48 +7,52 @@ signal tag_updated
 @export var add_alias_lineedit: LineEdit
 @export var aliases_window: Control
 
-@onready var tag_searcher = $TagSearcher
-@onready var tag_search_button = $TagSearcher/TagSearchButton
-@onready var name_line: LineEdit = $NameLine
-@onready var categories_menu: OptionButton = $CategoriesMenu
-@onready var wiki_edit = $WikiEdit
-@onready var tag_update_button = $TagUpdate
+@export var tag_searcher: LineEdit
+@export var tag_search_button: Button
+@export var name_line: LineEdit
+@export var categories_menu: OptionButton
+@export var wiki_edit: TextEdit
+@export var tag_update_button: Button
 
-@onready var parents_item_list: ItemList = $ParentsItemList
-@onready var add_parent_line_edit: LineEdit = $AddParentLineEdit
+@export var parents_item_list: ItemList
+@export var add_parent_line_edit: LineEdit
 
-@onready var tag_prio_box: SpinBox = $TagPrioBox
+@export var tag_prio_box: SpinBox
 
-@onready var tag_suggestion_list: ItemList = $TagSuggestionList
-@onready var tag_suggestion_line_edit: LineEdit = $TagSuggestionLineEdit
+@export var tag_suggestion_list: ItemList
+@export var tag_suggestion_line_edit: LineEdit
 
-@onready var review_menu: PopupMenu = $"../MenuBar/Tag Editor"
-@onready var has_images_check_box = $HasImagesCheckBox
+@export var review_menu: PopupMenu
+@export var has_images_check_box: CheckBox
 
-@onready var open_pic_folder_button: Button = $OpenPicFolder
+@export var open_pic_folder_button: Button
 
-@onready var add_conflict_line_edit: LineEdit = $ConflictWindow/AddConflictLineEdit
-@onready var conflicts_item_list: ItemList = $ConflictWindow/ConflictsItemList
+@export var add_conflict_line_edit: LineEdit
+@export var conflicts_item_list: ItemList
 @onready var conflict_window = $ConflictWindow
-@onready var tag_tooltip_line_edit: LineEdit = $TagTooltipLineEdit
+@export var tag_tooltip_line_edit: LineEdit
 
 var conflicts_array: Array[String] = []
 
 var parents: Array = []
 var suggestions_array: Array[String] = []
 
-@onready var text_change_timer: Timer = $TextChangeTimer
-@onready var downloading_samples_label: Label = $DownloadingSamplesLabel
+@export var text_change_timer: Timer
+#@export var downloading_samples_label: Label
 #@onready var e621_samples_dl_review = $e621SamplesDLReview
-@onready var preview_bbc_button: Button = $PreviewBBCButton
-@onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
-@onready var preview_bbc_window = $PreviewBBCWindow
+@export var preview_bbc_button: Button
+@export var rich_text_label: RichTextLabel
+@export var preview_bbc_window: Control
 
-var samples_downloader_queue: Dictionary = {}
-var is_downloading_samples: bool = false:
-	set(value):
-		is_downloading_samples = value
-		downloading_samples_label.visible = is_downloading_samples
+@onready var open_auto_complete_parents_btn: Button = $AllItemsHBox/LeftVbox/ItemListsHBox/ParentTagsVbox/PArentsLineHbox/OpenAutoCompleteBTN
+@onready var open_auto_complete_suggestions_btn: Button = $AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/SuggestionItemsHBox/OpenAutoCompleteBTN
+
+
+#var samples_downloader_queue: Dictionary = {}
+#var is_downloading_samples: bool = false:
+#	set(value):
+#		is_downloading_samples = value
+#		downloading_samples_label.visible = is_downloading_samples
 var delete_with_folder: bool = false
 
 var tag_aliases_array: Array = []
@@ -56,6 +60,9 @@ var tag_aliases_array: Array = []
 
 func _ready():
 	hide()
+	
+	parents_item_list.associated_array = parents
+	tag_suggestion_list.associated_array = suggestions_array
 	
 	preview_bbc_button.pressed.connect(preview_bcc)
 	delete_with_folder = Tagger.settings.delete_with_pictures
@@ -161,6 +168,8 @@ func search_for_tag(new_text: String) -> void:
 	tag_tooltip_line_edit.editable = true
 	tag_update_button.disabled = false
 	add_alias_lineedit.editable = true
+	open_auto_complete_parents_btn.disabled = false
+	open_auto_complete_suggestions_btn.disabled = false
 	review_menu.set_item_disabled(review_menu.get_item_index(0), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
@@ -322,6 +331,8 @@ func clear_and_disable() -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
 	tag_update_button.disabled = true
+	open_auto_complete_parents_btn.disabled = true
+	open_auto_complete_suggestions_btn.disabled = true
 
 
 func button_search_pressed() -> void:
@@ -348,14 +359,13 @@ func remove_parent(parent_id: int) -> void:
 
 func add_suggested(new_suggestion: String) -> void:
 	new_suggestion = new_suggestion.strip_edges().to_lower()
+	tag_suggestion_line_edit.clear()
 	
-	if new_suggestion.is_empty():
-		tag_suggestion_line_edit.clear()
+	if new_suggestion.is_empty() or suggestions_array.has(new_suggestion):
 		return
-	
+
 	suggestions_array.append(new_suggestion)
 	tag_suggestion_list.add_item(new_suggestion)
-	tag_suggestion_line_edit.clear()
 
 
 func remove_suggested(sug_id: int) -> void:

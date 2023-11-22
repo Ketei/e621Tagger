@@ -12,11 +12,11 @@ signal register_alias(old_name, new_name)
 @onready var categories_menu: OptionButton = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/CategoryHBox/CategoriesMenu
 @onready var create_tags_button = $VBoxContainer/CreateTagsButton
 @onready var wiki_info = $VBoxContainer/HBoxContainer/RightPartVBox/WikiInfo
-@onready var add_parent_line_edit = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox/AddParentLineEdit
+@export var add_parent_line_edit: LineEdit
 @onready var parent_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox/ParentItemList
 @onready var tag_prio_box: SpinBox = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/PriorityHBox/TagPrioBox
 @onready var suggestion_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox/SuggestionItemList
-@onready var suggestion_line_edit: LineEdit = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox/SugestionLineEdit
+@export var suggestion_line_edit: LineEdit
 @onready var has_images_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/HasImagesCheckBox
 @onready var tag_creator_menu: PopupMenu = $"../MenuBar/Tag Creator"
 @onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
@@ -55,7 +55,8 @@ var left_context_tag: String = ""
 
 func _ready():
 	hide()
-	
+	parent_item_list.associated_array = parent_tags
+	suggestion_item_list.associated_array = tag_suggestion_array
 	bbc_preview_button.pressed.connect(preview_bcc)
 	
 	has_images_check_box.toggled.connect(has_images_toggled)
@@ -280,6 +281,7 @@ func on_timer_timeout() -> void:
 func add_new_alias(alias_string: String) -> void:
 	alias_string = alias_string.strip_edges().to_lower()
 	alias_lineedit.clear()
+	
 	if aliased_tags.has(alias_string):
 		return
 	
