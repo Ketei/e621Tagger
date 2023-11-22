@@ -310,6 +310,7 @@ text = "Clear"
 custom_minimum_size = Vector2(0, 192)
 layout_mode = 2
 script = ExtResource("5_fpeot")
+can_remove = true
 
 [node name="ImpliedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
 layout_mode = 2
