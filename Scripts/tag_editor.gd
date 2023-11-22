@@ -125,6 +125,9 @@ func search_for_tag(new_text: String) -> void:
 	suggestions_array.clear()
 	tag_suggestion_line_edit.clear()
 	
+	alias_itemlist.clear()
+	tag_aliases_array.clear()
+	
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 
 	name_line.text = _tag.tag
