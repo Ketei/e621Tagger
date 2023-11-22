@@ -88,8 +88,6 @@ signal wizard_tags_created(tags_array)
 @export var is_comic: CheckButton
 @export var has_multiple_scenes: CheckBox
 
-@export var picture_rating: OptionButton
-
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
 var media_types: Array = ["digital media (artwork)", "traditional media (artwork)", "photography (artwork)", "animated"]
@@ -304,9 +302,9 @@ func create_basic_tags() -> void:
 			return_array.append("flat colors")
 	
 	if completion_option_button.selected == 2: # Lineart
-		if color_types_option_button.selected == 1:
+		if color_types_option_button.selected == 1 and not is_shaded_checkbox.button_pressed:
 			return_array.append("flat colors")
-		else:
+		elif color_types_option_button.selected == 0:
 			return_array.append("lineart")
 	
 	if completion_option_button.selected == 1: # Sketch
@@ -375,11 +373,6 @@ func create_basic_tags() -> void:
 		return_array.append("comic")
 	if has_multiple_scenes.button_pressed:
 		return_array.append("multiple scenes")
-	
-	return_array.append(
-			"rating:" +
-			picture_rating.get_item_text(
-					picture_rating.selected).to_lower())
 	
 	wizard_tags_created.emit(return_array)
 

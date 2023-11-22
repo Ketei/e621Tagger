@@ -156,7 +156,7 @@ head_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/V
 collar_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/CollarCheckBox")
 is_comic = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/IsComicCheckBox")
 has_multiple_scenes = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/ShowsMultipleCheckBox")
-picture_rating = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/MediaRatingHBox/RatingOptionButton")
+picture_rating = NodePath("")
 
 [node name="WizardBGRect" type="ColorRect" parent="."]
 show_behind_parent = true
@@ -264,25 +264,6 @@ max_value = 3000.0
 value = 1900.0
 alignment = 1
 script = SubResource("GDScript_4kylm")
-
-[node name="MediaRatingHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/MediaRatingHBox"]
-layout_mode = 2
-text = "Rating:"
-
-[node name="RatingOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/MediaRatingHBox"]
-layout_mode = 2
-alignment = 1
-item_count = 3
-selected = 0
-popup/item_0/text = "Explicit"
-popup/item_0/id = 0
-popup/item_1/text = "Questionable"
-popup/item_1/id = 1
-popup/item_2/text = "Safe"
-popup/item_2/id = 2
 
 [node name="CharacterAmountHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -1015,6 +996,7 @@ script = SubResource("GDScript_c8128")
 
 [node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox"]
 layout_mode = 2
+tooltip_text = "When a picture contains 2 or more related images. Can show progression."
 theme = ExtResource("9_pvv55")
 text = "Multiple scenes"
 
