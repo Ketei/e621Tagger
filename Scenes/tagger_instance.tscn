@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=23 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" uid="uid://61qwtnsjohnu" path="res://Scenes/suggestion_or_adder.tscn" id="10_8knu4"]
 [ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="11_hi7i4"]
 [ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
+[ext_resource type="Script" path="res://Scripts/set_as_tag_script.gd" id="14_j3vng"]
+[ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="15_du82a"]
 
 [sub_resource type="GDScript" id="GDScript_82xvn"]
 resource_name = "special_show_hide"
@@ -175,8 +177,8 @@ one_shot = true
 script = ExtResource("2_enrd1")
 
 [node name="TaggerContextMenu" type="PopupMenu" parent="."]
-size = Vector2i(119, 100)
-item_count = 4
+size = Vector2i(119, 123)
+item_count = 5
 item_0/text = "Wiki"
 item_0/id = 2
 item_1/text = "Create Tag"
@@ -185,6 +187,8 @@ item_2/text = "Edit Tag"
 item_2/id = 1
 item_3/text = "Remove Tag"
 item_3/id = 3
+item_4/text = "Set as..."
+item_4/id = 4
 
 [node name="WarningRect" type="TextureRect" parent="."]
 layout_mode = 0
@@ -423,7 +427,7 @@ offset_left = -0.360001
 offset_top = -0.191986
 offset_right = -1.0
 script = ExtResource("7_gh0lf")
-tags_to_get = 50
+tags_to_get = 75
 metadata/_edit_use_anchors_ = true
 
 [node name="QuickSearchPopupMenu" type="PopupMenu" parent="AddAutoComplete/QuickSearch"]
@@ -707,6 +711,113 @@ offset_bottom = 656.0
 
 [node name="TagWizard" parent="Weezard/CenterContainer" instance=ExtResource("11_lbguf")]
 layout_mode = 2
+
+[node name="SetAsTag" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 656.0
+script = ExtResource("14_j3vng")
+
+[node name="CenterContainer" type="CenterContainer" parent="SetAsTag"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SetWindow" type="Control" parent="SetAsTag/CenterContainer"]
+custom_minimum_size = Vector2(448, 120)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="EdgeRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.372549, 0.419608, 0.509804, 1)
+
+[node name="BackgroundArea" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SetLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Set"
+
+[node name="TagLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "TagName"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer/TagLabel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -3.0
+offset_right = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1095, 0.123675, 0.15, 1)
+
+[node name="AsLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "as"
+
+[node name="CategoriesMenu" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer" instance=ExtResource("15_du82a")]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(128, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="AcceptButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Accept"
 
 [node name="TagFileDialog" parent="." instance=ExtResource("9_q63mv")]
 visible = false

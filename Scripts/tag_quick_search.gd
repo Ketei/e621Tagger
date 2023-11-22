@@ -59,11 +59,11 @@ func activate_right_click_context_menu(id_pressed: int) -> void:
 				[], 
 				tag_search_dictionary[selected_tag]["related_tags"],
 				tag_search_dictionary[selected_tag]["category"])
-		hide()
+		hide_autocompleter()
 	
 	elif id_pressed == 1:
 		tagger.main_application.go_to_edit_tag(selected_tag)
-		hide()
+		hide_autocompleter()
 
 
 func save_search_select(item_index: int) -> void:
