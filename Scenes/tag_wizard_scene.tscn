@@ -80,7 +80,7 @@ func is_comic_checked(is_comic: bool) -> void:
 	shows_multiple_checkbox.disabled = is_comic
 "
 
-[node name="TagWizard" type="Control" node_paths=PackedStringArray("items_scroll_container", "artist_line_edit", "known_artist_chkbtn", "work_year", "char_amount", "focus_amount", "male_check_box", "female_check_box", "ambig_check_box", "andro_check_box", "gyno_check_box", "herm_check_box", "male_herm_check_box", "male_focus_check_box", "female_focus_check_box", "ambig_focus_check_box", "andro_focus_check_box", "gyno_focus_check_box", "herm_focus_check_box", "male_focus_herm_check_box", "anthro_check_box", "semi_anthro_check_box", "feral_check_box", "human_check_box", "humanoid_check_box", "taur_check_box", "anthro_focus_check_box", "semi_focus_anthro_check_box", "feral_focus_check_box", "human_focus_check_box", "humanoid_focus_check_box", "taur_focus_check_box", "background_option_button", "background_dets_option_button", "daytime_option_button", "completion_option_button", "color_types_option_button", "is_shaded_checkbox", "shaded_style_optbtn", "angle_option_button", "media_type_option_button", "defined_media_opt_button", "done_button", "cancel_button", "interactions_box", "fur_check_box", "scales_check_box", "feathers_check_box", "wool_check_box", "skin_check_box", "exo_check_box", "fr_by_fr_anim_chk_btn", "loops_chk_btn", "sound_chk_box", "animation_types_btn", "playtime_opt_btn", "format_opt_btn", "topwear_checkbox", "underwear_checkbox", "visible_underwear", "bottomwear_checkbox", "leg_wear_checkbox", "arm_wear_checkbox", "hand_wear_checkbox", "foot_wear_checkbox", "head_wear_checkbox", "collar_checkbox", "is_comic", "has_multiple_scenes")]
+[node name="TagWizard" type="Control" node_paths=PackedStringArray("items_scroll_container", "artist_line_edit", "known_artist_chkbtn", "work_year", "char_amount", "focus_amount", "male_check_box", "female_check_box", "ambig_check_box", "andro_check_box", "gyno_check_box", "herm_check_box", "male_herm_check_box", "male_focus_check_box", "female_focus_check_box", "ambig_focus_check_box", "andro_focus_check_box", "gyno_focus_check_box", "herm_focus_check_box", "male_focus_herm_check_box", "anthro_check_box", "semi_anthro_check_box", "feral_check_box", "human_check_box", "humanoid_check_box", "taur_check_box", "anthro_focus_check_box", "semi_focus_anthro_check_box", "feral_focus_check_box", "human_focus_check_box", "humanoid_focus_check_box", "taur_focus_check_box", "background_option_button", "background_dets_option_button", "daytime_option_button", "completion_option_button", "color_types_option_button", "is_shaded_checkbox", "shaded_style_optbtn", "angle_option_button", "media_type_option_button", "defined_media_opt_button", "done_button", "cancel_button", "interactions_box", "fur_check_box", "scales_check_box", "feathers_check_box", "wool_check_box", "skin_check_box", "exo_check_box", "fr_by_fr_anim_chk_btn", "loops_chk_btn", "sound_chk_box", "animation_types_btn", "playtime_opt_btn", "format_opt_btn", "topwear_checkbox", "underwear_checkbox", "visible_underwear", "bottomwear_checkbox", "leg_wear_checkbox", "arm_wear_checkbox", "hand_wear_checkbox", "foot_wear_checkbox", "head_wear_checkbox", "collar_checkbox", "is_comic", "has_multiple_scenes", "picture_rating")]
 custom_minimum_size = Vector2(1200, 600)
 layout_mode = 3
 anchors_preset = 0
@@ -156,6 +156,7 @@ head_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/V
 collar_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/CollarCheckBox")
 is_comic = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/IsComicCheckBox")
 has_multiple_scenes = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/ShowsMultipleCheckBox")
+picture_rating = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/MediaRatingHBox/RatingOptionButton")
 
 [node name="WizardBGRect" type="ColorRect" parent="."]
 show_behind_parent = true
@@ -263,6 +264,25 @@ max_value = 3000.0
 value = 1900.0
 alignment = 1
 script = SubResource("GDScript_4kylm")
+
+[node name="MediaRatingHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/MediaRatingHBox"]
+layout_mode = 2
+text = "Rating:"
+
+[node name="RatingOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/MediaRatingHBox"]
+layout_mode = 2
+alignment = 1
+item_count = 3
+selected = 0
+popup/item_0/text = "Explicit"
+popup/item_0/id = 0
+popup/item_1/text = "Questionable"
+popup/item_1/id = 1
+popup/item_2/text = "Safe"
+popup/item_2/id = 2
 
 [node name="CharacterAmountHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2

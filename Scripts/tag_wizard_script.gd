@@ -88,11 +88,14 @@ signal wizard_tags_created(tags_array)
 @export var is_comic: CheckButton
 @export var has_multiple_scenes: CheckBox
 
+@export var picture_rating: OptionButton
+
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
 var media_types: Array = ["digital media (artwork)", "traditional media (artwork)", "photography (artwork)", "animated"]
 
 var suggestions_types: Array = []
+
 
 func _ready():
 	done_button.pressed.connect(create_basic_tags)
@@ -116,6 +119,7 @@ func magic_clean() -> void:
 	gyno_check_box.set_pressed_no_signal(false)
 	herm_check_box.set_pressed_no_signal(false)
 	male_herm_check_box.set_pressed_no_signal(false)
+	picture_rating.select(0)
 	
 	male_focus_check_box.set_pressed_no_signal(false)
 	female_focus_check_box.set_pressed_no_signal(false)
@@ -371,6 +375,11 @@ func create_basic_tags() -> void:
 		return_array.append("comic")
 	if has_multiple_scenes.button_pressed:
 		return_array.append("multiple scenes")
+	
+	return_array.append(
+			"rating:" +
+			picture_rating.get_item_text(
+					picture_rating.selected).to_lower())
 	
 	wizard_tags_created.emit(return_array)
 
