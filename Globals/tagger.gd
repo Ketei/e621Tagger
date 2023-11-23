@@ -49,6 +49,8 @@ var implications_path: String = "user://database/implications/"
 var tags_path: String = "user://database/tags/"
 var tag_images_path: String = "user://database/tag_images/"
 var templates_path: String = "user://database/templates/"
+var lists_path: String = "user://database/lists.tres"
+var site_settings_path: String = "user://database/sites.tres"
 const api_file_path: String = "user://e621_key.txt"
 const tag_exports_folder: String = "user://tag_exports/"
 
@@ -72,13 +74,15 @@ func _init():
 	tags_path = settings.database_location + "tags/"
 	tag_images_path = settings.database_location + "tag_images/"
 	templates_path = settings.database_location + "templates/"
+	lists_path = settings.database_location + "lists.tres"
+	site_settings_path = settings.database_location + "sites.tres"
 	
 	verify_folder_structure()
 	
 	tag_manager = TagManager.load_database(implications_path)
-	site_settings = SiteSettings.load_settings()
+	site_settings = SiteSettings.load_settings(settings.database_location + "sites.tres")
 	alias_database = AliasDatabase.load_database(settings.database_location)
-	settings_lists = SettingLists.load_database()
+	settings_lists = SettingLists.load_database(settings.database_location + "lists.tres")
 	
 	for site in site_settings.valid_sites.keys():
 		available_sites.append(site)
