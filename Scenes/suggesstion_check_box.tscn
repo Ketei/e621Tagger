@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://x070lq5codsu"]
+[gd_scene load_steps=3 format=3 uid="uid://x070lq5codsu"]
 
+[ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="1_5slju"]
 [ext_resource type="Script" path="res://Scripts/include_suggestion_chkbx_script.gd" id="1_q5cbb"]
 
 [node name="TagSuggestionCheckBox" type="CheckBox"]
 offset_right = 24.0
 offset_bottom = 24.0
+theme = ExtResource("1_5slju")
 script = ExtResource("1_q5cbb")
