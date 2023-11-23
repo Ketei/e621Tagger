@@ -133,6 +133,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Margin" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
+scroll_vertical = 236
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Margin"]
 layout_mode = 2
@@ -1041,6 +1042,7 @@ popup/item_2/id = 3
 
 [node name="RearViewCheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
+size_flags_vertical = 4
 text = "Rear view"
 
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
@@ -1050,12 +1052,14 @@ texture = ExtResource("11_yms3t")
 
 [node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
+size_flags_vertical = 4
 theme = ExtResource("9_pvv55")
 text = "Is comic"
 script = SubResource("GDScript_c8128")
 
 [node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
+size_flags_vertical = 4
 tooltip_text = "When a picture contains 2 or more related images. Can show progression."
 theme = ExtResource("9_pvv55")
 text = "Multiple scenes"
