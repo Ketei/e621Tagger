@@ -85,6 +85,7 @@ func load_template(temp_name: String, temp_tags: PackedStringArray, temp_suggest
 
 
 func save_template() -> void:
+	save_template_button.disabled = true
 	template_resource = TaglistResource.new()
 	template_resource.template_name = template_name.text.strip_edges()
 	template_resource.template_tags = PackedStringArray(template_tags)
@@ -93,7 +94,10 @@ func save_template() -> void:
 	clear_tags()
 	clear_suggestions()
 	template_name.clear()
-
+	save_template_button.text = "Done!"
+	await get_tree().create_timer(2).timeout
+	save_template_button.text = "Save"
+	save_template_button.disabled = false
 
 func clear_tags() -> void:
 	template_tags.clear()
