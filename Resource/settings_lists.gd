@@ -548,30 +548,30 @@ extends Resource
 }
 
 @export var tag_types: Dictionary = {
-	"body-part": ["ears", "head", "face", "neck", "arms", "hands", "torso", "wings", "genitalia", "penis", "balls", "pussy", "anus", "butt", "legs", "tail", "feet"],
-	"body-type": ["anthro", "semi-anthro", "feral", "human", "humanoid", "taur"],
+	"body-part": ["anus", "arms", "balls", "butt", "ears", "face", "feet", "genitalia", "hands", "head", "legs", "neck", "penis", "pussy", "tail", "torso", "wings"],
+	"body-type": ["anthro", "feral", "human", "humanoid", "semi-anthro", "taur"],
 	"color": ["black", "blue", "brown", "green", "grey", "orange", "pink", "purple", "red", "tan", "teal", "white", "yellow"],
-	"gender": ["male", "female", "andromorph", "gynomorph", "herm", "maleherm"],
+	"gender": ["andromorph", "female", "gynomorph", "herm", "male", "maleherm"],
 	"length": ["short", "long"],
-	"looking-at": ["viewer", "another", "partner", "genitalia", "self", "butt", "breasts", "anus", "pussy", "bulge"],
+	"looking-at": ["another", "anus", "breasts", "bulge", "butt", "genitalia", "partner", "pussy", "self", "viewer"],
 	"orifice": ["ass", "cloaca", "mouth", "pussy", "slit", "uterus"],
 	"p-view": ["anus", "balls", "belly", "breasts", "cloaca", "crotch", "hindquarters", "mouth", "penis", "pussy", "sheath", "slit"], # Presenting
 	"scale": ["smaller", "larger"],
-	"sex-pen": ["oral", "anal", "vaginal", "cloacal"],
+	"sex-pen": ["anal", "cloacal", "oral", "vaginal"],
 	"size": ["small", "big", "huge", "hyper"],
 	"surface": ["bed", "bench", "chair", "counter", "desk", "ground", "pillow", "table", "throne", "toilet", "sofa"],
-	"tuft": ["arm", "elbow", "wrist", "ball", "cheek", "crotch", "ear", "inner ear", "feather", "head", "hip", "leg", "ankle", "knee", "neck", "nipple", "shoulder", "tail", "toe"]
+	"tuft": ["ankle", "arm", "ball", "cheek", "crotch", "ear", "elbow", "feather", "head", "hip", "inner ear", "knee", "leg", "neck", "nipple", "shoulder", "tail", "toe", "wrist"]
 }
 
-static func load_database() -> SettingLists:
-	if ResourceLoader.exists("user://settings_lists.tres"):
-		return ResourceLoader.load("user://settings_lists.tres")
+static func load_database(lists_path: String) -> SettingLists:
+	if ResourceLoader.exists(lists_path, "SettingLists"):
+		return ResourceLoader.load(lists_path)
 	else:
 		return SettingLists.new()
 
 
 func save() -> void:
-	ResourceSaver.save(self, "user://settings_lists.tres")
+	ResourceSaver.save(self, Tagger.lists_path)
 
 
 func remove_from_suggestion_review_blacklist(tag_to_remove: String) -> void:
