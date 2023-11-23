@@ -553,11 +553,13 @@ extends Resource
 	"color": ["black", "blue", "brown", "green", "grey", "orange", "pink", "purple", "red", "tan", "teal", "white", "yellow"],
 	"gender": ["male", "female", "andromorph", "gynomorph", "herm", "maleherm"],
 	"length": ["short", "long"],
+	"looking-at": ["viewer", "another", "partner", "genitalia", "self", "butt", "breasts", "anus", "pussy", "bulge"],
 	"orifice": ["ass", "cloaca", "mouth", "pussy", "slit", "uterus"],
 	"p-view": ["anus", "balls", "belly", "breasts", "cloaca", "crotch", "hindquarters", "mouth", "penis", "pussy", "sheath", "slit"], # Presenting
 	"scale": ["smaller", "larger"],
 	"sex-pen": ["oral", "anal", "vaginal", "cloacal"],
 	"size": ["small", "big", "huge", "hyper"],
+	"surface": ["bed", "bench", "chair", "counter", "desk", "ground", "pillow", "table", "throne", "toilet", "sofa"],
 	"tuft": ["arm", "elbow", "wrist", "ball", "cheek", "crotch", "ear", "inner ear", "feather", "head", "hip", "leg", "ankle", "knee", "neck", "nipple", "shoulder", "tail", "toe"]
 }
 
