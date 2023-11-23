@@ -1087,7 +1087,7 @@ item_6/id = 3
 [node name="Wiki" type="PopupMenu" parent="MenuBar"]
 size = Vector2i(123, 54)
 item_count = 2
-item_0/text = "Refresh Wiki"
+item_0/text = "Reload Wiki"
 item_0/id = 0
 item_1/text = "Edit tag"
 item_1/id = 1
