@@ -159,6 +159,8 @@ func magic_clean() -> void:
 	completion_option_button.select(0)
 	color_types_option_button.select(0)
 	media_type_option_button.select(0)
+	media_type_option_button.item_selected.emit(0)
+	defined_media_opt_button.select(0)
 	
 	fur_check_box.set_pressed_no_signal(false)
 	scales_check_box.set_pressed_no_signal(false)
@@ -189,6 +191,20 @@ func magic_clean() -> void:
 	is_shaded_checkbox.button_pressed = false
 	
 	media_type_option_button.selected = 0
+	
+	for child in smart_checkboxes.get_children():
+		if not child is WizzardCheckbox:
+			continue
+		child.button_pressed = false
+	
+	for child in suggestions_flow_container.get_children():
+		if not child is SuggetionTagCheckbox:
+			continue
+		child.button_pressed = false
+	
+	lying_option_button.select(0)
+	sitting_option_button.select(0)
+		
 
 
 func create_basic_tags() -> void:
@@ -402,10 +418,11 @@ func create_basic_tags() -> void:
 	for child in smart_checkboxes.get_children():
 		if not child is WizzardCheckbox:
 			continue
-		for tag in child.tags_array:
-			return_array.append(tag)
-		for sugg in child.suggestions_array:
-			suggestions_types.append(sugg)
+		if child.button_pressed:
+			for tag in child.tags_array:
+				return_array.append(tag)
+			for sugg in child.suggestions_array:
+				suggestions_types.append(sugg)
 	
 	if lying_option_button.visible:
 		return_array.append(
@@ -418,8 +435,8 @@ func create_basic_tags() -> void:
 	for child in suggestions_flow_container.get_children():
 		if not child is SuggetionTagCheckbox:
 			continue
-		
-		suggestions_types.append_array(child.checkbox_tags)
+		if child.button_pressed:
+			suggestions_types.append_array(child.checkbox_tags)
 	
 	wizard_tags_created.emit(return_array)
 
