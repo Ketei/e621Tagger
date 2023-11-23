@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=27 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -24,6 +24,7 @@ signal should_hide(boolean)
 
 @onready var timer: Timer = $Timer
 @onready var item_list: ItemList = $VBoxContainer/ItemList
+@onready var main_item_list = $\"../../ItemList\"
 
 var yielded_focus: bool = false
 var list_yielded_focus: bool = false
@@ -48,7 +49,7 @@ func _unhandled_key_input(event: InputEvent):
 			item_list.hide()
 			grab_focus()
 	else:
-		if event.is_action(\"ui_up\") and timer.is_stopped():
+		if has_focus() and event.is_action(\"ui_up\") and timer.is_stopped() and 0 < item_list.item_count:
 			yielded_focus = true
 			item_list.show()
 			item_list.select(item_list.item_count - 1)
@@ -72,6 +73,8 @@ func timer_timeout() -> void:
 		return
 	item_list.clear()
 	var packt: PackedStringArray = Tagger.tag_manager.get_n_tags_prefix(text, 10)
+	if packt.size() == 0:
+		return
 	for item in packt:
 		item_list.add_item(item)
 	item_list.show()
@@ -99,6 +102,15 @@ func lineedit_text_changed(new_text: String) -> void:
 content_margin_left = 8.0
 content_margin_right = 8.0
 bg_color = Color(0.113725, 0.133333, 0.160784, 1)
+
+[sub_resource type="GDScript" id="GDScript_6l3pt"]
+resource_name = "start_hidden"
+script/source = "extends ItemList
+
+
+func _ready():
+	hide()
+"
 
 [sub_resource type="GDScript" id="GDScript_82xvn"]
 resource_name = "special_show_hide"
@@ -344,6 +356,7 @@ alignment = 2
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_fgiki")
 auto_height = true
+script = SubResource("GDScript_6l3pt")
 
 [node name="OpenAutoCompleteBTN" type="Button" parent="HBoxContainer/InputTags/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
