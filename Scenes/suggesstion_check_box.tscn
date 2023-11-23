@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://x070lq5codsu"]
+
+[ext_resource type="Script" path="res://Scripts/include_suggestion_chkbx_script.gd" id="1_q5cbb"]
+
+[node name="TagSuggestionCheckBox" type="CheckBox"]
+offset_right = 24.0
+offset_bottom = 24.0
+script = ExtResource("1_q5cbb")

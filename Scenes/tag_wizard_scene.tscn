@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=20 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -10,8 +10,10 @@
 [ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
 [ext_resource type="Script" path="res://Scripts/bg_details_wizard.gd" id="8_emj81"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
+[ext_resource type="PackedScene" uid="uid://hodd44bull1r" path="res://Scenes/wizard_smart_checkbox.tscn" id="9_vbkwx"]
 [ext_resource type="Script" path="res://Scripts/angle_view_wiz_tool.gd" id="10_3npvb"]
 [ext_resource type="Texture2D" uid="uid://75bqwb1rf3al" path="res://Textures/AngleHeads/regular-front.png" id="11_yms3t"]
+[ext_resource type="Script" path="res://Scripts/include_wizzard_sugs.gd" id="13_yw5to"]
 
 [sub_resource type="GDScript" id="GDScript_26vi0"]
 resource_name = "hide_show"
@@ -85,8 +87,11 @@ func is_comic_checked(is_comic: bool) -> void:
 [node name="TagWizard" type="Control"]
 custom_minimum_size = Vector2(1200, 600)
 layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 1.12222
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_itg1i")
 metadata/_edit_use_anchors_ = true
 
@@ -128,7 +133,6 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Margin" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
-scroll_vertical = 51
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Margin"]
 layout_mode = 2
@@ -804,6 +808,88 @@ layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Exoskeleton"
 
+[node name="Stance" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+layout_mode = 2
+text = "Stances:"
+
+[node name="SmartCheckboxes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+layout_mode = 2
+
+[node name="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Floating"
+tags_to_include = "floating"
+suggestions_to_include = "levitation"
+
+[node name="CheckBox7" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Flying"
+tags_to_include = "flying"
+suggestions_to_include = "wings, midair"
+
+[node name="CheckBox2" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Jumping"
+tags_to_include = "jumping"
+
+[node name="CheckBox3" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Lying"
+tags_to_include = "lying"
+suggestions_to_include = "lying on *surface*"
+node_to_display = NodePath("../LyingOptionButton")
+
+[node name="LyingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+layout_mode = 2
+item_count = 3
+selected = 0
+popup/item_0/text = "On back"
+popup/item_0/id = 0
+popup/item_1/text = "On front"
+popup/item_1/id = 1
+popup/item_2/text = "On side"
+popup/item_2/id = 2
+
+[node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Sitting"
+tags_to_include = "sitting"
+suggestions_to_include = "sitting on *surface*, reclining"
+node_to_display = NodePath("../SittingOptionButton")
+
+[node name="SittingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+layout_mode = 2
+item_count = 7
+selected = 0
+popup/item_0/text = "- on bodypart -"
+popup/item_0/id = 0
+popup/item_1/text = "Sitting on another"
+popup/item_1/id = 1
+popup/item_2/text = "Sitting on balls"
+popup/item_2/id = 2
+popup/item_3/text = "Sitting on knot"
+popup/item_3/id = 3
+popup/item_4/text = "Sitting on lap"
+popup/item_4/id = 4
+popup/item_5/text = "Sitting on penis"
+popup/item_5/id = 5
+popup/item_6/text = "Sitting on tail"
+popup/item_6/id = 6
+
+[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Standing"
+tags_to_include = "standing"
+suggestions_to_include = "leaning back"
+
+[node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Swimming"
+tags_to_include = "swimming"
+
 [node name="BgTypesHbox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
@@ -946,7 +1032,7 @@ size_flags_vertical = 4
 theme = ExtResource("9_pvv55")
 item_count = 3
 selected = 0
-popup/item_0/text = "Front view"
+popup/item_0/text = "Straight"
 popup/item_0/id = 1
 popup/item_1/text = "Three-quarter view"
 popup/item_1/id = 2
@@ -1085,6 +1171,18 @@ popup/item_1/text = "WEBM"
 popup/item_1/id = 1
 popup/item_2/text = "Animated PNG"
 popup/item_2/id = 2
+
+[node name="IncludeSuggestions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+script = ExtResource("13_yw5to")
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/IncludeSuggestions"]
+layout_mode = 2
+text = "Include suggestions for:"
+
+[node name="FlowContainer" type="HFlowContainer" parent="MarginContainer/Margin/MarginContainer/All/IncludeSuggestions"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="FinishButtonsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 custom_minimum_size = Vector2(0, 32)

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://hodd44bull1r"]
+
+[ext_resource type="Script" path="res://Scripts/wiz_smart_checkbox.gd" id="1_654f4"]
+
+[node name="CheckBox" type="CheckBox"]
+offset_right = 24.0
+offset_bottom = 24.0
+script = ExtResource("1_654f4")

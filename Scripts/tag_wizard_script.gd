@@ -92,6 +92,12 @@ signal wizard_tags_created(tags_array)
 @onready var is_comic: CheckButton =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/IsComicCheckBox
 @onready var has_multiple_scenes: CheckBox =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/ShowsMultipleCheckBox
 @onready var perspect_elements: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox
+@onready var smart_checkboxes: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes
+@onready var lying_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/LyingOptionButton
+@onready var sitting_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/SittingOptionButton
+@onready var suggestions_flow_container: HFlowContainer = $MarginContainer/Margin/MarginContainer/All/IncludeSuggestions/FlowContainer
+
+
 
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
@@ -393,14 +399,33 @@ func create_basic_tags() -> void:
 	if has_multiple_scenes.button_pressed:
 		return_array.append("multiple scenes")
 	
+	for child in smart_checkboxes.get_children():
+		if not child is WizzardCheckbox:
+			continue
+		for tag in child.tags_array:
+			return_array.append(tag)
+		for sugg in child.suggestions_array:
+			suggestions_types.append(sugg)
+	
+	if lying_option_button.visible:
+		return_array.append(
+			lying_option_button.get_item_text(lying_option_button.selected).to_lower())
+	
+	if sitting_option_button.visible and sitting_option_button.selected != 0:
+		return_array.append(
+				sitting_option_button.get_item_text(sitting_option_button.selected).to_lower())
+	
+	for child in suggestions_flow_container.get_children():
+		if not child is SuggetionTagCheckbox:
+			continue
+		
+		suggestions_types.append_array(child.checkbox_tags)
+	
 	wizard_tags_created.emit(return_array)
 
 
 func calculate_clothing_level() -> Array:
-	
-#	var covering_clothing_score: int = 0
 	var clothing_score: int = 0
-#	var non_clothing_score: int = 0
 	
 	var clothing_array: Array = []
 	
