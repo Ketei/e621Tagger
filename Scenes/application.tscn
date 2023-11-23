@@ -511,9 +511,6 @@ script/source = "extends Control
 @onready var database_location_file_dialog: FileDialog = $DatabaseLocationFileDialog
 
 
-var timer: Timer
-
-
 func _ready():
 	hide()
 	
@@ -529,13 +526,6 @@ func _ready():
 	strength_slider.value = Tagger.settings.suggestion_strength
 	str_percentage_spinbox.value = Tagger.settings.suggestion_strength
 	recreate_database_btn.pressed.connect(__recreate_database)
-	
-	timer = Timer.new()
-	timer.wait_time = 2.0
-	timer.autostart = false
-	timer.one_shot = true	
-	timer.timeout.connect(on_timer_timeout)
-	add_child(timer)
 
 
 func settings_menu_press(button_id: int) -> void:
@@ -552,12 +542,12 @@ func open_tags_folder() -> void:
 
 
 func __recreate_database() -> void:
+	recreate_database_btn.disabled = true
+	recreate_database_btn.text = \"Please wait\"
 	Tagger.tag_manager.recreate_implications()
 	recreate_database_btn.text = \"Done!\"
-	timer.start()
-
-
-func on_timer_timeout() -> void:
+	await get_tree().create_timer(2).timeout
+	recreate_database_btn.disabled = false
 	recreate_database_btn.text = \"Recreate tag database\"
 
 
@@ -1062,7 +1052,7 @@ item_2/id = 0
 item_2/separator = true
 item_3/text = "Clear fields"
 item_3/id = 3
-item_4/text = "Open image folder on creaton"
+item_4/text = "Open image folder on creation"
 item_4/checkable = 1
 item_4/checked = true
 item_4/id = 1
