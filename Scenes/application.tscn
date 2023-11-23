@@ -2983,6 +2983,7 @@ anchors_preset = -1
 anchor_top = -0.0588235
 
 [node name="Tools" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_top = 0.089
 anchor_right = 1.0
@@ -3001,7 +3002,6 @@ offset_bottom = 640.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_6dv02")
 
 [node name="Prefixes" type="MarginContainer" parent="Tools/ToolsTabContainer"]
-visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
@@ -3073,6 +3073,7 @@ theme_override_constants/margin_bottom = 16
 layout_mode = 2
 
 [node name="Tag Templates" type="MarginContainer" parent="Tools/ToolsTabContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
@@ -3989,7 +3990,6 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

@@ -42,16 +42,25 @@ theme_override_constants/separation = 16
 [node name="Label" type="Label" parent="VBoxContainer/Name"]
 layout_mode = 2
 text = "Template Name:"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="LineEdit" type="LineEdit" parent="VBoxContainer/Name"]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 placeholder_text = "Template Name"
 
 [node name="Button" type="Button" parent="VBoxContainer/Name"]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-text = "Load Template..."
+text = "Load Template"
+
+[node name="OpenFolderButton" type="Button" parent="VBoxContainer/Name"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+text = "Open Folder"
 
 [node name="ListContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2

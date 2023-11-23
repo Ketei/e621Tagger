@@ -17,6 +17,7 @@ var template_resource: TaglistResource
 @onready var template_loader = $TemplateLoader
 @onready var load_template_button: Button = $VBoxContainer/Name/Button
 @onready var save_template_button: Button = $VBoxContainer/Button
+@onready var open_folder_button: Button = $VBoxContainer/Name/OpenFolderButton
 
 
 func _ready():
@@ -27,6 +28,7 @@ func _ready():
 	clear_suggestions_button.pressed.connect(clear_suggestions)
 	clear_tags_btn.pressed.connect(clear_tags)
 	save_template_button.pressed.connect(save_template)
+	open_folder_button.pressed.connect(open_template_folder)
 
 
 func search_for_templates() -> void:
@@ -102,4 +104,7 @@ func clear_suggestions() -> void:
 	template_suggestions.clear()
 	suggestion_list.clear()
 
+
+func open_template_folder() -> void:
+	OS.shell_open(ProjectSettings.globalize_path(Tagger.templates_path))
 
