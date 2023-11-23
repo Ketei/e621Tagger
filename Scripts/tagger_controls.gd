@@ -131,6 +131,18 @@ func _ready():
 	special_suggestions_item_list.associated_array = special_suggestions
 
 
+func is_any_window_open() -> bool:
+	var is_anything_open: bool = add_auto_complete.visible or\
+			conflicting_tags.visible or\
+			add_suggested_special.visible or\
+			or_adder.visible or\
+			spinbox_adder.visible or\
+			weezard.visible or\
+			set_as_tag.visible or\
+			template_loader.visible
+	return is_anything_open
+
+
 func open_template_loader() -> void:
 	template_loader.load_templates()
 	template_loader.show()
@@ -414,15 +426,8 @@ func add_suggested_tag(tag_name: String) -> void:
 		
 		suggested_pos = special_suggestions_item_list.add_item(tag_name)
 		special_suggestions.append(tag_name)
-		
-#		if tag_name.begins_with("*") or tag_name.ends_with("*"):
-#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.31, 0.145, 0.475))
-#		elif tag_name.begins_with("|") and tag_name.ends_with("|"):
-#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.078, 0.282, 0.169))
-#		elif tag_name.begins_with("#"):
-#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.467, 0.173, 0.263))
 
-		
+
 func update_parents(tag_resource: Tag, add_suggestions: bool = true) -> void:
 	if not tags_inputed.has(tag_resource.tag):
 		return
@@ -455,7 +460,6 @@ func update_parents(tag_resource: Tag, add_suggestions: bool = true) -> void:
 	
 
 func update_tag(tag_name: String) -> void:
-	
 	if tags_inputed.has(tag_name):
 		var current_index: int = full_tag_list.find(tag_name)
 		
@@ -789,7 +793,11 @@ func sort_tags_by_category() -> void:
 	for item in final_array:
 		add_new_tag(item, false, false, [], Tagger.Categories.GENERAL, false)
 
+
 func tagger_menu_pressed(option_id: int) -> void:
+	if is_any_window_open():
+		return
+	
 	if option_id == 0:
 		clear_all_tags()
 	elif option_id == 1:
