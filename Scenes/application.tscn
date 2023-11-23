@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=56 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://Scripts/taglist_instancer.gd" id="2_h37oq"]
 [ext_resource type="Script" path="res://Scripts/new_tagger_instance_maker.gd" id="2_pptx1"]
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
+[ext_resource type="Texture2D" uid="uid://bjbjeeop8rv8x" path="res://Textures/WhiteWizard.svg" id="4_xwxxc"]
 [ext_resource type="Script" path="res://Scripts/list_name_loader.gd" id="5_jy0w4"]
 [ext_resource type="Script" path="res://Scripts/tag_editor.gd" id="5_o42l3"]
 [ext_resource type="Script" path="res://Scripts/tag_creator.gd" id="5_wk1wy"]
@@ -1000,7 +1001,8 @@ item_7/text = "Exit"
 item_7/id = 1
 
 [node name="Tagger" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(250, 251)
+size = Vector2i(347, 246)
+theme_override_constants/icon_max_width = 30
 hide_on_checkable_item_selection = false
 item_count = 11
 item_0/text = "New List"
@@ -1010,6 +1012,7 @@ item_1/id = 99
 item_1/disabled = true
 item_1/separator = true
 item_2/text = "Tag Wizard"
+item_2/icon = ExtResource("4_xwxxc")
 item_2/id = 9
 item_2/disabled = true
 item_3/text = ""
@@ -3972,6 +3975,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

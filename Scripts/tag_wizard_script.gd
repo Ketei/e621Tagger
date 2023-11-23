@@ -50,7 +50,10 @@ signal wizard_tags_created(tags_array)
 @onready var is_shaded_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox/IsShadedCheckBox
 @onready var shaded_style_optbtn: OptionButton =$MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox/ShadingStyleOptionButton
 
-@onready var angle_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/CompletionOptionButton
+@onready var heigth_view: OptionButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/HeigthView
+@onready var angle_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/AngleViewOptionButton
+@onready var rear_view_check_button: CheckButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/RearViewCheckButton
+
 
 @onready var media_type_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/MediaTypeButton
 @onready var defined_media_opt_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/DefinedMediaOptButton
@@ -86,9 +89,9 @@ signal wizard_tags_created(tags_array)
 @onready var collar_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/CollarCheckBox
 @onready var eyewear_check_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/EyewearCheckBox
 
-
 @onready var is_comic: CheckButton =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/IsComicCheckBox
 @onready var has_multiple_scenes: CheckBox =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/ShowsMultipleCheckBox
+@onready var perspect_elements: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox
 
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
@@ -149,7 +152,6 @@ func magic_clean() -> void:
 	background_dets_option_button.select(0)
 	completion_option_button.select(0)
 	color_types_option_button.select(0)
-	angle_option_button.select(0)
 	media_type_option_button.select(0)
 	
 	fur_check_box.set_pressed_no_signal(false)
@@ -176,6 +178,7 @@ func magic_clean() -> void:
 	foot_wear_checkbox.set_pressed_no_signal(false)
 	head_wear_checkbox.set_pressed_no_signal(false)
 	collar_checkbox.set_pressed_no_signal(false)
+	perspect_elements.clean_pls()
 	
 	is_shaded_checkbox.button_pressed = false
 	
@@ -325,10 +328,25 @@ func create_basic_tags() -> void:
 			if not is_shaded_checkbox.button_pressed:
 				return_array.append("flat colors")
 	
-	if angle_option_button.selected != 0:
-		return_array.append(
-			angle_types[angle_option_button.selected - 1]
-		)
+	
+	if heigth_view.get_selected_id() != 5 and not is_comic.button_pressed:
+		if heigth_view.get_selected_id() != 0:
+			return_array.append(
+				heigth_view.get_item_text(heigth_view.selected).to_lower())
+		
+		if not heigth_view.get_selected_id() == 1 and not heigth_view.get_selected_id() == 4:
+			if angle_option_button.get_selected_id() == 1:
+				if rear_view_check_button.button_pressed:
+					return_array.append("rear view")
+				else:
+					return_array.append("front view")
+			elif angle_option_button.get_selected_id() == 2:
+				if rear_view_check_button.button_pressed:
+					return_array.append("rear view")
+				return_array.append("three-quarter view")
+			elif angle_option_button.get_selected_id() == 3:
+				return_array.append("side view")
+		
 	
 	return_array.append(media_types[media_type_option_button.selected])
 	

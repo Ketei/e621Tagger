@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=18 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
 [ext_resource type="Script" path="res://Scripts/bg_details_wizard.gd" id="8_emj81"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
+[ext_resource type="Script" path="res://Scripts/angle_view_wiz_tool.gd" id="10_3npvb"]
+[ext_resource type="Texture2D" uid="uid://75bqwb1rf3al" path="res://Textures/AngleHeads/regular-front.png" id="11_yms3t"]
 
 [sub_resource type="GDScript" id="GDScript_26vi0"]
 resource_name = "hide_show"
@@ -83,10 +85,10 @@ func is_comic_checked(is_comic: bool) -> void:
 [node name="TagWizard" type="Control"]
 custom_minimum_size = Vector2(1200, 600)
 layout_mode = 3
-anchors_preset = 0
-offset_right = 1280.0
-offset_bottom = 808.0
+anchor_right = 1.0
+anchor_bottom = 1.12222
 script = ExtResource("1_itg1i")
+metadata/_edit_use_anchors_ = true
 
 [node name="WizardBGRect" type="ColorRect" parent="."]
 show_behind_parent = true
@@ -126,6 +128,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Margin" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
+scroll_vertical = 51
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Margin"]
 layout_mode = 2
@@ -917,22 +920,47 @@ vertical_alignment = 1
 [node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes"]
 layout_mode = 2
 theme_override_constants/separation = 8
+script = ExtResource("10_3npvb")
 
-[node name="CompletionOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+[node name="HeigthView" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
-theme = ExtResource("9_pvv55")
-item_count = 5
+size_flags_vertical = 4
+item_count = 6
 selected = 0
-popup/item_0/text = "- Multiple -"
-popup/item_0/id = 0
-popup/item_1/text = "Front"
+popup/item_0/text = "- Unknown angle -"
+popup/item_0/id = 5
+popup/item_1/text = "Worm's-eye view"
 popup/item_1/id = 1
-popup/item_2/text = "Three-quarters"
+popup/item_2/text = "Low-angle view"
 popup/item_2/id = 2
-popup/item_3/text = "Side"
-popup/item_3/id = 3
-popup/item_4/text = "Rear"
-popup/item_4/id = 4
+popup/item_3/text = "Regular"
+popup/item_3/id = 0
+popup/item_4/text = "High-angle view"
+popup/item_4/id = 3
+popup/item_5/text = "Bird's eye view"
+popup/item_5/id = 4
+
+[node name="AngleViewOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+layout_mode = 2
+size_flags_vertical = 4
+theme = ExtResource("9_pvv55")
+item_count = 3
+selected = 0
+popup/item_0/text = "Front view"
+popup/item_0/id = 1
+popup/item_1/text = "Three-quarter view"
+popup/item_1/id = 2
+popup/item_2/text = "Side"
+popup/item_2/id = 3
+
+[node name="RearViewCheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+layout_mode = 2
+text = "Rear view"
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+texture = ExtResource("11_yms3t")
 
 [node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
