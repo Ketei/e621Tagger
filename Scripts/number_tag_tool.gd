@@ -25,7 +25,6 @@ func set_tool(tag_to_set: String) -> void:
 
 func accept_tag_number() -> void:
 	var multiple_suffix: String = ""
-	
 	# This part should add proper plurals to words ending with "y"
 	# It's experimental though and I don't want to test.
 	# If cases come up where the proper plural of words ending in "y" is
