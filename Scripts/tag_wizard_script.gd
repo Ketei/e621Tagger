@@ -484,16 +484,16 @@ func calculate_clothing_level() -> Array:
 #		clothing_score += 1
 		clothing_array.append("eyewear")
 	
-	if 0 < clothing_score and clothing_score < 10:
+	if 0 < clothing_score and clothing_score < 100:
 		clothing_array.append("mostly nude")
-	elif 20 < clothing_score and clothing_score < 30:
+	elif 200 < clothing_score and clothing_score < 300:
 		clothing_array.append("mostly clothed")
 	
 	if clothing_score == 0:
 		clothing_array.append("nude")
-	elif 0 < clothing_score and clothing_score < 30:
+	elif 0 < clothing_score and clothing_score < 300:
 		clothing_array.append("partially clothed")
-	elif 30 <= clothing_score:
+	elif 300 <= clothing_score:
 		clothing_array.append("fully clothed")
 	
 	if bottomwear_checkbox.button_pressed\
@@ -537,8 +537,10 @@ func calculate_clothing_level() -> Array:
 			clothing_array.append("headwear only")
 	elif clothing_score == 100:
 		if underwear_checkbox.button_pressed:
-			clothing_array.append("underwear_only")
+			clothing_array.append("underwear only")
 			clothing_array.append("clothed")
+		elif topwear_checkbox.button_pressed:
+			clothing_array.append("topwear only")
 
 	return clothing_array
 
