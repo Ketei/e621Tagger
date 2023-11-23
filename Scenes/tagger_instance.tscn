@@ -320,6 +320,7 @@ layout_mode = 0
 offset_top = -306.0
 offset_right = 304.0
 offset_bottom = -2.0
+mouse_filter = 2
 alignment = 2
 
 [node name="ItemList" type="ItemList" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit/VBoxContainer"]
