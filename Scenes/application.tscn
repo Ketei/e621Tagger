@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=57 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -34,6 +34,7 @@
 [ext_resource type="PackedScene" uid="uid://cj2jifl7bcqn7" path="res://Scenes/available_sites.tscn" id="20_5raky"]
 [ext_resource type="PackedScene" uid="uid://cuvrqmprpps48" path="res://Scenes/type_lists_scenes.tscn" id="20_k6o0m"]
 [ext_resource type="Script" path="res://Scripts/load_blacklist_script.gd" id="21_40puc"]
+[ext_resource type="PackedScene" uid="uid://nbgmvc2e0hkg" path="res://Scenes/tag_template_creator.tscn" id="22_a38qu"]
 [ext_resource type="Script" path="res://Scripts/default_folder_file_dialog.gd" id="28_rjvdb"]
 [ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
 [ext_resource type="Script" path="res://Scripts/change_db_confirm.gd" id="31_g7kp8"]
@@ -1001,10 +1002,10 @@ item_7/text = "Exit"
 item_7/id = 1
 
 [node name="Tagger" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(347, 246)
+size = Vector2i(347, 269)
 theme_override_constants/icon_max_width = 30
 hide_on_checkable_item_selection = false
-item_count = 11
+item_count = 12
 item_0/text = "New List"
 item_0/id = 7
 item_1/text = "Tagger Options"
@@ -1015,34 +1016,37 @@ item_2/text = "Tag Wizard"
 item_2/icon = ExtResource("4_xwxxc")
 item_2/id = 9
 item_2/disabled = true
-item_3/text = ""
-item_3/id = 101
+item_3/text = "Load template"
+item_3/id = 11
 item_3/disabled = true
-item_3/separator = true
-item_4/text = "Sort Tags"
-item_4/id = 8
+item_4/text = ""
+item_4/id = 101
 item_4/disabled = true
-item_5/text = "Clear all"
-item_5/id = 0
+item_4/separator = true
+item_5/text = "Sort Tags"
+item_5/id = 8
 item_5/disabled = true
-item_6/text = "Clear suggestions"
-item_6/id = 1
+item_6/text = "Clear all"
+item_6/id = 0
 item_6/disabled = true
-item_7/text = "Conflicts"
-item_7/id = 4
+item_7/text = "Clear suggestions"
+item_7/id = 1
 item_7/disabled = true
-item_8/text = "Global Options"
-item_8/id = 100
+item_8/text = "Conflicts"
+item_8/id = 4
 item_8/disabled = true
-item_8/separator = true
-item_9/text = "Enable online suggestions"
-item_9/checkable = 1
-item_9/checked = true
-item_9/id = 2
-item_10/text = "Enable offline suggestions"
+item_9/text = "Global Options"
+item_9/id = 100
+item_9/disabled = true
+item_9/separator = true
+item_10/text = "Enable online suggestions"
 item_10/checkable = 1
 item_10/checked = true
-item_10/id = 3
+item_10/id = 2
+item_11/text = "Enable offline suggestions"
+item_11/checkable = 1
+item_11/checked = true
+item_11/id = 3
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
@@ -2979,7 +2983,6 @@ anchors_preset = -1
 anchor_top = -0.0588235
 
 [node name="Tools" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.089
 anchor_right = 1.0
@@ -2998,6 +3001,7 @@ offset_bottom = 640.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_6dv02")
 
 [node name="Prefixes" type="MarginContainer" parent="Tools/ToolsTabContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
@@ -3066,6 +3070,16 @@ theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
 [node name="TypeLists" parent="Tools/ToolsTabContainer/Tag Groups" instance=ExtResource("20_k6o0m")]
+layout_mode = 2
+
+[node name="Tag Templates" type="MarginContainer" parent="Tools/ToolsTabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="TagTemplateCreator" parent="Tools/ToolsTabContainer/Tag Templates" instance=ExtResource("22_a38qu")]
 layout_mode = 2
 
 [node name="Mass Tags Editor" type="MarginContainer" parent="Tools/ToolsTabContainer"]
@@ -3975,6 +3989,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

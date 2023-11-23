@@ -40,6 +40,7 @@ const valid_fixes: Array[String] = ["*", "|", "#"]
 @onready var clear_special_button: Button = $HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer/ClearSpecialButton
 
 @onready var set_as_tag = $SetAsTag
+@onready var template_loader = $TemplateLoader
 
 
 var main_application
@@ -99,6 +100,7 @@ func _ready():
 	clear_suggested_button.pressed.connect(clear_suggestion_tags)
 	export_tags_button.pressed.connect(open_export_dialog)
 	clear_special_button.pressed.connect(clear_special_tags)
+	template_loader.template_selected.connect(load_tags_from_template)
 	# ---------------------
 	
 	check_minimum_requirements()
@@ -127,7 +129,20 @@ func _ready():
 	item_list.associated_array = full_tag_list
 	suggested_list.associated_array = suggestion_tags_array
 	special_suggestions_item_list.associated_array = special_suggestions
-	
+
+
+func open_template_loader() -> void:
+	template_loader.load_templates()
+	template_loader.show()
+
+
+func load_tags_from_template(_temp_name: String, tag_pcksarray: PackedStringArray, sugs_pcksarray: PackedStringArray) -> void:
+	for tag in tag_pcksarray:
+		add_new_tag(tag, false, false, [], Tagger.Categories.GENERAL, false)
+	for sug in sugs_pcksarray:
+		add_suggested_tag(sug)
+	template_loader.hide()
+
 
 func clear_special_tags() -> void:
 	special_suggestions.clear()
@@ -785,6 +800,8 @@ func tagger_menu_pressed(option_id: int) -> void:
 		sort_tags_by_category()
 	elif option_id == 9:
 		open_wizard()
+	elif option_id == 11:
+		open_template_loader()
 
 
 func open_set_tagger() -> void:

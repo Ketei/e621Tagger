@@ -1,0 +1,56 @@
+[gd_scene load_steps=2 format=3 uid="uid://bicrewiykmg6k"]
+
+[ext_resource type="Script" path="res://Scripts/template_loader.gd" id="1_wnmf4"]
+
+[node name="TemplateItemContainer" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -960.0
+offset_bottom = -592.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+script = ExtResource("1_wnmf4")
+
+[node name="TempName" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TempName"]
+layout_mode = 2
+text = "Template Name:"
+
+[node name="TemplateName" type="LineEdit" parent="TempName"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Template Name"
+editable = false
+
+[node name="TempTags" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TempTags"]
+layout_mode = 2
+text = "Template tags"
+
+[node name="TemplateTags" type="LineEdit" parent="TempTags"]
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="TempSuggestions" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TempSuggestions"]
+layout_mode = 2
+text = "Template suggestions"
+
+[node name="SuggestionTags" type="LineEdit" parent="TempSuggestions"]
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="LoadButton" type="Button" parent="."]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+text = "Load Template"

@@ -48,6 +48,7 @@ var e6_headers_data: Dictionary = {
 var implications_path: String = "user://database/implications/"
 var tags_path: String = "user://database/tags/"
 var tag_images_path: String = "user://database/tag_images/"
+var templates_path: String = "user://database/templates/"
 const api_file_path: String = "user://e621_key.txt"
 const tag_exports_folder: String = "user://tag_exports/"
 
@@ -70,6 +71,7 @@ func _init():
 	implications_path = settings.database_location + "implications/"
 	tags_path = settings.database_location + "tags/"
 	tag_images_path = settings.database_location + "tag_images/"
+	templates_path = settings.database_location + "templates/"
 	
 	verify_folder_structure()
 	
@@ -102,6 +104,9 @@ func verify_folder_structure() -> void:
 	
 	if not DirAccess.dir_exists_absolute(tag_exports_folder):
 		DirAccess.make_dir_absolute(tag_exports_folder)
+	
+	if not DirAccess.dir_exists_absolute(templates_path):
+		DirAccess.make_dir_absolute(templates_path)
 
 
 func get_headers() -> Array:
