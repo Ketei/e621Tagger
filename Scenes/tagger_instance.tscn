@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=26 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -14,40 +14,57 @@
 [ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="11_hi7i4"]
 [ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
 [ext_resource type="Script" path="res://Scripts/set_as_tag_script.gd" id="14_j3vng"]
+[ext_resource type="PackedScene" uid="uid://ddwpdjjwbxnyr" path="res://Scenes/tag_template_loader.tscn" id="15_cfetd"]
 [ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="15_du82a"]
 
 [sub_resource type="GDScript" id="GDScript_ogbc5"]
 script/source = "extends LineEdit
 
+signal should_hide(boolean)
+
 @onready var timer: Timer = $Timer
 @onready var item_list: ItemList = $VBoxContainer/ItemList
 
+var yielded_focus: bool = false
+var list_yielded_focus: bool = false
 
 func _ready():
 	text_changed.connect(lineedit_text_changed)
 	timer.timeout.connect(timer_timeout)
 	item_list.item_activated.connect(smart_selected)
+	focus_exited.connect(on_focus_lost)
+	item_list.focus_exited.connect(list_focus_lost)
 
 
 func _unhandled_key_input(event: InputEvent):
 	if item_list.visible:
 		if has_focus() and event.is_action(\"ui_up\"):
-#			release_focus()
+			yielded_focus = true
 			item_list.grab_focus()
 			item_list.select(item_list.item_count - 1)
 			item_list.ensure_current_is_visible()
-		elif item_list.has_focus() and event.is_action_pressed(\"ui_down\")\\
-		and item_list.is_selected(item_list.item_count - 1):
-#			item_list.release_focus()
-			item_list.deselect_all()
-			grab_focus()
-		elif not has_focus() and not item_list.has_focus():
-			item_list.hide()
 		elif event.is_action(\"ui_cancel\"):
 			item_list.deselect_all()
 			item_list.hide()
 			grab_focus()
-			
+	else:
+		if event.is_action(\"ui_up\") and timer.is_stopped():
+			yielded_focus = true
+			item_list.show()
+			item_list.select(item_list.item_count - 1)
+			item_list.ensure_current_is_visible()
+			item_list.grab_focus()
+
+
+func list_focus_lost() -> void:
+	item_list.hide()
+
+
+func on_focus_lost() -> void:
+	if not yielded_focus:
+		item_list.hide()
+	else:
+		yielded_focus = false
 
 
 func timer_timeout() -> void:
@@ -903,6 +920,15 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Accept"
+
+[node name="TemplateLoader" parent="." instance=ExtResource("15_cfetd")]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.00625
+anchor_top = -0.0222222
+anchor_right = 1.00625
+anchor_bottom = 1.01111
 
 [node name="TagFileDialog" parent="." instance=ExtResource("9_q63mv")]
 visible = false
