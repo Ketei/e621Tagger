@@ -730,11 +730,17 @@ func open_context_menu(tag_name: String, itembox_position: Vector2, item_positio
 		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(2), true)
 	
 	tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), not is_delete_allowed)
+	
 	if who_called == item_list:
 		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), false)
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), true)
 	else:
 		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), true)
-	
+		if who_called != implied_list:
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), false)
+		else:
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), true)
+
 	if 720 < (tagger_context_menu.position.y + tagger_context_menu.size.y):
 		var extrapiece = tagger_context_menu.size.y - (720 - tagger_context_menu.position.y)
 		tagger_context_menu.position.y -= extrapiece 
@@ -753,6 +759,8 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		list_called.remove_item_from_list(called_index)
 	elif id_pressed == 4:
 		open_set_tagger()
+	elif id_pressed == 5:
+		add_from_suggested(called_index, list_called)
 
 
 func sort_tags_by_category() -> void:
