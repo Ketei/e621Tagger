@@ -49,7 +49,6 @@ func has_tag(tag_implication: String) -> bool:
 			var _relation_to_tweak: ImplicationDictionary = ResourceLoader.load(relation_paths[tag_implication.left(1)])
 			_relation_to_tweak.tag_implications.erase(tag_implication)
 			_relation_to_tweak.save()
-	
 	return false
 	
 
@@ -82,12 +81,13 @@ func recreate_implications() -> void:
 		
 		if relation_paths.has(chara):
 			_implication = ResourceLoader.load(relation_paths[chara])
+			_implication.tag_implications.clear()
 		else:
 			var imp_file: String = chara + ".tres"
 			if not imp_file.is_valid_filename():
 				imp_file = str(randi_range(0, 9999)) + "_" + imp_file.validate_filename()
 			_implication = ImplicationDictionary.create_implication(imp_file, chara)
-		
+
 		for tag_filename in sorted_files[chara]:
 			if tag_filename.get_extension() != "tres":
 				continue
@@ -111,7 +111,9 @@ func recreate_implications() -> void:
 				
 		relation_paths[chara] = Tagger.implications_path + _implication.file_name
 		_implication.save()
-		
+	
+	Tagger.implication_reload()
+
 
 func get_implication(implication_key: String) -> ImplicationDictionary:
 	if not relation_database.has(implication_key):

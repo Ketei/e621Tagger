@@ -119,3 +119,7 @@ func get_headers() -> Array:
 		return_headers.append(header_type + ": " + e6_headers_data[header_type])
 	return return_headers
 
+
+func implication_reload() -> void:
+	tag_manager = TagManager.load_database(implications_path)
+
