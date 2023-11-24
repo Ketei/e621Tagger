@@ -1352,6 +1352,8 @@ popup/item_3/id = 3
 
 [node name="ColorTypesOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox"]
 layout_mode = 2
+tooltip_text = "Monochrome: This tag is used for images or animations whose entire composition is only or  mostly composed of lines and shades of a single hue.
+Colored: Tag used for images that feature color."
 theme = ExtResource("9_pvv55")
 item_count = 2
 selected = 0
