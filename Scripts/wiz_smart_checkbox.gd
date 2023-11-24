@@ -36,3 +36,20 @@ func toggle_display(is_toggled: bool) -> void:
 		is_toggled = not is_toggled
 	
 	node_to_display.visible = is_toggled
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	tags.append_array(tags_array) 
+	if node_to_display:
+		tags.append_array(node_to_display.get_tags())
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	if node_to_display:
+		suggestions.append_array(node_to_display.get_suggestions())
+	return suggestions
+

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=30 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -9,6 +9,7 @@
 [ext_resource type="ButtonGroup" uid="uid://b2q8omqdlcld0" path="res://ButtonGroups/focus_bodytype_bgroup.tres" id="6_k7yj6"]
 [ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
 [ext_resource type="Script" path="res://Scripts/bg_details_wizard.gd" id="8_emj81"]
+[ext_resource type="Script" path="res://Scripts/wiz_smart_checkbox.gd" id="9_cooxf"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
 [ext_resource type="PackedScene" uid="uid://hodd44bull1r" path="res://Scenes/wizard_smart_checkbox.tscn" id="9_vbkwx"]
 [ext_resource type="Script" path="res://Scripts/angle_view_wiz_tool.gd" id="10_3npvb"]
@@ -41,6 +42,261 @@ func _ready():
 func set_art_year() -> void:
 	var date: Dictionary = Time.get_datetime_dict_from_system()
 	value = date.year
+"
+
+[sub_resource type="GDScript" id="GDScript_igg7n"]
+resource_name = "cleanuppls"
+script/source = "extends HBoxContainer
+
+@onready var fur_check_box: CheckBox = $FurCheckBox
+@onready var scales_check_box: CheckBox = $ScalesCheckBox
+@onready var feathers_check_box: CheckBox = $FeathersCheckBox
+@onready var wool_check_box: CheckBox = $WoolCheckBox
+@onready var skin_check_box: CheckBox = $SkinCheckBox
+@onready var exo_check_box: CheckBox = $ExoCheckBox
+@onready var fur_body_colors = $ColorsCount/BodyColors
+@onready var scale_body_colors = $ScalesCCount/BodyColors
+@onready var feather_body_colors = $FeatherCCount/BodyColors
+@onready var wool_body_colors = $WoolCCount/BodyColors
+@onready var skin_body_colors = $SkinCCount/BodyColors
+@onready var exo_body_colors = $ExoCCount/BodyColors
+
+func magic_cleanup() -> void:
+	fur_check_box.button_pressed = false
+	scales_check_box.button_pressed = false
+	feathers_check_box.button_pressed = false
+	wool_check_box.button_pressed = false
+	skin_check_box.button_pressed = false
+	exo_check_box.button_pressed = false
+	fur_body_colors.value = 0
+	scale_body_colors.value = 0
+	feather_body_colors.value = 0
+	wool_body_colors.value = 0
+	skin_body_colors.value = 0
+	exo_body_colors.value = 0
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_k1tds"]
+script/source = "extends HBoxContainer
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone fur\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone fur\")
+			tags.append(\"multicolored fur\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone fur\")
+			tags.append(\"multicolored fur\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_nhkg4"]
+script/source = "extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone scales\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone scales\")
+			tags.append(\"multicolored scales\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone scales\")
+			tags.append(\"multicolored scales\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_ghjkl"]
+resource_name = "feathercc"
+script/source = "extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone feathers\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone feathers\")
+			tags.append(\"multicolored feathers\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone feathers\")
+			tags.append(\"multicolored feathers\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_7sqa7"]
+resource_name = "woolcc"
+script/source = "extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone wool\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone wool\")
+			tags.append(\"multicolored wool\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone wool\")
+			tags.append(\"multicolored wool\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_avl4o"]
+resource_name = "ccskincount"
+script/source = "
+extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone skin\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone skin\")
+			tags.append(\"multicolored skin\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone skin\")
+			tags.append(\"multicolored skin\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_mpru2"]
+resource_name = "exoccount"
+script/source = "
+extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone exoskeleton\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone exoskeleton\")
+			tags.append(\"multicolored exoskeleton\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone exoskeleton\")
+			tags.append(\"multicolored exoskeleton\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_2kyf3"]
+resource_name = "Buf"
+script/source = "extends OptionButton
+
+
+func get_tags() -> Array[String]:
+	var return_array: Array[String] = [get_item_text(selected)]
+	return return_array
+
+func get_suggestions() -> Array[String]:
+	var return_array: Array[String] = []
+	return return_array 
+
+
+
+
+
+
+
+#func get_tags() -> Array[String]:
+#	pass
+#
+#
+#func get_suggestions() -> Array[String]:
+#	pass
+"
+
+[sub_resource type="GDScript" id="GDScript_axjs3"]
+script/source = "extends OptionButton
+
+
+func get_tags() -> Array[String]:
+	var return_array: Array[String] = []
+	if selected != 0:
+		return_array.append(get_item_text(selected))
+	return return_array
+
+
+func get_suggestions() -> Array[String]:
+	var empty_return: Array[String] = []
+	return empty_return
 "
 
 [sub_resource type="GDScript" id="GDScript_mmvd5"]
@@ -773,40 +1029,172 @@ theme_override_constants/separation = 16
 layout_mode = 2
 text = "Body Properties"
 
-[node name="CheckHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="CheckHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
+script = SubResource("GDScript_igg7n")
 
-[node name="FurCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox"]
+[node name="FurCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Fur"
+script = ExtResource("9_cooxf")
+tags_to_include = "fur"
+suggestions_to_include = "*color* fur"
+node_to_display = NodePath("../ColorsCount")
 
-[node name="ScalesCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox"]
+[node name="ColorsCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_k1tds")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="ScalesCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Scales"
+script = ExtResource("9_cooxf")
+tags_to_include = "scales"
+suggestions_to_include = "*color* scales"
+node_to_display = NodePath("../ScalesCCount")
 
-[node name="FeathersCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox"]
+[node name="ScalesCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_nhkg4")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="FeathersCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Feathers"
+script = ExtResource("9_cooxf")
+tags_to_include = "feathers"
+suggestions_to_include = "*color* feathers"
+node_to_display = NodePath("../FeatherCCount")
 
-[node name="WoolCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox"]
+[node name="FeatherCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_ghjkl")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="WoolCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Wool"
+script = ExtResource("9_cooxf")
+tags_to_include = "wool"
+suggestions_to_include = "*color* wool"
+node_to_display = NodePath("../WoolCCount")
 
-[node name="SkinCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox"]
+[node name="WoolCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_7sqa7")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="SkinCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Skin
 "
+script = ExtResource("9_cooxf")
+suggestions_to_include = "*color* skin"
+node_to_display = NodePath("../SkinCCount")
 
-[node name="ExoCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox"]
+[node name="SkinCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_avl4o")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="ExoCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Exoskeleton"
+script = ExtResource("9_cooxf")
+tags_to_include = "exoskeleton"
+suggestions_to_include = "*color* exoskeleton"
+node_to_display = NodePath("../ExoCCount")
+
+[node name="ExoCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_mpru2")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
 
 [node name="Stance" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
@@ -852,6 +1240,7 @@ popup/item_1/text = "On front"
 popup/item_1/id = 1
 popup/item_2/text = "On side"
 popup/item_2/id = 2
+script = SubResource("GDScript_2kyf3")
 
 [node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
@@ -878,6 +1267,7 @@ popup/item_5/text = "Sitting on penis"
 popup/item_5/id = 5
 popup/item_6/text = "Sitting on tail"
 popup/item_6/id = 6
+script = SubResource("GDScript_axjs3")
 
 [node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2

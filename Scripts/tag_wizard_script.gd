@@ -62,12 +62,12 @@ signal wizard_tags_created(tags_array)
 @onready var cancel_button: Button = $MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox/CancelWizardButton
 @onready var interactions_box: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Interactions/InterScrollBox/AllInteractions
 
-@onready var fur_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FurCheckBox
-@onready var scales_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ScalesCheckBox
-@onready var feathers_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FeathersCheckBox
-@onready var wool_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/WoolCheckBox
-@onready var skin_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/SkinCheckBox
-@onready var exo_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ExoCheckBox
+#@onready var fur_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FurCheckBox
+#@onready var scales_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ScalesCheckBox
+#@onready var feathers_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FeathersCheckBox
+#@onready var wool_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/WoolCheckBox
+#@onready var skin_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/SkinCheckBox
+#@onready var exo_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ExoCheckBox
 
 @onready var fr_by_fr_anim_chk_btn: CheckBox =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/FrByFrAnimChkBtn
 @onready var loops_chk_btn: CheckBox =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/LoopsChkBtn
@@ -96,6 +96,8 @@ signal wizard_tags_created(tags_array)
 @onready var lying_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/LyingOptionButton
 @onready var sitting_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/SittingOptionButton
 @onready var suggestions_flow_container: HFlowContainer = $MarginContainer/Margin/MarginContainer/All/IncludeSuggestions/FlowContainer
+#@onready var body_colors: SpinBox = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/HBoxContainer/BodyColors
+@onready var magic_container_2: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox
 
 
 
@@ -162,12 +164,13 @@ func magic_clean() -> void:
 	media_type_option_button.item_selected.emit(0)
 	defined_media_opt_button.select(0)
 	
-	fur_check_box.set_pressed_no_signal(false)
-	scales_check_box.set_pressed_no_signal(false)
-	feathers_check_box.set_pressed_no_signal(false)
-	wool_check_box.set_pressed_no_signal(false)
-	skin_check_box.set_pressed_no_signal(false)
-	exo_check_box.set_pressed_no_signal(false)
+#	fur_check_box.set_pressed_no_signal(false)
+#	scales_check_box.set_pressed_no_signal(false)
+#	feathers_check_box.set_pressed_no_signal(false)
+#	wool_check_box.set_pressed_no_signal(false)
+#	skin_check_box.set_pressed_no_signal(false)
+#	exo_check_box.set_pressed_no_signal(false)
+	magic_container_2.magic_cleanup()
 	
 	fr_by_fr_anim_chk_btn.set_pressed_no_signal(false)
 	loops_chk_btn.set_pressed_no_signal(false)
@@ -204,7 +207,7 @@ func magic_clean() -> void:
 	
 	lying_option_button.select(0)
 	sitting_option_button.select(0)
-		
+#	body_colors.value = 0
 
 
 func create_basic_tags() -> void:
@@ -393,18 +396,12 @@ func create_basic_tags() -> void:
 		
 	return_array.append(defined_media_opt_button.get_item_text(defined_media_opt_button.selected).to_lower())
 	
-	if fur_check_box.button_pressed:
-		suggestions_types.append("*color* fur")
-	if scales_check_box.button_pressed:
-		suggestions_types.append("*color* scales")
-	if feathers_check_box.button_pressed:
-		suggestions_types.append("*color* feathers")
-	if wool_check_box.button_pressed:
-		suggestions_types.append("*color* wool")
-	if skin_check_box.button_pressed:
-		suggestions_types.append("*color* skin")
-	if exo_check_box.button_pressed:
-		suggestions_types.append("*color* exoskeleton")
+	for child in magic_container_2.get_children():
+		if not child is WizzardCheckbox:
+			continue
+		if child.button_pressed:
+			return_array.append_array(Array(child.get_tags()))
+			suggestions_types.append_array(Array(child.get_suggestions()))
 	
 	if 0 < char_amount.value:
 		for cloth_tag in calculate_clothing_level():
@@ -419,10 +416,12 @@ func create_basic_tags() -> void:
 		if not child is WizzardCheckbox:
 			continue
 		if child.button_pressed:
-			for tag in child.tags_array:
-				return_array.append(tag)
-			for sugg in child.suggestions_array:
-				suggestions_types.append(sugg)
+			return_array.append_array(Array(child.get_tags()))
+			suggestions_types.append_array(Array(child.get_tags()))
+#			for tag in child.tags_array:
+#				return_array.append(tag)
+#			for sugg in child.suggestions_array:
+#				suggestions_types.append(sugg)
 	
 	if lying_option_button.visible:
 		return_array.append(
