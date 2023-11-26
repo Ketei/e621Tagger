@@ -732,7 +732,7 @@ func open_context_menu(tag_name: String, itembox_position: Vector2, item_positio
 	tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), not is_delete_allowed)
 	
 	if who_called == item_list:
-		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), false)
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), Tagger.tag_manager.has_tag(context_tag))
 		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), true)
 	else:
 		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), true)
