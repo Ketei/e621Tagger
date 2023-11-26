@@ -7,4 +7,4 @@ You can use TagIt! without any tag files, but the program’s strengths are base
 
 TagIt! comes packed with many features that’ll make tagging a faster and hopefully more enjoyable process.
 
-Documentation for the tool is on a google doc (for now): [Link to documentation](url=https://docs.google.com/document/d/1H-D-fh_mBuH4OBz5MOBmLw0VtcceZ1z71eDzhV_YLhk/edit?usp=sharing/)
+Documentation for the tool is on a google doc (for now): [Link to documentation](https://docs.google.com/document/d/1H-D-fh_mBuH4OBz5MOBmLw0VtcceZ1z71eDzhV_YLhk/edit?usp=sharing/)
