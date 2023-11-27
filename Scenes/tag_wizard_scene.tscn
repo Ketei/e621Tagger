@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=30 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -9,7 +9,12 @@
 [ext_resource type="ButtonGroup" uid="uid://b2q8omqdlcld0" path="res://ButtonGroups/focus_bodytype_bgroup.tres" id="6_k7yj6"]
 [ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
 [ext_resource type="Script" path="res://Scripts/bg_details_wizard.gd" id="8_emj81"]
+[ext_resource type="Script" path="res://Scripts/wiz_smart_checkbox.gd" id="9_cooxf"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
+[ext_resource type="PackedScene" uid="uid://hodd44bull1r" path="res://Scenes/wizard_smart_checkbox.tscn" id="9_vbkwx"]
+[ext_resource type="Script" path="res://Scripts/angle_view_wiz_tool.gd" id="10_3npvb"]
+[ext_resource type="Texture2D" uid="uid://75bqwb1rf3al" path="res://Textures/AngleHeads/regular-front.png" id="11_yms3t"]
+[ext_resource type="Script" path="res://Scripts/include_wizzard_sugs.gd" id="13_yw5to"]
 
 [sub_resource type="GDScript" id="GDScript_26vi0"]
 resource_name = "hide_show"
@@ -37,6 +42,261 @@ func _ready():
 func set_art_year() -> void:
 	var date: Dictionary = Time.get_datetime_dict_from_system()
 	value = date.year
+"
+
+[sub_resource type="GDScript" id="GDScript_igg7n"]
+resource_name = "cleanuppls"
+script/source = "extends HBoxContainer
+
+@onready var fur_check_box: CheckBox = $FurCheckBox
+@onready var scales_check_box: CheckBox = $ScalesCheckBox
+@onready var feathers_check_box: CheckBox = $FeathersCheckBox
+@onready var wool_check_box: CheckBox = $WoolCheckBox
+@onready var skin_check_box: CheckBox = $SkinCheckBox
+@onready var exo_check_box: CheckBox = $ExoCheckBox
+@onready var fur_body_colors = $ColorsCount/BodyColors
+@onready var scale_body_colors = $ScalesCCount/BodyColors
+@onready var feather_body_colors = $FeatherCCount/BodyColors
+@onready var wool_body_colors = $WoolCCount/BodyColors
+@onready var skin_body_colors = $SkinCCount/BodyColors
+@onready var exo_body_colors = $ExoCCount/BodyColors
+
+func magic_cleanup() -> void:
+	fur_check_box.button_pressed = false
+	scales_check_box.button_pressed = false
+	feathers_check_box.button_pressed = false
+	wool_check_box.button_pressed = false
+	skin_check_box.button_pressed = false
+	exo_check_box.button_pressed = false
+	fur_body_colors.value = 0
+	scale_body_colors.value = 0
+	feather_body_colors.value = 0
+	wool_body_colors.value = 0
+	skin_body_colors.value = 0
+	exo_body_colors.value = 0
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_k1tds"]
+script/source = "extends HBoxContainer
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone fur\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone fur\")
+			tags.append(\"multicolored fur\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone fur\")
+			tags.append(\"multicolored fur\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_nhkg4"]
+script/source = "extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone scales\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone scales\")
+			tags.append(\"multicolored scales\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone scales\")
+			tags.append(\"multicolored scales\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_ghjkl"]
+resource_name = "feathercc"
+script/source = "extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone feathers\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone feathers\")
+			tags.append(\"multicolored feathers\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone feathers\")
+			tags.append(\"multicolored feathers\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_7sqa7"]
+resource_name = "woolcc"
+script/source = "extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone wool\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone wool\")
+			tags.append(\"multicolored wool\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone wool\")
+			tags.append(\"multicolored wool\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_avl4o"]
+resource_name = "ccskincount"
+script/source = "
+extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone skin\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone skin\")
+			tags.append(\"multicolored skin\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone skin\")
+			tags.append(\"multicolored skin\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_mpru2"]
+resource_name = "exoccount"
+script/source = "
+extends HBoxContainer
+
+
+@onready var body_colors = $BodyColors
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if 0 < body_colors.value:
+		if body_colors.value == 1:
+			tags.append(\"monotone exoskeleton\")
+		elif body_colors.value == 2:
+			tags.append(\"two tone exoskeleton\")
+			tags.append(\"multicolored exoskeleton\")
+		elif 2 < body_colors.value:
+			tags.append(\"multi tone exoskeleton\")
+			tags.append(\"multicolored exoskeleton\")
+	return tags
+
+
+func get_suggestions() -> Array:
+	var suggestions: Array[String] = []
+	suggestions.append_array(suggestions) 
+	return suggestions
+
+
+"
+
+[sub_resource type="GDScript" id="GDScript_2kyf3"]
+resource_name = "Buf"
+script/source = "extends OptionButton
+
+
+func get_tags() -> Array[String]:
+	var return_array: Array[String] = [get_item_text(selected)]
+	return return_array
+
+func get_suggestions() -> Array[String]:
+	var return_array: Array[String] = []
+	return return_array 
+
+
+
+
+
+
+
+#func get_tags() -> Array[String]:
+#	pass
+#
+#
+#func get_suggestions() -> Array[String]:
+#	pass
+"
+
+[sub_resource type="GDScript" id="GDScript_axjs3"]
+script/source = "extends OptionButton
+
+
+func get_tags() -> Array[String]:
+	var return_array: Array[String] = []
+	if selected != 0:
+		return_array.append(get_item_text(selected))
+	return return_array
+
+
+func get_suggestions() -> Array[String]:
+	var empty_return: Array[String] = []
+	return empty_return
 "
 
 [sub_resource type="GDScript" id="GDScript_mmvd5"]
@@ -80,82 +340,16 @@ func is_comic_checked(is_comic: bool) -> void:
 	shows_multiple_checkbox.disabled = is_comic
 "
 
-[node name="TagWizard" type="Control" node_paths=PackedStringArray("items_scroll_container", "artist_line_edit", "known_artist_chkbtn", "work_year", "char_amount", "focus_amount", "male_check_box", "female_check_box", "ambig_check_box", "andro_check_box", "gyno_check_box", "herm_check_box", "male_herm_check_box", "male_focus_check_box", "female_focus_check_box", "ambig_focus_check_box", "andro_focus_check_box", "gyno_focus_check_box", "herm_focus_check_box", "male_focus_herm_check_box", "anthro_check_box", "semi_anthro_check_box", "feral_check_box", "human_check_box", "humanoid_check_box", "taur_check_box", "anthro_focus_check_box", "semi_focus_anthro_check_box", "feral_focus_check_box", "human_focus_check_box", "humanoid_focus_check_box", "taur_focus_check_box", "background_option_button", "background_dets_option_button", "daytime_option_button", "completion_option_button", "color_types_option_button", "is_shaded_checkbox", "shaded_style_optbtn", "angle_option_button", "media_type_option_button", "defined_media_opt_button", "done_button", "cancel_button", "interactions_box", "fur_check_box", "scales_check_box", "feathers_check_box", "wool_check_box", "skin_check_box", "exo_check_box", "fr_by_fr_anim_chk_btn", "loops_chk_btn", "sound_chk_box", "animation_types_btn", "playtime_opt_btn", "format_opt_btn", "topwear_checkbox", "underwear_checkbox", "visible_underwear", "bottomwear_checkbox", "leg_wear_checkbox", "arm_wear_checkbox", "hand_wear_checkbox", "foot_wear_checkbox", "head_wear_checkbox", "collar_checkbox", "is_comic", "has_multiple_scenes")]
+[node name="TagWizard" type="Control"]
 custom_minimum_size = Vector2(1200, 600)
 layout_mode = 3
-anchors_preset = 0
-offset_right = 1280.0
-offset_bottom = 808.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_itg1i")
-items_scroll_container = NodePath("MarginContainer/ScrollContainer")
-artist_line_edit = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox/ArtistLineHBox/LineEdit")
-known_artist_chkbtn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox/ArtistLineHBox/KnownArtistCheckButton")
-work_year = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/DateHBox/SpinBox")
-char_amount = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterCountHBox/SpinBox")
-focus_amount = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterFocusHBox/FocusSpinBox")
-male_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleCheckBox")
-female_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleCheckBox")
-ambig_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox/AmbigCheckBox")
-andro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroCheckBox")
-gyno_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoCheckBox")
-herm_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermCheckBox")
-male_herm_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermCheckBox")
-male_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleFocusCheckBox")
-female_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleFocusCheckBox")
-ambig_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox/AmbigFocusCheckBox")
-andro_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroFocusCheckBox")
-gyno_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoFocusCheckBox")
-herm_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermFocusCheckBox")
-male_focus_herm_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermFocusCheckBox")
-anthro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox/AnthroCheckBox")
-semi_anthro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox/SemiAnthroCheckBox")
-feral_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox/FeralCheckBox")
-human_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox/HumanCheckBox")
-humanoid_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox/HumanoidCheckBox")
-taur_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox/TaurCheckBox")
-anthro_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox/AnthroFocusCheckBox")
-semi_focus_anthro_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox/SemiAnthroFocusCheckBox")
-feral_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox/FeralFocusCheckBox")
-human_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox/HumanFocusCheckBox")
-humanoid_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox/HumanoidFocusCheckBox")
-taur_focus_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox/TaurFocusCheckBox")
-background_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundDetailsHBox/BackgroundOptionButton")
-background_dets_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundDetailsHBox/BGDetsOptionButton")
-daytime_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundDetailsHBox/DayTimeOptionButton")
-completion_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox/CompletionOptionButton")
-color_types_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox/ColorTypesOptionButton")
-is_shaded_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox/IsShadedCheckBox")
-shaded_style_optbtn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox/ShadingStyleOptionButton")
-angle_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/CompletionOptionButton")
-media_type_option_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/MediaTypeButton")
-defined_media_opt_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/DefinedMediaOptButton")
-done_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox/DoneButton")
-cancel_button = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox/CancelButton")
-interactions_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/InterScrollBox/AllInteractions")
-fur_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/FurCheckBox")
-scales_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/ScalesCheckBox")
-feathers_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/FeathersCheckBox")
-wool_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/WoolCheckBox")
-skin_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/SkinCheckBox")
-exo_check_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox/ExoCheckBox")
-fr_by_fr_anim_chk_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/FrByFrAnimChkBtn")
-loops_chk_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/LoopsChkBtn")
-sound_chk_box = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/SoundChkBox")
-animation_types_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/AnimationTypesBTN")
-playtime_opt_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/PlaytimeOptBtn")
-format_opt_btn = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/FormatOptBtn")
-topwear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/TopwearCheckBox")
-underwear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox/UnderwearCheckBox")
-visible_underwear = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox/VisibleUnderwear")
-bottomwear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/BottomwearCheckBox")
-leg_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/LegWearCheckBox")
-arm_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/ArmWearCheckBox")
-hand_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/HandWearCheckBox")
-foot_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/FootWearCheckBox")
-head_wear_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/HeadWearCheckBox")
-collar_checkbox = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/CollarCheckBox")
-is_comic = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/IsComicCheckBox")
-has_multiple_scenes = NodePath("MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox/ShowsMultipleCheckBox")
+metadata/_edit_use_anchors_ = true
 
 [node name="WizardBGRect" type="ColorRect" parent="."]
 show_behind_parent = true
@@ -193,250 +387,283 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer"]
+[node name="Margin" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ScrollContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Margin"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer"]
+[node name="All" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="BasicsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="BasicsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="ArtistHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox"]
+[node name="ArtistHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/ArtistHBox"]
 layout_mode = 2
 text = "Artist"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ArtistLineHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox"]
+[node name="ArtistLineHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/ArtistHBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="KnownArtistCheckButton" type="CheckButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox/ArtistLineHBox"]
+[node name="KnownArtistCheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/ArtistHBox/ArtistLineHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 button_pressed = true
 text = "Known"
 script = SubResource("GDScript_26vi0")
 
-[node name="LineEdit" type="LineEdit" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/ArtistHBox/ArtistLineHBox"]
+[node name="LineEdit" type="LineEdit" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/ArtistHBox/ArtistLineHBox"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 placeholder_text = "Artist Name"
 
-[node name="ColorRect2" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox"]
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="DateHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox"]
+[node name="DateHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/DateHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/DateHBox"]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
 text = "Media year:"
 
-[node name="SpinBox" type="SpinBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BasicsHBox/DateHBox"]
+[node name="SpinBox" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/DateHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 min_value = 1900.0
 max_value = 3000.0
 value = 1900.0
 alignment = 1
 script = SubResource("GDScript_4kylm")
 
-[node name="CharacterAmountHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="CharacterHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox"]
 layout_mode = 2
 text = "Characters"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="CharacterCountHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer"]
+[node name="CharacterCountHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterCountHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterCountHBox"]
 layout_mode = 2
 text = "Amount:"
 
-[node name="SpinBox" type="SpinBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterCountHBox"]
+[node name="SpinBox" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterCountHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 alignment = 1
 script = ExtResource("2_rxa8d")
 
-[node name="CharacterFocusHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer"]
+[node name="CharacterFocusHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterFocusHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterFocusHBox"]
 layout_mode = 2
 text = "Character focus:"
 
-[node name="FocusSpinBox" type="SpinBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CharacterAmountHBox/HBoxContainer/CharacterFocusHBox"]
+[node name="FocusSpinBox" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterFocusHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 max_value = 0.0
 
-[node name="ClothingLevelHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="ClothingHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
 layout_mode = 2
 text = "Properly worn
 clothing"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
 
-[node name="TopwearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="TopwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the upper body. (Hips up)"
+theme = ExtResource("9_pvv55")
 text = "Topwear"
 
-[node name="ColorRect" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="UnderVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="UnderVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="UnderwearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox"]
+[node name="UnderwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox"]
 layout_mode = 2
 tooltip_text = "Clothing intended to be worn under other clothing."
+theme = ExtResource("9_pvv55")
 text = "Underwear"
 
-[node name="VisibleUnderwear" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer/UnderVBox"]
+[node name="VisibleUnderwear" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Visible"
 
-[node name="ColorRect2" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="BottomwearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="BottomwearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Clothing worn on the lower body. (Hips down)"
+theme = ExtResource("9_pvv55")
 text = "Bottomwear"
 
-[node name="ColorRect3" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect3" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="LegWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="LegWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
-tooltip_text = "Clothing worn on the lower body. (Hips down)"
+tooltip_text = "Clothing worn on the legs."
+theme = ExtResource("9_pvv55")
 text = "Legwear"
 
-[node name="ColorRect4" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="ArmWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ArmWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
-tooltip_text = "Clothing worn on the lower body. (Hips down)"
+tooltip_text = "Clothing worn on the arms."
+theme = ExtResource("9_pvv55")
 text = "Armwear"
 
-[node name="ColorRect5" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HandWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="HandWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
-tooltip_text = "Clothing worn on the lower body. (Hips down)"
+tooltip_text = "Clothing worn on the hands."
+theme = ExtResource("9_pvv55")
 text = "Handwear"
 
-[node name="ColorRect6" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect6" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="FootWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="FootWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
-tooltip_text = "Clothing worn on the lower body. (Hips down)"
+tooltip_text = "Clothing worn on the feet."
+theme = ExtResource("9_pvv55")
 text = "Footwear"
 
-[node name="ColorRect7" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect7" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HeadWearCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="HeadWearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
-tooltip_text = "Clothing worn on the lower body. (Hips down)"
+tooltip_text = "Clothing worn on the head"
+theme = ExtResource("9_pvv55")
 text = "Headwear"
 
-[node name="ColorRect8" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="ColorRect8" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="CollarCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/ClothingLevelHBox/HBoxContainer"]
+[node name="CollarCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
-tooltip_text = "Clothing worn on the lower body. (Hips down)"
+tooltip_text = "Accessory worn on the neck."
+theme = ExtResource("9_pvv55")
 text = "Collar"
 
-[node name="GenderHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="ColorRect9" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="EyewearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Items designed to be worn over the eyes."
+text = "Eyewear"
+
+[node name="GenderHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox"]
 layout_mode = 2
 text = "Genders"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="MaleVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="MaleVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="MaleCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox" node_paths=PackedStringArray("focus_checkbox", "main_checkboxes")]
+[node name="MaleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox" node_paths=PackedStringArray("focus_checkbox", "main_checkboxes")]
 layout_mode = 2
 tooltip_text = "Male traits. No female traits visible."
+theme = ExtResource("9_pvv55")
 text = "Male"
 script = ExtResource("2_o35pq")
 is_main_checkbox = true
 focus_checkbox = NodePath("../MaleFocusCheckBox")
 main_checkboxes = [NodePath("."), NodePath("../../FemaleVBox/FemaleCheckBox"), NodePath("../../AmbiguousVBox/AmbigCheckBox"), NodePath("../../AndromorphVBox/AndroCheckBox"), NodePath("../../GynomorphVBox/GynoCheckBox"), NodePath("../../HermVBox/HermCheckBox"), NodePath("../../MaleHermVBox/MaleHermCheckBox")]
 
-[node name="MaleFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox" node_paths=PackedStringArray("parent_checkbox", "focused_array")]
+[node name="MaleFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox" node_paths=PackedStringArray("parent_checkbox", "focused_array")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
@@ -445,199 +672,212 @@ main_checkbox = true
 parent_checkbox = NodePath("../MaleCheckBox")
 focused_array = [NodePath("."), NodePath("../../FemaleVBox/FemaleFocusCheckBox"), NodePath("../../AmbiguousVBox/AmbigFocusCheckBox"), NodePath("../../AndromorphVBox/AndroFocusCheckBox"), NodePath("../../GynomorphVBox/GynoFocusCheckBox"), NodePath("../../HermVBox/HermFocusCheckBox"), NodePath("../../MaleHermVBox/MaleHermFocusCheckBox")]
 
-[node name="ColorRect" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="FemaleVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="FemaleVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="FemaleCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="FemaleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
 tooltip_text = "Female traits. No male traits visible."
+theme = ExtResource("9_pvv55")
 text = "Female"
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../FemaleFocusCheckBox")
 
-[node name="FemaleFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="FemaleFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../FemaleCheckBox")
 
-[node name="ColorRect2" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="AmbiguousVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="AmbiguousVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="AmbigCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="AmbigCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
 tooltip_text = "No gender-exclusive traits visible"
+theme = ExtResource("9_pvv55")
 text = "Ambiguous"
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../AmbigFocusCheckBox")
 
-[node name="AmbigFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="AmbigFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../AmbigCheckBox")
 
-[node name="ColorRect3" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="ColorRect3" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="AndromorphVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="AndromorphVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="AndroCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="AndroCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
 tooltip_text = "Male body-type. Female genitalia ONLY."
+theme = ExtResource("9_pvv55")
 text = "Andromorph"
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../AndroFocusCheckBox")
 
-[node name="AndroFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="AndroFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../AndroCheckBox")
 
-[node name="ColorRect4" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="GynomorphVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="GynomorphVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="GynoCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="GynoCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
 tooltip_text = "Female body-type. Male genitalia ONLY."
+theme = ExtResource("9_pvv55")
 text = "Gynomorph
 "
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../GynoFocusCheckBox")
 
-[node name="GynoFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="GynoFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../GynoCheckBox")
 
-[node name="ColorRect5" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HermVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="HermVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="HermCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="HermCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/HermVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
 tooltip_text = "Female body-type. Male AND female genitalia"
+theme = ExtResource("9_pvv55")
 text = "Herm"
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../HermFocusCheckBox")
 
-[node name="HermFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/HermVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="HermFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/HermVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../HermCheckBox")
 
-[node name="ColorRect6" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="ColorRect6" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="MaleHermVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer"]
+[node name="MaleHermVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="MaleHermCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="MaleHermCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
 tooltip_text = "Male body-type. Male AND female genitalia"
+theme = ExtResource("9_pvv55")
 text = "MaleHerm"
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../MaleHermFocusCheckBox")
 
-[node name="MaleHermFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="MaleHermFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
 tooltip_text = "Is the main focus of the picture."
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../MaleHermCheckBox")
 
-[node name="GenderInteractionHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Interactions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="LabelButtonHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox"]
+[node name="Base" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Interactions"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/LabelButtonHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/Interactions/Base"]
 layout_mode = 2
 text = "Gender interactions"
 
-[node name="AddInteractButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/LabelButtonHBox"]
+[node name="AddInteractButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/Interactions/Base"]
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 size_flags_vertical = 4
 text = "+"
 
-[node name="InterScrollBox" type="ScrollContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox" node_paths=PackedStringArray("add_interact_button")]
+[node name="InterScrollBox" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/Interactions" node_paths=PackedStringArray("add_interact_button")]
 layout_mode = 2
 size_flags_horizontal = 3
 vertical_scroll_mode = 0
 script = ExtResource("4_4f1bk")
-add_interact_button = NodePath("../LabelButtonHBox/AddInteractButton")
+add_interact_button = NodePath("../Base/AddInteractButton")
 
-[node name="AllInteractions" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/GenderInteractionHBox/InterScrollBox"]
+[node name="AllInteractions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Interactions/InterScrollBox"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="BodyTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="BodyTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes"]
 layout_mode = 2
 text = "Body Types"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BodyTypesHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes"]
+[node name="BodyTypesHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="AnthroVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="AnthroVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 layout_mode = 2
 
-[node name="AnthroCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox" node_paths=PackedStringArray("focus_checkbox", "main_checkboxes")]
+[node name="AnthroCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/AnthroVBox" node_paths=PackedStringArray("focus_checkbox", "main_checkboxes")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Anthro"
 alignment = 1
 script = ExtResource("2_o35pq")
@@ -645,8 +885,9 @@ is_main_checkbox = true
 focus_checkbox = NodePath("../AnthroFocusCheckBox")
 main_checkboxes = [NodePath("."), NodePath("../../SemiAnthroVBox/SemiAnthroCheckBox"), NodePath("../../FeralVBox/FeralCheckBox"), NodePath("../../HumanVBox/HumanCheckBox"), NodePath("../../HumanoidVBox/HumanoidCheckBox"), NodePath("../../TaurVBox/TaurCheckBox")]
 
-[node name="AnthroFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/AnthroVBox" node_paths=PackedStringArray("parent_checkbox", "focused_array")]
+[node name="AnthroFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/AnthroVBox" node_paths=PackedStringArray("parent_checkbox", "focused_array")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("6_k7yj6")
 text = "Focus"
@@ -655,174 +896,408 @@ main_checkbox = true
 parent_checkbox = NodePath("../AnthroCheckBox")
 focused_array = [NodePath("."), NodePath("../../SemiAnthroVBox/SemiAnthroFocusCheckBox"), NodePath("../../FeralVBox/FeralFocusCheckBox"), NodePath("../../HumanVBox/HumanFocusCheckBox"), NodePath("../../HumanoidVBox/HumanoidFocusCheckBox"), NodePath("../../TaurVBox/TaurFocusCheckBox")]
 
-[node name="ColorRect" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="SemiAnthroVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="SemiAnthroVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 layout_mode = 2
 
-[node name="SemiAnthroCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="SemiAnthroCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/SemiAnthroVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Semi-Anthro"
 alignment = 1
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../SemiAnthroFocusCheckBox")
 
-[node name="SemiAnthroFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/SemiAnthroVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="SemiAnthroFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/SemiAnthroVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("6_k7yj6")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../SemiAnthroCheckBox")
 
-[node name="ColorRect2" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="FeralVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="FeralVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 layout_mode = 2
 
-[node name="FeralCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="FeralCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/FeralVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Feral"
 alignment = 1
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../FeralFocusCheckBox")
 
-[node name="FeralFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/FeralVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="FeralFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/FeralVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("6_k7yj6")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../FeralCheckBox")
 
-[node name="ColorRect3" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="ColorRect3" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HumanVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="HumanVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 layout_mode = 2
 
-[node name="HumanCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="HumanCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Human"
 alignment = 1
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../HumanFocusCheckBox")
 
-[node name="HumanFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="HumanFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("6_k7yj6")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../HumanCheckBox")
 
-[node name="ColorRect4" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="HumanoidVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="HumanoidVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 layout_mode = 2
 
-[node name="HumanoidCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="HumanoidCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanoidVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Humanoid"
 alignment = 1
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../HumanoidFocusCheckBox")
 
-[node name="HumanoidFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/HumanoidVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="HumanoidFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanoidVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("6_k7yj6")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../HumanoidCheckBox")
 
-[node name="ColorRect5" type="ColorRect" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 color = Color(0.129412, 0.14902, 0.180392, 1)
 
-[node name="TaurVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox"]
+[node name="TaurVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox"]
 layout_mode = 2
 
-[node name="TaurCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox" node_paths=PackedStringArray("focus_checkbox")]
+[node name="TaurCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/TaurVBox" node_paths=PackedStringArray("focus_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Taur"
 alignment = 1
 script = ExtResource("2_o35pq")
 focus_checkbox = NodePath("../TaurFocusCheckBox")
 
-[node name="TaurFocusCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyTypes/BodyTypesHBox/TaurVBox" node_paths=PackedStringArray("parent_checkbox")]
+[node name="TaurFocusCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/TaurVBox" node_paths=PackedStringArray("parent_checkbox")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 disabled = true
 button_group = ExtResource("6_k7yj6")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../TaurCheckBox")
 
-[node name="BodyPropertiesHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="BdPropsHbox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox"]
 layout_mode = 2
 text = "Body Properties"
 
-[node name="CheckHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="CheckHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
+script = SubResource("GDScript_igg7n")
 
-[node name="FurCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+[node name="FurCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Fur"
+script = ExtResource("9_cooxf")
+tags_to_include = "fur"
+suggestions_to_include = "*color* fur"
+node_to_display = NodePath("../ColorsCount")
 
-[node name="ScalesCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+[node name="ColorsCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_k1tds")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="ScalesCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
+layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Scales"
+script = ExtResource("9_cooxf")
+tags_to_include = "scales"
+suggestions_to_include = "*color* scales"
+node_to_display = NodePath("../ScalesCCount")
 
-[node name="FeathersCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+[node name="ScalesCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_nhkg4")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="FeathersCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
+layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Feathers"
+script = ExtResource("9_cooxf")
+tags_to_include = "feathers"
+suggestions_to_include = "*color* feathers"
+node_to_display = NodePath("../FeatherCCount")
 
-[node name="WoolCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+[node name="FeatherCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_ghjkl")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="WoolCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
+layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Wool"
+script = ExtResource("9_cooxf")
+tags_to_include = "wool"
+suggestions_to_include = "*color* wool"
+node_to_display = NodePath("../WoolCCount")
 
-[node name="SkinCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+[node name="WoolCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_7sqa7")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="SkinCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
+layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Skin
 "
+script = ExtResource("9_cooxf")
+suggestions_to_include = "*color* skin"
+node_to_display = NodePath("../SkinCCount")
 
-[node name="ExoCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BodyPropertiesHBox/CheckHBox"]
+[node name="SkinCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
 layout_mode = 2
-text = "Exoskeleton"
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_avl4o")
 
-[node name="BackgroundTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="ExoCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
+layout_mode = 2
+theme = ExtResource("9_pvv55")
+text = "Exoskeleton"
+script = ExtResource("9_cooxf")
+tags_to_include = "exoskeleton"
+suggestions_to_include = "*color* exoskeleton"
+node_to_display = NodePath("../ExoCCount")
+
+[node name="ExoCCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+script = SubResource("GDScript_mpru2")
+
+[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
+layout_mode = 2
+text = "Colors:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
+layout_mode = 2
+alignment = 1
+select_all_on_focus = true
+
+[node name="Stance" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+layout_mode = 2
+text = "Stances:"
+
+[node name="SmartCheckboxes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+layout_mode = 2
+
+[node name="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Floating"
+tags_to_include = "floating"
+suggestions_to_include = "levitation"
+
+[node name="CheckBox7" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Flying"
+tags_to_include = "flying"
+suggestions_to_include = "wings, midair"
+
+[node name="CheckBox2" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Jumping"
+tags_to_include = "jumping"
+
+[node name="CheckBox3" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Lying"
+tags_to_include = "lying"
+suggestions_to_include = "lying on *surface*"
+node_to_display = NodePath("../LyingOptionButton")
+
+[node name="LyingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+layout_mode = 2
+item_count = 3
+selected = 0
+popup/item_0/text = "On back"
+popup/item_0/id = 0
+popup/item_1/text = "On front"
+popup/item_1/id = 1
+popup/item_2/text = "On side"
+popup/item_2/id = 2
+script = SubResource("GDScript_2kyf3")
+
+[node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Sitting"
+tags_to_include = "sitting"
+suggestions_to_include = "sitting on *surface*, reclining"
+node_to_display = NodePath("../SittingOptionButton")
+
+[node name="SittingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+layout_mode = 2
+item_count = 7
+selected = 0
+popup/item_0/text = "- on bodypart -"
+popup/item_0/id = 0
+popup/item_1/text = "Sitting on another"
+popup/item_1/id = 1
+popup/item_2/text = "Sitting on balls"
+popup/item_2/id = 2
+popup/item_3/text = "Sitting on knot"
+popup/item_3/id = 3
+popup/item_4/text = "Sitting on lap"
+popup/item_4/id = 4
+popup/item_5/text = "Sitting on penis"
+popup/item_5/id = 5
+popup/item_6/text = "Sitting on tail"
+popup/item_6/id = 6
+script = SubResource("GDScript_axjs3")
+
+[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Standing"
+tags_to_include = "standing"
+suggestions_to_include = "leaning back"
+
+[node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Swimming"
+tags_to_include = "swimming"
+
+[node name="BgTypesHbox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BgTypesHbox"]
 layout_mode = 2
 text = "Background"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BackgroundDetailsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes"]
+[node name="BackgroundDetailsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BgTypesHbox"]
 layout_mode = 2
 
-[node name="BackgroundOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundDetailsHBox"]
+[node name="BackgroundOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/BgTypesHbox/BackgroundDetailsHBox"]
 layout_mode = 2
-tooltip_text = "Detailed: A picture where you can clearly distinguish what location it's in. (Kitchen, beach, etc.)"
+tooltip_text = "Simple: A picture where the specific location of the scene isn't distingushable.
+Detailed: A picture where you can clearly distinguish what location the scene is in. (Kitchen, beach, etc.)"
+theme = ExtResource("9_pvv55")
 item_count = 2
 selected = 0
 popup/item_0/text = "Simple"
@@ -831,12 +1306,13 @@ popup/item_1/text = "Detailed"
 popup/item_1/id = 1
 script = ExtResource("8_emj81")
 
-[node name="BGDetsOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundDetailsHBox"]
+[node name="BGDetsOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/BgTypesHbox/BackgroundDetailsHBox"]
 layout_mode = 2
-tooltip_text = "Detailed: A picture where you can clearly distinguish what location it's in. (Kitchen, beach, etc.)"
+theme = ExtResource("9_pvv55")
 
-[node name="DayTimeOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/BackgroundTypes/BackgroundDetailsHBox"]
+[node name="DayTimeOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/BgTypesHbox/BackgroundDetailsHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 item_count = 3
 selected = 0
 popup/item_0/text = "- Daytime -"
@@ -846,22 +1322,23 @@ popup/item_1/id = 1
 popup/item_2/text = "Night"
 popup/item_2/id = 2
 
-[node name="CompletionTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="CompletionTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes"]
 layout_mode = 2
 text = "Completion"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes"]
+[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CompletionOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox"]
+[node name="CompletionOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 item_count = 4
 selected = 0
 popup/item_0/text = "- Completion degree -"
@@ -873,8 +1350,11 @@ popup/item_2/id = 2
 popup/item_3/text = "Lineless"
 popup/item_3/id = 3
 
-[node name="ColorTypesOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox"]
+[node name="ColorTypesOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox"]
 layout_mode = 2
+tooltip_text = "Monochrome: This tag is used for images or animations whose entire composition is only or  mostly composed of lines and shades of a single hue.
+Colored: Tag used for images that feature color."
+theme = ExtResource("9_pvv55")
 item_count = 2
 selected = 0
 popup/item_0/text = "Monochrome"
@@ -882,13 +1362,15 @@ popup/item_0/id = 0
 popup/item_1/text = "Colored"
 popup/item_1/id = 1
 
-[node name="IsShadedCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox"]
+[node name="IsShadedCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 text = "Shaded"
 script = SubResource("GDScript_mmvd5")
 
-[node name="ShadingStyleOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/CompletionTypes/ElementsHBox"]
+[node name="ShadingStyleOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox"]
 layout_mode = 2
+theme = ExtResource("9_pvv55")
 item_count = 5
 selected = 0
 popup/item_0/text = "- Shading style -"
@@ -903,61 +1385,94 @@ popup/item_4/text = "Soft shading"
 popup/item_4/id = 4
 script = SubResource("GDScript_rngg8")
 
-[node name="AngleTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="AngleTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes"]
 layout_mode = 2
 text = "View"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes"]
+[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes"]
 layout_mode = 2
 theme_override_constants/separation = 8
+script = ExtResource("10_3npvb")
 
-[node name="CompletionOptionButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox"]
+[node name="HeigthView" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
-item_count = 5
+size_flags_vertical = 4
+item_count = 6
 selected = 0
-popup/item_0/text = "- Multiple -"
-popup/item_0/id = 0
-popup/item_1/text = "Front"
+popup/item_0/text = "- Unknown angle -"
+popup/item_0/id = 5
+popup/item_1/text = "Worm's-eye view"
 popup/item_1/id = 1
-popup/item_2/text = "Three-quarters"
+popup/item_2/text = "Low-angle view"
 popup/item_2/id = 2
-popup/item_3/text = "Side"
-popup/item_3/id = 3
-popup/item_4/text = "Rear"
-popup/item_4/id = 4
+popup/item_3/text = "Regular"
+popup/item_3/id = 0
+popup/item_4/text = "High-angle view"
+popup/item_4/id = 3
+popup/item_5/text = "Bird's eye view"
+popup/item_5/id = 4
 
-[node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox"]
+[node name="AngleViewOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
+size_flags_vertical = 4
+theme = ExtResource("9_pvv55")
+item_count = 3
+selected = 0
+popup/item_0/text = "Straight"
+popup/item_0/id = 1
+popup/item_1/text = "Three-quarter view"
+popup/item_1/id = 2
+popup/item_2/text = "Side"
+popup/item_2/id = 3
+
+[node name="RearViewCheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Rear view"
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+texture = ExtResource("11_yms3t")
+
+[node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+layout_mode = 2
+size_flags_vertical = 4
+theme = ExtResource("9_pvv55")
 text = "Is comic"
 script = SubResource("GDScript_c8128")
 
-[node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/AngleTypes/ElementsHBox"]
+[node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "When a picture contains 2 or more related images. Can show progression."
+theme = ExtResource("9_pvv55")
 text = "Multiple scenes"
 
-[node name="MediaTypes" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="MediaTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes"]
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes"]
 layout_mode = 2
 text = "Media"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes"]
+[node name="ElementsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="MediaTypeButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox" node_paths=PackedStringArray("defined_options")]
+[node name="MediaTypeButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox" node_paths=PackedStringArray("defined_options")]
 layout_mode = 2
 size_flags_vertical = 4
+theme = ExtResource("9_pvv55")
 item_count = 4
 selected = 0
 popup/item_0/text = "Digital"
@@ -971,42 +1486,44 @@ popup/item_3/id = 3
 script = ExtResource("7_li4an")
 defined_options = NodePath("../DefinedMediaOptButton")
 
-[node name="DefinedMediaOptButton" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox"]
+[node name="DefinedMediaOptButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox"]
 layout_mode = 2
 size_flags_vertical = 4
+theme = ExtResource("9_pvv55")
 
-[node name="AnimationsVBox" type="VBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox"]
+[node name="AnimationsVBox" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox"]
 layout_mode = 2
 
-[node name="AnimationsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox"]
+[node name="AnimationsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="FrByFrAnimChkBtn" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
+[node name="FrByFrAnimChkBtn" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
 layout_mode = 2
 size_flags_horizontal = 2
 tooltip_text = "An animated file that was created by hand-drawing each individual frames."
 theme = ExtResource("9_pvv55")
 text = "Frame by frame"
 
-[node name="LoopsChkBtn" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
+[node name="LoopsChkBtn" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
 layout_mode = 2
 size_flags_horizontal = 6
 tooltip_text = "An animation designed to repeat itself indefinitely by ending exactly at the starting point."
 theme = ExtResource("9_pvv55")
 text = "Loops"
 
-[node name="SoundChkBox" type="CheckBox" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
+[node name="SoundChkBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox"]
 layout_mode = 2
 size_flags_horizontal = 10
+theme = ExtResource("9_pvv55")
 text = "Has sound"
 
-[node name="Animations2HBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox"]
+[node name="Animations2HBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="AnimationTypesBTN" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
+[node name="AnimationTypesBTN" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Motion Tweening: 2d ONLY"
@@ -1024,7 +1541,7 @@ popup/item_3/id = 3
 popup/item_4/text = "Motion tweening"
 popup/item_4/id = 4
 
-[node name="PlaytimeOptBtn" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
+[node name="PlaytimeOptBtn" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Short: Less than 30s
@@ -1037,9 +1554,10 @@ popup/item_0/id = 0
 popup/item_1/text = "Long playtime"
 popup/item_1/id = 1
 
-[node name="FormatOptBtn" type="OptionButton" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
+[node name="FormatOptBtn" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = ExtResource("9_pvv55")
 item_count = 3
 selected = 0
 popup/item_0/text = "GIF"
@@ -1049,17 +1567,29 @@ popup/item_1/id = 1
 popup/item_2/text = "Animated PNG"
 popup/item_2/id = 2
 
-[node name="FinishButtonsHBox" type="HBoxContainer" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer"]
+[node name="IncludeSuggestions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+script = ExtResource("13_yw5to")
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/IncludeSuggestions"]
+layout_mode = 2
+text = "Include suggestions for:"
+
+[node name="FlowContainer" type="HFlowContainer" parent="MarginContainer/Margin/MarginContainer/All/IncludeSuggestions"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FinishButtonsHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CancelButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox"]
+[node name="CancelWizardButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox"]
 custom_minimum_size = Vector2(256, 0)
 layout_mode = 2
 text = "Cancel"
 
-[node name="DoneButton" type="Button" parent="MarginContainer/ScrollContainer/MarginContainer/VBoxContainer/FinishButtonsHBox"]
+[node name="DoneWizardButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3

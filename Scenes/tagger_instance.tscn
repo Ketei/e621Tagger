@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=27 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -13,6 +13,104 @@
 [ext_resource type="PackedScene" uid="uid://61qwtnsjohnu" path="res://Scenes/suggestion_or_adder.tscn" id="10_8knu4"]
 [ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="11_hi7i4"]
 [ext_resource type="PackedScene" uid="uid://4qhx65ld3k1q" path="res://Scenes/tag_wizard_scene.tscn" id="11_lbguf"]
+[ext_resource type="Script" path="res://Scripts/set_as_tag_script.gd" id="14_j3vng"]
+[ext_resource type="PackedScene" uid="uid://ddwpdjjwbxnyr" path="res://Scenes/tag_template_loader.tscn" id="15_cfetd"]
+[ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="15_du82a"]
+
+[sub_resource type="GDScript" id="GDScript_ogbc5"]
+script/source = "extends LineEdit
+
+signal should_hide(boolean)
+
+@onready var timer: Timer = $Timer
+@onready var item_list: ItemList = $VBoxContainer/ItemList
+@onready var main_item_list = $\"../../ItemList\"
+
+var yielded_focus: bool = false
+var list_yielded_focus: bool = false
+
+func _ready():
+	text_changed.connect(lineedit_text_changed)
+	timer.timeout.connect(timer_timeout)
+	item_list.item_activated.connect(smart_selected)
+	focus_exited.connect(on_focus_lost)
+	item_list.focus_exited.connect(list_focus_lost)
+
+
+func _unhandled_key_input(event: InputEvent):
+	if item_list.visible:
+		if has_focus() and event.is_action(\"ui_up\"):
+			yielded_focus = true
+			item_list.grab_focus()
+			item_list.select(item_list.item_count - 1)
+			item_list.ensure_current_is_visible()
+		elif event.is_action(\"ui_cancel\"):
+			item_list.deselect_all()
+			item_list.hide()
+			grab_focus()
+	else:
+		if has_focus() and event.is_action(\"ui_up\") and timer.is_stopped() and 0 < item_list.item_count:
+			yielded_focus = true
+			item_list.show()
+			item_list.select(item_list.item_count - 1)
+			item_list.ensure_current_is_visible()
+			item_list.grab_focus()
+
+
+func list_focus_lost() -> void:
+	item_list.hide()
+
+
+func on_focus_lost() -> void:
+	if not yielded_focus:
+		item_list.hide()
+	else:
+		yielded_focus = false
+
+
+func timer_timeout() -> void:
+	if text.is_empty():
+		return
+	item_list.clear()
+	var packt: PackedStringArray = Tagger.tag_manager.get_n_tags_prefix(text, 10)
+	if packt.size() == 0:
+		return
+	for item in packt:
+		item_list.add_item(item)
+	item_list.show()
+
+
+func smart_selected(index_selected: int) -> void:
+	text_submitted.emit(item_list.get_item_text(index_selected))
+	item_list.hide()
+	item_list.release_focus()
+	grab_focus()
+
+
+func lineedit_text_changed(new_text: String) -> void:
+	if item_list.visible:
+		item_list.hide()
+	
+	if new_text.is_empty():
+		if not timer.is_stopped():
+			timer.stop()
+	else:
+		timer.start()
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fgiki"]
+content_margin_left = 8.0
+content_margin_right = 8.0
+bg_color = Color(0.113725, 0.133333, 0.160784, 1)
+
+[sub_resource type="GDScript" id="GDScript_6l3pt"]
+resource_name = "start_hidden"
+script/source = "extends ItemList
+
+
+func _ready():
+	hide()
+"
 
 [sub_resource type="GDScript" id="GDScript_82xvn"]
 resource_name = "special_show_hide"
@@ -175,16 +273,20 @@ one_shot = true
 script = ExtResource("2_enrd1")
 
 [node name="TaggerContextMenu" type="PopupMenu" parent="."]
-size = Vector2i(119, 100)
-item_count = 4
-item_0/text = "Wiki"
-item_0/id = 2
-item_1/text = "Create Tag"
-item_1/id = 0
-item_2/text = "Edit Tag"
-item_2/id = 1
-item_3/text = "Remove Tag"
-item_3/id = 3
+size = Vector2i(119, 146)
+item_count = 6
+item_0/text = "Add to list"
+item_0/id = 5
+item_1/text = "Wiki"
+item_1/id = 2
+item_2/text = "Create Tag"
+item_2/id = 0
+item_3/text = "Edit Tag"
+item_3/id = 1
+item_4/text = "Remove Tag"
+item_4/id = 3
+item_5/text = "Set as..."
+item_5/id = 4
 
 [node name="WarningRect" type="TextureRect" parent="."]
 layout_mode = 0
@@ -238,6 +340,25 @@ size_flags_horizontal = 3
 placeholder_text = "Add Tag"
 select_all_on_focus = true
 caret_blink = true
+script = SubResource("GDScript_ogbc5")
+
+[node name="Timer" type="Timer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
+wait_time = 0.8
+one_shot = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
+layout_mode = 0
+offset_top = -306.0
+offset_right = 304.0
+offset_bottom = -2.0
+mouse_filter = 2
+alignment = 2
+
+[node name="ItemList" type="ItemList" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fgiki")
+auto_height = true
+script = SubResource("GDScript_6l3pt")
 
 [node name="OpenAutoCompleteBTN" type="Button" parent="HBoxContainer/InputTags/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
@@ -299,7 +420,7 @@ script = SubResource("GDScript_82xvn")
 
 [node name="SPecialSuggestions" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
-text = "Special Suggestions:"
+text = "Prompt Suggestions:"
 
 [node name="ClearSpecialButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
@@ -310,6 +431,7 @@ text = "Clear"
 custom_minimum_size = Vector2(0, 192)
 layout_mode = 2
 script = ExtResource("5_fpeot")
+can_remove = true
 
 [node name="ImpliedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
 layout_mode = 2
@@ -422,7 +544,7 @@ offset_left = -0.360001
 offset_top = -0.191986
 offset_right = -1.0
 script = ExtResource("7_gh0lf")
-tags_to_get = 50
+tags_to_get = 75
 metadata/_edit_use_anchors_ = true
 
 [node name="QuickSearchPopupMenu" type="PopupMenu" parent="AddAutoComplete/QuickSearch"]
@@ -706,6 +828,122 @@ offset_bottom = 656.0
 
 [node name="TagWizard" parent="Weezard/CenterContainer" instance=ExtResource("11_lbguf")]
 layout_mode = 2
+
+[node name="SetAsTag" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 656.0
+script = ExtResource("14_j3vng")
+
+[node name="CenterContainer" type="CenterContainer" parent="SetAsTag"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SetWindow" type="Control" parent="SetAsTag/CenterContainer"]
+custom_minimum_size = Vector2(448, 120)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="EdgeRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.372549, 0.419608, 0.509804, 1)
+
+[node name="BackgroundArea" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SetLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Set"
+
+[node name="TagLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "TagName"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer/TagLabel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -3.0
+offset_right = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1095, 0.123675, 0.15, 1)
+
+[node name="AsLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "as"
+
+[node name="CategoriesMenu" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer" instance=ExtResource("15_du82a")]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(128, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="AcceptButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Accept"
+
+[node name="TemplateLoader" parent="." instance=ExtResource("15_cfetd")]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.00625
+anchor_top = -0.0222222
+anchor_right = 1.00625
+anchor_bottom = 1.01111
 
 [node name="TagFileDialog" parent="." instance=ExtResource("9_q63mv")]
 visible = false

@@ -29,7 +29,13 @@ func _ready():
 	cancel_button.pressed.connect(cancel_tag)
 	suffix_option_button.item_selected.connect(suffix_item_select)
 	prefix_option_button.item_selected.connect(prefix_item_select)
-	
+	custom_prefix_line_edit.text_submitted.connect(line_submit_accept_tag)
+	custom_suffix_line_edit.text_submitted.connect(line_submit_accept_tag)
+
+
+func line_submit_accept_tag(_text_submitted: String) -> void:
+	accept_tag()
+
 
 func clear_fields() -> void:
 	using_prefix = false

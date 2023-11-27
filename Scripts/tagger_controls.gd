@@ -39,6 +39,9 @@ const valid_fixes: Array[String] = ["*", "|", "#"]
 @onready var number_tag_tool: NumberTagTool = $SpinboxAdder/CenterContainer/NumerTag
 @onready var clear_special_button: Button = $HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer/ClearSpecialButton
 
+@onready var set_as_tag = $SetAsTag
+@onready var template_loader = $TemplateLoader
+
 
 var main_application
 var tagger_menu_bar: PopupMenu
@@ -97,6 +100,7 @@ func _ready():
 	clear_suggested_button.pressed.connect(clear_suggestion_tags)
 	export_tags_button.pressed.connect(open_export_dialog)
 	clear_special_button.pressed.connect(clear_special_tags)
+	template_loader.template_selected.connect(load_tags_from_template)
 	# ---------------------
 	
 	check_minimum_requirements()
@@ -125,7 +129,32 @@ func _ready():
 	item_list.associated_array = full_tag_list
 	suggested_list.associated_array = suggestion_tags_array
 	special_suggestions_item_list.associated_array = special_suggestions
-	
+
+
+func is_any_window_open() -> bool:
+	var is_anything_open: bool = add_auto_complete.visible or\
+			conflicting_tags.visible or\
+			add_suggested_special.visible or\
+			or_adder.visible or\
+			spinbox_adder.visible or\
+			weezard.visible or\
+			set_as_tag.visible or\
+			template_loader.visible
+	return is_anything_open
+
+
+func open_template_loader() -> void:
+	template_loader.load_templates()
+	template_loader.show()
+
+
+func load_tags_from_template(_temp_name: String, tag_pcksarray: PackedStringArray, sugs_pcksarray: PackedStringArray) -> void:
+	for tag in tag_pcksarray:
+		add_new_tag(tag, false, false, [], Tagger.Categories.GENERAL, false)
+	for sug in sugs_pcksarray:
+		add_suggested_tag(sug)
+	template_loader.hide()
+
 
 func clear_special_tags() -> void:
 	special_suggestions.clear()
@@ -229,9 +258,6 @@ func append_registered_tag(tag_resource: Tag, add_suggested: bool = true) -> voi
 	
 	update_parents(tag_resource, add_suggested)
 	
-	if not add_suggested:
-		print("append_registered_tag isn't allowed to add suggestions")
-	
 	if Tagger.settings.search_suggested and add_suggested:
 		for related_tag in tags_inputed[tag_resource.tag]["related_tags"]:
 			add_suggested_tag(related_tag)
@@ -318,9 +344,7 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	if Tagger.tag_manager.has_tag(tag_name):
 		var tag_load: Tag = Tagger.tag_manager.get_tag(tag_name)
-		print("First Append")
 		append_registered_tag(tag_load, search_online)
-		print("------------")
 		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]
 		add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 		
@@ -345,13 +369,10 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		implied_list.remove_item(implied_tags_array.find(tag_name))
 		implied_tags_array.erase(tag_name)
 	
-	print("Second add")
 	if search_online:
 		for suggested_tag in suggested_tags:
 			add_suggested_tag(suggested_tag)
-	else:
-			print("add_new_tag is not allowed to add suggestions")
-	print("---------------")
+
 	if ensure_visible:
 		item_list.select(add_index)
 		item_list.ensure_current_is_visible()
@@ -405,15 +426,8 @@ func add_suggested_tag(tag_name: String) -> void:
 		
 		suggested_pos = special_suggestions_item_list.add_item(tag_name)
 		special_suggestions.append(tag_name)
-		
-#		if tag_name.begins_with("*") or tag_name.ends_with("*"):
-#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.31, 0.145, 0.475))
-#		elif tag_name.begins_with("|") and tag_name.ends_with("|"):
-#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.078, 0.282, 0.169))
-#		elif tag_name.begins_with("#"):
-#			suggested_list.set_item_custom_bg_color(suggested_pos, Color(0.467, 0.173, 0.263))
 
-		
+
 func update_parents(tag_resource: Tag, add_suggestions: bool = true) -> void:
 	if not tags_inputed.has(tag_resource.tag):
 		return
@@ -446,7 +460,6 @@ func update_parents(tag_resource: Tag, add_suggestions: bool = true) -> void:
 	
 
 func update_tag(tag_name: String) -> void:
-	
 	if tags_inputed.has(tag_name):
 		var current_index: int = full_tag_list.find(tag_name)
 		
@@ -718,6 +731,20 @@ func open_context_menu(tag_name: String, itembox_position: Vector2, item_positio
 	
 	tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(3), not is_delete_allowed)
 	
+	if who_called == item_list:
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), Tagger.tag_manager.has_tag(context_tag))
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), true)
+	else:
+		tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(4), true)
+		if who_called != implied_list:
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), false)
+		else:
+			tagger_context_menu.set_item_disabled(tagger_context_menu.get_item_index(5), true)
+
+	if 720 < (tagger_context_menu.position.y + tagger_context_menu.size.y):
+		var extrapiece = tagger_context_menu.size.y - (720 - tagger_context_menu.position.y)
+		tagger_context_menu.position.y -= extrapiece 
+	
 	tagger_context_menu.show()
 
 
@@ -730,6 +757,10 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		main_application.go_to_wiki(context_tag)
 	elif id_pressed == 3:
 		list_called.remove_item_from_list(called_index)
+	elif id_pressed == 4:
+		open_set_tagger()
+	elif id_pressed == 5:
+		add_from_suggested(called_index, list_called)
 
 
 func sort_tags_by_category() -> void:
@@ -767,12 +798,14 @@ func sort_tags_by_category() -> void:
 	
 	clear_inputted_tags()
 	
-	print("***Adding sorted items***")
 	for item in final_array:
 		add_new_tag(item, false, false, [], Tagger.Categories.GENERAL, false)
-	print("**Finished adding sorted items**")
+
 
 func tagger_menu_pressed(option_id: int) -> void:
+	if is_any_window_open():
+		return
+	
 	if option_id == 0:
 		clear_all_tags()
 	elif option_id == 1:
@@ -783,6 +816,23 @@ func tagger_menu_pressed(option_id: int) -> void:
 		sort_tags_by_category()
 	elif option_id == 9:
 		open_wizard()
+	elif option_id == 11:
+		open_template_loader()
+
+
+func open_set_tagger() -> void:
+	var tag_to_set: String = context_tag
+	set_as_tag.set_target_tag(tag_to_set)
+	set_as_tag.show()
+	
+	var selected_category: int = await set_as_tag.category_selected
+	
+	if selected_category != -1:
+		tags_inputed[context_tag]["category"] = selected_category
+		add_to_category(selected_category as Tagger.Categories)
+	
+	set_as_tag.hide()
+	
 
 
 func open_wizard() -> void:

@@ -45,3 +45,21 @@ func remove_item_from_list(item_index: int) -> void:
 	remove_item(item_index)
 	
 	
+func add_item_to_list(item_to_add: String) -> void:
+	var can_add: bool = true
+	
+	if associated_array:
+		if associated_array.has(item_to_add):
+			can_add = false
+	
+	if associated_dict:
+		if associated_dict.has(item_to_add):
+			can_add = false
+	
+	if not can_add:
+		return
+	
+	add_item(item_to_add)
+	associated_array.append(item_to_add)
+
+

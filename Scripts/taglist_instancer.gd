@@ -139,6 +139,9 @@ func update_menus() -> void:
 		tagger_popup_menu.set_item_disabled(
 			tagger_popup_menu.get_item_index(9),
 			true)
+		tagger_popup_menu.set_item_disabled(
+			tagger_popup_menu.get_item_index(11),
+			true)
 	else:
 		tagger_popup_menu.set_item_disabled(
 			tagger_popup_menu.get_item_index(8),
@@ -154,6 +157,9 @@ func update_menus() -> void:
 			false)
 		tagger_popup_menu.set_item_disabled(
 			tagger_popup_menu.get_item_index(9),
+			false)
+		tagger_popup_menu.set_item_disabled(
+			tagger_popup_menu.get_item_index(11),
 			false)
 
 

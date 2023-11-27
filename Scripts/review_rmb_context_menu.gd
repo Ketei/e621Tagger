@@ -6,9 +6,10 @@ signal create_tag(tag_to_create)
 var selected_item: String = ""
 
 
-@onready var parents_items_popup_menu: PopupMenu = $ParentsItemsPopupMenu
+@export var parents_items_popup_menu: PopupMenu
 @onready var tag_reviewer = $".."
 
+var associated_array: Array = []
 
 func _ready():
 	item_clicked.connect(parent_clicked)
@@ -37,3 +38,17 @@ func parent_clicked(index: int, at_position: Vector2, mouse_button_index: int) -
 		parents_items_popup_menu.show()
 	
 	
+func add_item_to_list(item_to_add: String) -> void:
+	var can_add: bool = true
+	
+	if associated_array:
+		if associated_array.has(item_to_add):
+			can_add = false
+
+	if not can_add:
+		return
+	
+	add_item(item_to_add)
+	associated_array.append(item_to_add)
+
+

@@ -3,96 +3,110 @@ extends Control
 
 signal wizard_tags_created(tags_array)
 
-@export var items_scroll_container: ScrollContainer
-@export var artist_line_edit: LineEdit
-@export var known_artist_chkbtn: CheckButton
-@export var work_year: SpinBox
+@onready var items_scroll_container: ScrollContainer = $MarginContainer/Margin
+@onready var artist_line_edit: LineEdit =$MarginContainer/Margin/MarginContainer/All/BasicsHBox/ArtistHBox/ArtistLineHBox/LineEdit
+@onready var known_artist_chkbtn: CheckButton =$MarginContainer/Margin/MarginContainer/All/BasicsHBox/ArtistHBox/ArtistLineHBox/KnownArtistCheckButton
+@onready var work_year: SpinBox =$MarginContainer/Margin/MarginContainer/All/BasicsHBox/DateHBox/SpinBox
 
-@export var char_amount: SpinBox
-@export var focus_amount: SpinBox
+@onready var char_amount: SpinBox =$MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterCountHBox/SpinBox
+@onready var focus_amount: SpinBox =$MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterFocusHBox/FocusSpinBox
 
-@export var male_check_box: CheckBox
-@export var female_check_box: CheckBox
-@export var ambig_check_box: CheckBox
-@export var andro_check_box: CheckBox
-@export var gyno_check_box: CheckBox
-@export var herm_check_box: CheckBox 
-@export var male_herm_check_box: CheckBox
+@onready var male_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleCheckBox
+@onready var female_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleCheckBox
+@onready var ambig_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox/AmbigCheckBox
+@onready var andro_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroCheckBox
+@onready var gyno_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoCheckBox
+@onready var herm_check_box: CheckBox  =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermCheckBox
+@onready var male_herm_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermCheckBox
 
-@export var male_focus_check_box: CheckBox
-@export var female_focus_check_box: CheckBox
-@export var ambig_focus_check_box: CheckBox
-@export var andro_focus_check_box: CheckBox
-@export var gyno_focus_check_box: CheckBox
-@export var herm_focus_check_box: CheckBox 
-@export var male_focus_herm_check_box: CheckBox
+@onready var male_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleFocusCheckBox
+@onready var female_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleFocusCheckBox
+@onready var ambig_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AmbiguousVBox/AmbigFocusCheckBox
+@onready var andro_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroFocusCheckBox
+@onready var gyno_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoFocusCheckBox
+@onready var herm_focus_check_box: CheckBox  =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermFocusCheckBox
+@onready var male_focus_herm_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermFocusCheckBox
 
-@export var anthro_check_box: CheckBox
-@export var semi_anthro_check_box: CheckBox
-@export var feral_check_box: CheckBox
-@export var human_check_box: CheckBox
-@export var humanoid_check_box: CheckBox
-@export var taur_check_box: CheckBox
+@onready var anthro_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/AnthroVBox/AnthroCheckBox
+@onready var semi_anthro_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/SemiAnthroVBox/SemiAnthroCheckBox
+@onready var feral_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/FeralVBox/FeralCheckBox
+@onready var human_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanVBox/HumanCheckBox
+@onready var humanoid_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanoidVBox/HumanoidCheckBox
+@onready var taur_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/TaurVBox/TaurCheckBox
 
-@export var anthro_focus_check_box: CheckBox
-@export var semi_focus_anthro_check_box: CheckBox
-@export var feral_focus_check_box: CheckBox
-@export var human_focus_check_box: CheckBox
-@export var humanoid_focus_check_box: CheckBox
-@export var taur_focus_check_box: CheckBox
+@onready var anthro_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/AnthroVBox/AnthroFocusCheckBox
+@onready var semi_focus_anthro_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/SemiAnthroVBox/SemiAnthroFocusCheckBox
+@onready var feral_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/FeralVBox/FeralFocusCheckBox
+@onready var human_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanVBox/HumanFocusCheckBox
+@onready var humanoid_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/HumanoidVBox/HumanoidFocusCheckBox
+@onready var taur_focus_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BodyTypes/BodyTypesHBox/TaurVBox/TaurFocusCheckBox
 
-@export var background_option_button: OptionButton
-@export var background_dets_option_button: OptionButton
-@export var daytime_option_button: OptionButton
+@onready var background_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/BgTypesHbox/BackgroundDetailsHBox/BackgroundOptionButton
+@onready var background_dets_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/BgTypesHbox/BackgroundDetailsHBox/BGDetsOptionButton
+@onready var daytime_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/BgTypesHbox/BackgroundDetailsHBox/DayTimeOptionButton
 
-@export var completion_option_button: OptionButton
-@export var color_types_option_button: OptionButton
-@export var is_shaded_checkbox: CheckBox
-@export var shaded_style_optbtn: OptionButton
+@onready var completion_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox/CompletionOptionButton
+@onready var color_types_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox/ColorTypesOptionButton
+@onready var is_shaded_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox/IsShadedCheckBox
+@onready var shaded_style_optbtn: OptionButton =$MarginContainer/Margin/MarginContainer/All/CompletionTypes/ElementsHBox/ShadingStyleOptionButton
 
-@export var angle_option_button: OptionButton
+@onready var heigth_view: OptionButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/HeigthView
+@onready var angle_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/AngleViewOptionButton
+@onready var rear_view_check_button: CheckButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/RearViewCheckButton
 
-@export var media_type_option_button: OptionButton
-@export var defined_media_opt_button: OptionButton
 
-@export var done_button: Button
-@export var cancel_button: Button
-@export var interactions_box: HBoxContainer
+@onready var media_type_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/MediaTypeButton
+@onready var defined_media_opt_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/DefinedMediaOptButton
 
-@export var fur_check_box: CheckBox
-@export var scales_check_box: CheckBox
-@export var feathers_check_box: CheckBox
-@export var wool_check_box: CheckBox
-@export var skin_check_box: CheckBox
-@export var exo_check_box: CheckBox
+@onready var done_button: Button = $MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox/DoneWizardButton
+@onready var cancel_button: Button = $MarginContainer/Margin/MarginContainer/All/FinishButtonsHBox/CancelWizardButton
+@onready var interactions_box: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Interactions/InterScrollBox/AllInteractions
 
-@export var fr_by_fr_anim_chk_btn: CheckBox
-@export var loops_chk_btn: CheckBox
-@export var sound_chk_box: CheckBox
+#@onready var fur_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FurCheckBox
+#@onready var scales_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ScalesCheckBox
+#@onready var feathers_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/FeathersCheckBox
+#@onready var wool_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/WoolCheckBox
+#@onready var skin_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/SkinCheckBox
+#@onready var exo_check_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/BdPropsHbox/CheckHBox/ExoCheckBox
 
-@export var animation_types_btn: OptionButton
-@export var playtime_opt_btn: OptionButton
-@export var format_opt_btn: OptionButton
+@onready var fr_by_fr_anim_chk_btn: CheckBox =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/FrByFrAnimChkBtn
+@onready var loops_chk_btn: CheckBox =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/LoopsChkBtn
+@onready var sound_chk_box: CheckBox =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/AnimationsHBox/SoundChkBox
 
-@export var topwear_checkbox: CheckBox
-@export var underwear_checkbox: CheckBox
-@export var visible_underwear: CheckBox
-@export var bottomwear_checkbox: CheckBox
-@export var leg_wear_checkbox: CheckBox
-@export var arm_wear_checkbox: CheckBox
-@export var hand_wear_checkbox: CheckBox
-@export var foot_wear_checkbox: CheckBox
-@export var head_wear_checkbox: CheckBox
-@export var collar_checkbox: CheckBox
+@onready var animation_types_btn: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/AnimationTypesBTN
+@onready var playtime_opt_btn: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/PlaytimeOptBtn
+@onready var format_opt_btn: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/AnimationsVBox/Animations2HBox/FormatOptBtn
 
-@export var is_comic: CheckButton
-@export var has_multiple_scenes: CheckBox
+@onready var topwear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/TopwearCheckBox
+@onready var underwear_checkbox: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox/UnderwearCheckBox
+@onready var visible_underwear: CheckBox =$MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox/VisibleUnderwear
+@onready var bottomwear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/BottomwearCheckBox
+@onready var leg_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/LegWearCheckBox
+@onready var arm_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/ArmWearCheckBox
+@onready var hand_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/HandWearCheckBox
+@onready var foot_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/FootWearCheckBox
+@onready var head_wear_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/HeadWearCheckBox
+@onready var collar_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/CollarCheckBox
+@onready var eyewear_check_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/EyewearCheckBox
+
+@onready var is_comic: CheckButton =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/IsComicCheckBox
+@onready var has_multiple_scenes: CheckBox =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/ShowsMultipleCheckBox
+@onready var perspect_elements: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox
+@onready var smart_checkboxes: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes
+@onready var lying_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/LyingOptionButton
+@onready var sitting_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/SittingOptionButton
+@onready var suggestions_flow_container: HFlowContainer = $MarginContainer/Margin/MarginContainer/All/IncludeSuggestions/FlowContainer
+#@onready var body_colors: SpinBox = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/HBoxContainer/BodyColors
+@onready var magic_container_2: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox
+
+
 
 var background_types = ["simple background", "detailed background"]
 var angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
 var media_types: Array = ["digital media (artwork)", "traditional media (artwork)", "photography (artwork)", "animated"]
 
 var suggestions_types: Array = []
+
 
 func _ready():
 	done_button.pressed.connect(create_basic_tags)
@@ -146,15 +160,17 @@ func magic_clean() -> void:
 	background_dets_option_button.select(0)
 	completion_option_button.select(0)
 	color_types_option_button.select(0)
-	angle_option_button.select(0)
 	media_type_option_button.select(0)
+	media_type_option_button.item_selected.emit(0)
+	defined_media_opt_button.select(0)
 	
-	fur_check_box.set_pressed_no_signal(false)
-	scales_check_box.set_pressed_no_signal(false)
-	feathers_check_box.set_pressed_no_signal(false)
-	wool_check_box.set_pressed_no_signal(false)
-	skin_check_box.set_pressed_no_signal(false)
-	exo_check_box.set_pressed_no_signal(false)
+#	fur_check_box.set_pressed_no_signal(false)
+#	scales_check_box.set_pressed_no_signal(false)
+#	feathers_check_box.set_pressed_no_signal(false)
+#	wool_check_box.set_pressed_no_signal(false)
+#	skin_check_box.set_pressed_no_signal(false)
+#	exo_check_box.set_pressed_no_signal(false)
+	magic_container_2.magic_cleanup()
 	
 	fr_by_fr_anim_chk_btn.set_pressed_no_signal(false)
 	loops_chk_btn.set_pressed_no_signal(false)
@@ -173,10 +189,25 @@ func magic_clean() -> void:
 	foot_wear_checkbox.set_pressed_no_signal(false)
 	head_wear_checkbox.set_pressed_no_signal(false)
 	collar_checkbox.set_pressed_no_signal(false)
+	perspect_elements.clean_pls()
 	
 	is_shaded_checkbox.button_pressed = false
 	
 	media_type_option_button.selected = 0
+	
+	for child in smart_checkboxes.get_children():
+		if not child is WizzardCheckbox:
+			continue
+		child.button_pressed = false
+	
+	for child in suggestions_flow_container.get_children():
+		if not child is SuggetionTagCheckbox:
+			continue
+		child.button_pressed = false
+	
+	lying_option_button.select(0)
+	sitting_option_button.select(0)
+#	body_colors.value = 0
 
 
 func create_basic_tags() -> void:
@@ -296,13 +327,13 @@ func create_basic_tags() -> void:
 	
 	if completion_option_button.selected == 3: # Lineless
 		return_array.append("lineless")
-		if color_types_option_button.selected == 1:
+		if color_types_option_button.selected == 1 and not is_shaded_checkbox.button_pressed:
 			return_array.append("flat colors")
 	
 	if completion_option_button.selected == 2: # Lineart
-		if color_types_option_button.selected == 1:
+		if color_types_option_button.selected == 1 and not is_shaded_checkbox.button_pressed:
 			return_array.append("flat colors")
-		else:
+		elif color_types_option_button.selected == 0:
 			return_array.append("lineart")
 	
 	if completion_option_button.selected == 1: # Sketch
@@ -322,10 +353,25 @@ func create_basic_tags() -> void:
 			if not is_shaded_checkbox.button_pressed:
 				return_array.append("flat colors")
 	
-	if angle_option_button.selected != 0:
-		return_array.append(
-			angle_types[angle_option_button.selected - 1]
-		)
+	
+	if heigth_view.get_selected_id() != 5 and not is_comic.button_pressed:
+		if heigth_view.get_selected_id() != 0:
+			return_array.append(
+				heigth_view.get_item_text(heigth_view.selected).to_lower())
+		
+		if not heigth_view.get_selected_id() == 1 and not heigth_view.get_selected_id() == 4:
+			if angle_option_button.get_selected_id() == 1:
+				if rear_view_check_button.button_pressed:
+					return_array.append("rear view")
+				else:
+					return_array.append("front view")
+			elif angle_option_button.get_selected_id() == 2:
+				if rear_view_check_button.button_pressed:
+					return_array.append("rear view")
+				return_array.append("three-quarter view")
+			elif angle_option_button.get_selected_id() == 3:
+				return_array.append("side view")
+		
 	
 	return_array.append(media_types[media_type_option_button.selected])
 	
@@ -350,18 +396,12 @@ func create_basic_tags() -> void:
 		
 	return_array.append(defined_media_opt_button.get_item_text(defined_media_opt_button.selected).to_lower())
 	
-	if fur_check_box.button_pressed:
-		suggestions_types.append("*color* fur")
-	if scales_check_box.button_pressed:
-		suggestions_types.append("*color* scales")
-	if feathers_check_box.button_pressed:
-		suggestions_types.append("*color* feathers")
-	if wool_check_box.button_pressed:
-		suggestions_types.append("*color* wool")
-	if skin_check_box.button_pressed:
-		suggestions_types.append("*color* skin")
-	if exo_check_box.button_pressed:
-		suggestions_types.append("*color* exoskeleton")
+	for child in magic_container_2.get_children():
+		if not child is WizzardCheckbox:
+			continue
+		if child.button_pressed:
+			return_array.append_array(Array(child.get_tags()))
+			suggestions_types.append_array(Array(child.get_suggestions()))
 	
 	if 0 < char_amount.value:
 		for cloth_tag in calculate_clothing_level():
@@ -372,24 +412,50 @@ func create_basic_tags() -> void:
 	if has_multiple_scenes.button_pressed:
 		return_array.append("multiple scenes")
 	
+	for child in smart_checkboxes.get_children():
+		if not child is WizzardCheckbox:
+			continue
+		if child.button_pressed:
+			return_array.append_array(Array(child.get_tags()))
+			suggestions_types.append_array(Array(child.get_tags()))
+#			for tag in child.tags_array:
+#				return_array.append(tag)
+#			for sugg in child.suggestions_array:
+#				suggestions_types.append(sugg)
+	
+	if lying_option_button.visible:
+		return_array.append(
+			lying_option_button.get_item_text(lying_option_button.selected).to_lower())
+	
+	if sitting_option_button.visible and sitting_option_button.selected != 0:
+		return_array.append(
+				sitting_option_button.get_item_text(sitting_option_button.selected).to_lower())
+	
+	for child in suggestions_flow_container.get_children():
+		if not child is SuggetionTagCheckbox:
+			continue
+		if child.button_pressed:
+			suggestions_types.append_array(child.checkbox_tags)
+	
 	wizard_tags_created.emit(return_array)
 
 
 func calculate_clothing_level() -> Array:
 	var clothing_score: int = 0
+	
 	var clothing_array: Array = []
 	
 	if topwear_checkbox.button_pressed:
-		clothing_score += 10
+		clothing_score += 100
 		clothing_array.append("topwear")
 	
 	if bottomwear_checkbox.button_pressed:
-		clothing_score += 10
+		clothing_score += 100
 		clothing_array.append("bottomwear")
 	
 	if underwear_checkbox.button_pressed:
-		clothing_score += 10
-		if visible_underwear.button_pressed or clothing_score == 10:
+		clothing_score += 100
+		if visible_underwear.button_pressed or clothing_score == 100:
 			clothing_array.append("underwear")
 			suggestions_types.append("*color* underwear")
 	
@@ -409,21 +475,24 @@ func calculate_clothing_level() -> Array:
 		clothing_score += 1
 		clothing_array.append("headwear")
 		clothing_array.append("headgear")
-	if collar_checkbox.button_pressed:
-		clothing_score += 1
+	if collar_checkbox.button_pressed: # Non-clothing
+#		clothing_score += 1
 		clothing_array.append("collar")
 		suggestions_types.append("*color* collar")
+	if eyewear_check_box.button_pressed: # Non-clothing
+#		clothing_score += 1
+		clothing_array.append("eyewear")
 	
-	if 0 < clothing_score and clothing_score < 10:
+	if 0 < clothing_score and clothing_score < 100:
 		clothing_array.append("mostly nude")
-	elif 20 < clothing_score and clothing_score < 30:
+	elif 200 < clothing_score and clothing_score < 300:
 		clothing_array.append("mostly clothed")
 	
 	if clothing_score == 0:
 		clothing_array.append("nude")
-	elif 0 < clothing_score and clothing_score < 30:
+	elif 0 < clothing_score and clothing_score < 300:
 		clothing_array.append("partially clothed")
-	elif 30 <= clothing_score:
+	elif 300 <= clothing_score:
 		clothing_array.append("fully clothed")
 	
 	if bottomwear_checkbox.button_pressed\
@@ -453,20 +522,24 @@ func calculate_clothing_level() -> Array:
 	and topwear_checkbox.button_pressed:
 		clothing_array.append("pantsless")
 	
-	if underwear_checkbox.button_pressed and clothing_score == 10:
-		clothing_array.append("underwear_only")
-		clothing_array.append("clothed")
-	elif clothing_score == 1 and collar_checkbox.button_pressed:
-		clothing_array.append("collar only")
-		clothing_array.append("nude")
-		if clothing_array.has("mostly nude"):
-			clothing_array.erase("mostly nude")
-	elif foot_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("footwear only")
-	elif hand_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("handwear only")
-	elif head_wear_checkbox.button_pressed and clothing_score == 1:
-		clothing_array.append("headwear only")
+	if clothing_score == 0: # Only Accessories
+		if collar_checkbox.button_pressed:
+			clothing_array.append("collar only")
+		elif eyewear_check_box.button_pressed:
+			clothing_array.append("eyewear only")
+	elif clothing_score == 1: # Only small dress
+		if foot_wear_checkbox.button_pressed:
+			clothing_array.append("footwear only")
+		elif hand_wear_checkbox.button_pressed:
+			clothing_array.append("handwear only")
+		elif head_wear_checkbox.button_pressed:
+			clothing_array.append("headwear only")
+	elif clothing_score == 100:
+		if underwear_checkbox.button_pressed:
+			clothing_array.append("underwear only")
+			clothing_array.append("clothed")
+		elif topwear_checkbox.button_pressed:
+			clothing_array.append("topwear only")
 
 	return clothing_array
 
