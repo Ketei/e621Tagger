@@ -1,6 +1,6 @@
 # TagIt! - Art tagging made easier
  
-TagIt! is a tag list assistant that will aid you in the elaboration of tag lists for posts on booru-like sites. TagIt! is mainly targetted at e621 but with proper tag files and set-up it can be used for any site.
+TagIt! is a tag list assistant that will aid you in the elaboration of tag lists for posts on booru-like sites. TagIt! is mainly targeted at e621 but with proper tag files and set-up it can be used for any site.
 The application was born out of the need to speed up the picking of tags and to be able to pick more specific tags that are often skipped or are not known to exist.
 
 You can use TagIt! without any tag files, but the program’s strengths are based around them.
