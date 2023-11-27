@@ -3640,7 +3640,7 @@ alignment = 1
 modulate = Color(0, 0, 0, 0.392157)
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "v 0.9.9"
+text = "v 1.0.0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
