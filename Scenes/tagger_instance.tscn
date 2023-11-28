@@ -273,7 +273,7 @@ one_shot = true
 script = ExtResource("2_enrd1")
 
 [node name="TaggerContextMenu" type="PopupMenu" parent="."]
-size = Vector2i(119, 146)
+size = Vector2i(151, 146)
 item_count = 6
 item_0/text = "Add to list"
 item_0/id = 5
@@ -285,7 +285,7 @@ item_3/text = "Edit Tag"
 item_3/id = 1
 item_4/text = "Remove Tag"
 item_4/id = 3
-item_5/text = "Set as..."
+item_5/text = "Set tag property"
 item_5/id = 4
 
 [node name="WarningRect" type="TextureRect" parent="."]
@@ -830,7 +830,6 @@ offset_bottom = 656.0
 layout_mode = 2
 
 [node name="SetAsTag" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_right = 1280.0
 offset_bottom = 656.0
@@ -844,62 +843,43 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SetWindow" type="Control" parent="SetAsTag/CenterContainer"]
-custom_minimum_size = Vector2(448, 120)
+[node name="SetWindow" type="PanelContainer" parent="SetAsTag/CenterContainer"]
+custom_minimum_size = Vector2(448, 156)
 layout_mode = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="EdgeRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.372549, 0.419608, 0.509804, 1)
-
 [node name="BackgroundArea" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 color = Color(0.211765, 0.239216, 0.290196, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SetAsTag/CenterContainer/SetWindow"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = -16.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="MarginContainer" type="MarginContainer" parent="SetAsTag/CenterContainer/SetWindow"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer"]
+layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SetLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+[node name="SetLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Set"
 
-[node name="TagLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+[node name="TagLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "TagName"
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/_edit_group_ = true
 
-[node name="ColorRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer/TagLabel"]
+[node name="ColorRect" type="ColorRect" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer/TagLabel"]
 show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
@@ -911,26 +891,45 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.1095, 0.123675, 0.15, 1)
 
-[node name="AsLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer"]
+[node name="AsLabel" type="Label" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "as"
 
-[node name="CategoriesMenu" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/HBoxContainer" instance=ExtResource("15_du82a")]
+[node name="CategoriesMenu" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer" instance=ExtResource("15_du82a")]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="ButtonsContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer"]
+[node name="ChangeCatCheckBox" type="CheckBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Change category"
+
+[node name="PrioHBox" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
+layout_mode = 2
+text = "Set priority:"
+
+[node name="NewPrioritySpinBox" type="SpinBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ChangePrioCheckBox" type="CheckBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
+layout_mode = 2
+text = "Change priority"
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CancelButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/ButtonsContainer"]
+[node name="CancelButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/ButtonsContainer"]
 custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 text = "Cancel"
 
-[node name="AcceptButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/VBoxContainer/ButtonsContainer"]
+[node name="AcceptButton" type="Button" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/ButtonsContainer"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
