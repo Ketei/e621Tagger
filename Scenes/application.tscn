@@ -1,4 +1,4 @@
-[gd_scene load_steps=60 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=59 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -31,7 +31,6 @@
 [ext_resource type="Script" path="res://Scripts/tool_shortcuts_script.gd" id="18_1bj38"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
 [ext_resource type="PackedScene" uid="uid://cp2je846gropp" path="res://Scenes/sites_tool.tscn" id="19_1am3x"]
-[ext_resource type="VideoStream" path="res://Textures/Pumping.ogv" id="20_4rwmp"]
 [ext_resource type="PackedScene" uid="uid://cj2jifl7bcqn7" path="res://Scenes/available_sites.tscn" id="20_5raky"]
 [ext_resource type="PackedScene" uid="uid://cuvrqmprpps48" path="res://Scenes/type_lists_scenes.tscn" id="20_k6o0m"]
 [ext_resource type="Script" path="res://Scripts/tagger_tools_script.gd" id="20_yad1f"]
@@ -347,26 +346,58 @@ func hide_and_restore() -> void:
 
 [sub_resource type="GDScript" id="GDScript_h1pvg"]
 resource_name = "lewd_player"
-script/source = "extends PanelContainer
+script/source = "extends CenterContainer
 
 @onready var video_stream_player: VideoStreamPlayer = $VideoStreamPlayer
+
+var caller_texture_rect: TextureRect = null
 
 
 func _ready():
 	hide()
 
 
-func play_video_stream(path_to_video: String) -> void:
+func play_video_stream(path_to_video: String, calling_texture: TextureRect = null) -> void:
 #	video_stream_player.stream = load(\"D:/Downloads/Temp/Pumping.ogv\")
-	video_stream_player.stream = load(path_to_video)
+	var video_stream = load(path_to_video)
+	video_stream_player.stream = video_stream
+	caller_texture_rect = calling_texture
+	var minimum_video_size: Vector2 = clamp_resolution(video_stream_player.get_video_texture())
+	video_stream_player.custom_minimum_size = minimum_video_size
+	if video_stream_player.paused:
+		video_stream_player.paused = false
 	show()
 	video_stream_player.play()
 
 
 func hide_window() -> void:
+	if caller_texture_rect != null:
+		var image = video_stream_player.get_video_texture().get_image()
+		var texture = ImageTexture.create_from_image(image)
+		caller_texture_rect.texture = texture
 	video_stream_player.stop()
 	video_stream_player.stream = null
 	hide()
+
+
+func clamp_resolution(video_texture: Texture2D) -> Vector2:
+	var resolutions: Vector2 = video_texture.get_size()
+	var width_larger: bool = resolutions.y < resolutions.x
+	var new_resolution := Vector2()
+	
+	if resolutions.x < 1280 and resolutions.y < 720:
+		return resolutions
+	
+	if width_larger:
+		new_resolution.x = 1280
+		new_resolution.y = (resolutions.y / resolutions.x) * 1280
+	else:
+		new_resolution.x = (resolutions.x / resolutions.y) * 720
+		new_resolution.y = 720
+	
+	return new_resolution
+	
+	
 "
 
 [sub_resource type="GDScript" id="GDScript_exbap"]
@@ -921,7 +952,6 @@ item_0/text = "API key"
 item_0/id = 0
 
 [node name="NewTagger" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 48.0
 offset_right = 1280.0
@@ -2794,19 +2824,27 @@ layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.0588235
 
-[node name="VideoPlayer" type="PanelContainer" parent="Wiki"]
-visible = false
-layout_mode = 0
-offset_top = -40.0
-offset_right = 1279.0
-offset_bottom = 680.0
+[node name="VideoPlayer" type="CenterContainer" parent="Wiki"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -0.059
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 0.120003
+offset_right = -1.0
 script = SubResource("GDScript_h1pvg")
+
+[node name="ColorRect" type="ColorRect" parent="Wiki/VideoPlayer"]
+custom_minimum_size = Vector2(1280, 720)
+layout_mode = 2
+color = Color(0, 0, 0, 0.588235)
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="Wiki/VideoPlayer"]
 layout_mode = 2
-stream = ExtResource("20_4rwmp")
+size_flags_vertical = 3
 expand = true
 loop = true
+buffering_msec = 1000
 script = SubResource("GDScript_exbap")
 
 [node name="Tools" type="Control" parent="."]

@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://dvs2k6r53qsxs"]
+
+[ext_resource type="Texture2D" uid="uid://cmk811w8hayjh" path="res://Textures/VideoThumbnail.png" id="1_51w57"]
+[ext_resource type="Script" path="res://Scripts/video_thumbnail.gd" id="2_01ord"]
+
+[node name="TextureRect" type="TextureRect"]
+offset_right = 320.0
+offset_bottom = 320.0
+texture = ExtResource("1_51w57")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("2_01ord")

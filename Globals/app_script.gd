@@ -40,7 +40,7 @@ func _ready():
 	var intro_tween: Tween = create_tween()
 	intro_tween.tween_property(splash_screen_texture, "modulate", Color.TRANSPARENT, 0.5)
 	intro_tween.tween_callback(splash_screen_texture.queue_free)
-	
+
 
 func trigger_options(id: int) -> void:
 	if id == current_menu:
