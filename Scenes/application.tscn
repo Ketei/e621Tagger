@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=60 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -31,6 +31,7 @@
 [ext_resource type="Script" path="res://Scripts/tool_shortcuts_script.gd" id="18_1bj38"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
 [ext_resource type="PackedScene" uid="uid://cp2je846gropp" path="res://Scenes/sites_tool.tscn" id="19_1am3x"]
+[ext_resource type="VideoStream" path="res://Textures/Pumping.ogv" id="20_4rwmp"]
 [ext_resource type="PackedScene" uid="uid://cj2jifl7bcqn7" path="res://Scenes/available_sites.tscn" id="20_5raky"]
 [ext_resource type="PackedScene" uid="uid://cuvrqmprpps48" path="res://Scenes/type_lists_scenes.tscn" id="20_k6o0m"]
 [ext_resource type="Script" path="res://Scripts/tagger_tools_script.gd" id="20_yad1f"]
@@ -342,6 +343,44 @@ func new_value_changed(new_value: float) -> void:
 func hide_and_restore() -> void:
 	hide()
 	self.self_modulate = Color.CORNFLOWER_BLUE
+"
+
+[sub_resource type="GDScript" id="GDScript_h1pvg"]
+resource_name = "lewd_player"
+script/source = "extends PanelContainer
+
+@onready var video_stream_player: VideoStreamPlayer = $VideoStreamPlayer
+
+
+func _ready():
+	hide()
+
+
+func play_video_stream(path_to_video: String) -> void:
+#	video_stream_player.stream = load(\"D:/Downloads/Temp/Pumping.ogv\")
+	video_stream_player.stream = load(path_to_video)
+	show()
+	video_stream_player.play()
+
+
+func hide_window() -> void:
+	video_stream_player.stop()
+	video_stream_player.stream = null
+	hide()
+"
+
+[sub_resource type="GDScript" id="GDScript_exbap"]
+resource_name = "video_controls"
+script/source = "extends VideoStreamPlayer
+
+
+func _unhandled_key_input(event):
+	if event.is_action_pressed(\"space_key\") and is_visible_in_tree():
+		if paused:
+			paused = false
+		else:
+			paused = true
+
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6dv02"]
@@ -882,6 +921,7 @@ item_0/text = "API key"
 item_0/id = 0
 
 [node name="NewTagger" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 48.0
 offset_right = 1280.0
@@ -1042,10 +1082,10 @@ offset_left = 0.32
 offset_top = 47.712
 offset_bottom = -72.0
 wrap_mode = 1
-highlight_all_occurrences = true
 scroll_smooth = true
 scroll_v_scroll_speed = 10.0
 caret_blink = true
+highlight_all_occurrences = true
 
 [node name="Separator" type="LineEdit" parent="ListLoader"]
 unique_name_in_owner = true
@@ -2666,7 +2706,6 @@ text = "Add"
 metadata/_edit_use_anchors_ = true
 
 [node name="Wiki" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2754,6 +2793,21 @@ visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.0588235
+
+[node name="VideoPlayer" type="PanelContainer" parent="Wiki"]
+visible = false
+layout_mode = 0
+offset_top = -40.0
+offset_right = 1279.0
+offset_bottom = 680.0
+script = SubResource("GDScript_h1pvg")
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="Wiki/VideoPlayer"]
+layout_mode = 2
+stream = ExtResource("20_4rwmp")
+expand = true
+loop = true
+script = SubResource("GDScript_exbap")
 
 [node name="Tools" type="Control" parent="."]
 visible = false
@@ -3762,6 +3816,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
