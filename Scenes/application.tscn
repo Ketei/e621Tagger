@@ -2736,6 +2736,7 @@ text = "Add"
 metadata/_edit_use_anchors_ = true
 
 [node name="Wiki" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2825,6 +2826,7 @@ anchors_preset = -1
 anchor_top = -0.0588235
 
 [node name="VideoPlayer" type="CenterContainer" parent="Wiki"]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.059
@@ -3854,7 +3856,6 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
