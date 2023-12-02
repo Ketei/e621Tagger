@@ -1,10 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://drohtxalwqrnc"]
+[gd_scene load_steps=2 format=3 uid="uid://drohtxalwqrnc"]
 
 [ext_resource type="Script" path="res://Scripts/special_add.gd" id="1_r070l"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_wu57j"]
-
 [node name="SpecialAdd" type="PanelContainer"]
+custom_minimum_size = Vector2(768, 384)
 anchors_preset = -1
 anchor_right = 0.6
 anchor_bottom = 0.533333
@@ -32,7 +31,6 @@ theme_override_constants/margin_bottom = 16
 
 [node name="ImageTexture" type="TextureRect" parent="GeneralContainer/PictureContainer"]
 layout_mode = 2
-texture = SubResource("PlaceholderTexture2D_wu57j")
 expand_mode = 1
 stretch_mode = 5
 
@@ -47,52 +45,29 @@ theme_override_constants/margin_bottom = 16
 [node name="VBoxContainer" type="VBoxContainer" parent="GeneralContainer/DataContainer"]
 layout_mode = 2
 
-[node name="TitleTheme" type="Label" parent="GeneralContainer/DataContainer/VBoxContainer"]
-layout_mode = 2
-text = "What am I looking at:"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="GeneralItemOptions" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+text_overrun_behavior = 3
+clip_text = true
+fit_to_longest_item = false
 
 [node name="GenericItemDesc" type="RichTextLabel" parent="GeneralContainer/DataContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-text = "Generic Item Description.
-At suscipit et aliquid quos illum amet occaecati pariatur. Iure sint sed in dolorum veritatis facilis architecto dolores. Nulla aliquid sequi eligendi doloremque repellat necessitatibus explicabo aut. Aut magnam mollitia quos optio ea."
 
 [node name="SpecificItemButton" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-item_count = 9
+text_overrun_behavior = 3
+clip_text = true
 fit_to_longest_item = false
-popup/item_0/text = "Lorem"
-popup/item_0/id = 0
-popup/item_1/text = "ipsum"
-popup/item_1/id = 1
-popup/item_2/text = "horny"
-popup/item_2/id = 2
-popup/item_3/text = "dog"
-popup/item_3/id = 3
-popup/item_4/text = "wants"
-popup/item_4/id = 4
-popup/item_5/text = "kaiju"
-popup/item_5/id = 5
-popup/item_6/text = "cum"
-popup/item_6/id = 6
-popup/item_7/text = "heck"
-popup/item_7/id = 7
-popup/item_8/text = "yes"
-popup/item_8/id = 8
 
 [node name="SpecificItemDesc" type="RichTextLabel" parent="GeneralContainer/DataContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-text = "Specific Item Description.
-At suscipit et aliquid quos illum amet occaecati pariatur. Iure sint sed in dolorum veritatis facilis architecto dolores. Nulla aliquid sequi eligendi doloremque repellat necessitatibus explicabo aut. Aut magnam mollitia quos optio ea."
+bbcode_enabled = true
 
 [node name="ButtonsContainer" type="HBoxContainer" parent="GeneralContainer/DataContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 32)

@@ -44,6 +44,8 @@ var e6_headers_data: Dictionary = {
 	"User-Agent": "TaglistMaker/1.1.0 (by Ketei)",
 }
 
+const valid_textures: Array[String] = ["jpg", "png", "gif"]
+const valid_videos: Array[String] = ["ogv"]
 
 var implications_path: String = "user://database/implications/"
 var tags_path: String = "user://database/tags/"
@@ -65,7 +67,7 @@ var headers_ini: ConfigFile
 var common_thread: Thread
 
 var available_sites: Array[String] = []
-
+var prompt_resources: PromptTagResource
 
 func _init():
 	settings = UserSettings.load_settings()
@@ -83,6 +85,13 @@ func _init():
 	site_settings = SiteSettings.load_settings(settings.database_location + "sites.tres")
 	alias_database = AliasDatabase.load_database(settings.database_location)
 	settings_lists = SettingLists.load_database(settings.database_location + "lists.tres")
+	
+	if ResourceLoader.exists(settings.database_location + "prompt_tags.tres", "PromptTagResource"):
+		prompt_resources = ResourceLoader.load(settings.database_location + "prompt_tags.tres")
+		prompt_resources.verify_prompt_list_structure()
+	else:
+		prompt_resources = PromptTagResource.new()
+		ResourceSaver.save(prompt_resources, settings.database_location + "prompt_tags.tres")
 	
 	for site in site_settings.valid_sites.keys():
 		available_sites.append(site)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=29 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://Scripts/set_as_tag_script.gd" id="14_j3vng"]
 [ext_resource type="PackedScene" uid="uid://ddwpdjjwbxnyr" path="res://Scenes/tag_template_loader.tscn" id="15_cfetd"]
 [ext_resource type="PackedScene" uid="uid://qhb1yq0ap51f" path="res://Scenes/categories_menu.tscn" id="15_du82a"]
+[ext_resource type="PackedScene" uid="uid://drohtxalwqrnc" path="res://Scenes/special_add.tscn" id="15_eopt8"]
 
 [sub_resource type="GDScript" id="GDScript_ogbc5"]
 script/source = "extends LineEdit
@@ -254,6 +255,16 @@ script/source = "extends Control
 
 func _ready():
 	hide()
+"
+
+[sub_resource type="GDScript" id="GDScript_f1sda"]
+resource_name = "start_hidden"
+script/source = "extends Control
+
+
+func _ready():
+	if visible:
+		hide()
 "
 
 [node name="Tagger" type="Control"]
@@ -830,6 +841,7 @@ offset_bottom = 656.0
 layout_mode = 2
 
 [node name="SetAsTag" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_right = 1280.0
 offset_bottom = 656.0
@@ -934,6 +946,25 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Accept"
+
+[node name="PromptTagAdd" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 0.911111
+script = SubResource("GDScript_f1sda")
+metadata/_edit_use_anchors_ = true
+
+[node name="CenterContainer" type="CenterContainer" parent="PromptTagAdd"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SpecialAdd" parent="PromptTagAdd/CenterContainer" instance=ExtResource("15_eopt8")]
+layout_mode = 2
 
 [node name="TemplateLoader" parent="." instance=ExtResource("15_cfetd")]
 visible = false

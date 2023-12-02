@@ -41,6 +41,8 @@ const valid_fixes: Array[String] = ["*", "|", "#"]
 
 @onready var set_as_tag = $SetAsTag
 @onready var template_loader = $TemplateLoader
+@onready var prompt_tag_window = $PromptTagAdd
+@onready var special_add: PromptAddTag = $PromptTagAdd/CenterContainer/SpecialAdd
 
 
 var main_application
@@ -139,7 +141,8 @@ func is_any_window_open() -> bool:
 			spinbox_adder.visible or\
 			weezard.visible or\
 			set_as_tag.visible or\
-			template_loader.visible
+			template_loader.visible or\
+			prompt_tag_window.visible
 	return is_anything_open
 
 
@@ -767,6 +770,12 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		add_from_suggested(called_index, list_called)
 
 
+func open_prompt_tag_window() -> void:
+	if tag_holder.active_instance != instance_name:
+		return
+	add_prompt_tag()
+
+
 func sort_tags_by_category() -> void:
 	if tag_holder.active_instance != instance_name:
 		return
@@ -823,6 +832,8 @@ func tagger_menu_pressed(option_id: int) -> void:
 		open_wizard()
 	elif option_id == 11:
 		open_template_loader()
+	elif option_id == 12:
+		open_prompt_tag_window()
 
 
 func open_set_tagger() -> void:
@@ -844,7 +855,6 @@ func open_set_tagger() -> void:
 						Tagger.Categories.keys()[set_as_tag.category_select]])
 	
 	set_as_tag.hide()
-	
 
 
 func open_wizard() -> void:
@@ -922,4 +932,14 @@ func change_platform(site_id: int) -> void:
 			final_tag_list_array,
 			Tagger.site_settings.valid_sites[site_key]["whitespace"],
 			Tagger.site_settings.valid_sites[site_key]["separator"])
+
+
+func add_prompt_tag() -> void:
+	prompt_tag_window.show()
+	special_add.reset_selections()
+	var prompt_response: String = await special_add.item_selected
+	prompt_tag_window.hide()
+	if prompt_response.is_empty():
+		return
+	add_new_tag(prompt_response, false)
 
