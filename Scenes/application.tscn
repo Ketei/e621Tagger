@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=62 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" uid="uid://b0uuucfxbjqa2" path="res://Scenes/wiki_display_rt_label.tscn" id="12_rknam"]
 [ext_resource type="Script" path="res://Scripts/invalid_tags_script.gd" id="14_aa6rg"]
 [ext_resource type="Script" path="res://Scripts/default_site_setting_script.gd" id="14_budhs"]
+[ext_resource type="PackedScene" uid="uid://2ec3s3x7jcpk" path="res://Scenes/promt_creator.tscn" id="14_svuby"]
 [ext_resource type="Script" path="res://Scenes/sugg_strength_script.gd" id="15_qm1be"]
 [ext_resource type="Script" path="res://Scripts/suggestion_blacklist_script.gd" id="15_sobiw"]
 [ext_resource type="Script" path="res://Scripts/settings_load_images.gd" id="16_c3trt"]
@@ -37,6 +38,7 @@
 [ext_resource type="Script" path="res://Scripts/load_blacklist_script.gd" id="21_40puc"]
 [ext_resource type="PackedScene" uid="uid://nbgmvc2e0hkg" path="res://Scenes/tag_template_creator.tscn" id="22_a38qu"]
 [ext_resource type="Script" path="res://Scripts/tagger_settings_script.gd" id="24_kxx7k"]
+[ext_resource type="PackedScene" uid="uid://cds4jrd1h62jv" path="res://Scenes/tool_categories.tscn" id="24_pw75l"]
 [ext_resource type="Script" path="res://Scripts/default_folder_file_dialog.gd" id="28_rjvdb"]
 [ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
 [ext_resource type="Script" path="res://Scripts/change_db_confirm.gd" id="31_g7kp8"]
@@ -62,6 +64,14 @@ script/source = "extends Button
 
 func _ready():
 	pressed.connect(searcher_node.show)
+"
+
+[sub_resource type="GDScript" id="GDScript_xftll"]
+resource_name = "start_hidden"
+script/source = "extends VBoxContainer
+
+func _ready():
+	hide()
 "
 
 [sub_resource type="GDScript" id="GDScript_plco6"]
@@ -342,6 +352,76 @@ func new_value_changed(new_value: float) -> void:
 func hide_and_restore() -> void:
 	hide()
 	self.self_modulate = Color.CORNFLOWER_BLUE
+"
+
+[sub_resource type="GDScript" id="GDScript_h1pvg"]
+resource_name = "lewd_player"
+script/source = "extends CenterContainer
+
+@onready var video_stream_player: VideoStreamPlayer = $VideoStreamPlayer
+
+var caller_texture_rect: TextureRect = null
+
+
+func _ready():
+	hide()
+
+
+func play_video_stream(path_to_video: String, calling_texture: TextureRect = null) -> void:
+#	video_stream_player.stream = load(\"D:/Downloads/Temp/Pumping.ogv\")
+	var video_stream = load(path_to_video)
+	video_stream_player.stream = video_stream
+	caller_texture_rect = calling_texture
+	var minimum_video_size: Vector2 = clamp_resolution(video_stream_player.get_video_texture())
+	video_stream_player.custom_minimum_size = minimum_video_size
+	if video_stream_player.paused:
+		video_stream_player.paused = false
+	show()
+	video_stream_player.play()
+
+
+func hide_window() -> void:
+	if caller_texture_rect != null:
+		var image = video_stream_player.get_video_texture().get_image()
+		var texture = ImageTexture.create_from_image(image)
+		caller_texture_rect.texture = texture
+	video_stream_player.stop()
+	video_stream_player.stream = null
+	hide()
+
+
+func clamp_resolution(video_texture: Texture2D) -> Vector2:
+	var resolutions: Vector2 = video_texture.get_size()
+	var width_larger: bool = resolutions.y < resolutions.x
+	var new_resolution := Vector2()
+	
+	if resolutions.x < 1280 and resolutions.y < 720:
+		return resolutions
+	
+	if width_larger:
+		new_resolution.x = 1280
+		new_resolution.y = (resolutions.y / resolutions.x) * 1280
+	else:
+		new_resolution.x = (resolutions.x / resolutions.y) * 720
+		new_resolution.y = 720
+	
+	return new_resolution
+	
+	
+"
+
+[sub_resource type="GDScript" id="GDScript_exbap"]
+resource_name = "video_controls"
+script/source = "extends VideoStreamPlayer
+
+
+func _unhandled_key_input(event):
+	if event.is_action_pressed(\"space_key\") and is_visible_in_tree():
+		if paused:
+			paused = false
+		else:
+			paused = true
+
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6dv02"]
@@ -775,10 +855,10 @@ item_7/text = "Exit"
 item_7/id = 1
 
 [node name="Tagger" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(347, 269)
+size = Vector2i(347, 292)
 theme_override_constants/icon_max_width = 30
 hide_on_checkable_item_selection = false
-item_count = 12
+item_count = 13
 item_0/text = "New List"
 item_0/id = 7
 item_1/text = "Tagger Options"
@@ -789,37 +869,40 @@ item_2/text = "Tag Wizard"
 item_2/icon = ExtResource("4_xwxxc")
 item_2/id = 9
 item_2/disabled = true
-item_3/text = "Load template"
-item_3/id = 11
+item_3/text = "Add tag..."
+item_3/id = 12
 item_3/disabled = true
-item_4/text = ""
-item_4/id = 101
+item_4/text = "Load template"
+item_4/id = 11
 item_4/disabled = true
-item_4/separator = true
-item_5/text = "Sort Tags"
-item_5/id = 8
+item_5/text = ""
+item_5/id = 101
 item_5/disabled = true
-item_6/text = "Clear all"
-item_6/id = 0
+item_5/separator = true
+item_6/text = "Sort Tags"
+item_6/id = 8
 item_6/disabled = true
-item_7/text = "Clear suggestions"
-item_7/id = 1
+item_7/text = "Clear all"
+item_7/id = 0
 item_7/disabled = true
-item_8/text = "Conflicts"
-item_8/id = 4
+item_8/text = "Clear suggestions"
+item_8/id = 1
 item_8/disabled = true
-item_9/text = "Global Options"
-item_9/id = 100
+item_9/text = "Conflicts"
+item_9/id = 4
 item_9/disabled = true
-item_9/separator = true
-item_10/text = "Enable online suggestions"
-item_10/checkable = 1
-item_10/checked = true
-item_10/id = 2
-item_11/text = "Enable offline suggestions"
+item_10/text = "Global Options"
+item_10/id = 100
+item_10/disabled = true
+item_10/separator = true
+item_11/text = "Enable online suggestions"
 item_11/checkable = 1
 item_11/checked = true
-item_11/id = 3
+item_11/id = 2
+item_12/text = "Enable offline suggestions"
+item_12/checkable = 1
+item_12/checked = true
+item_12/id = 3
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
@@ -1042,10 +1125,10 @@ offset_left = 0.32
 offset_top = 47.712
 offset_bottom = -72.0
 wrap_mode = 1
-highlight_all_occurrences = true
 scroll_smooth = true
 scroll_v_scroll_speed = 10.0
 caret_blink = true
+highlight_all_occurrences = true
 
 [node name="Separator" type="LineEdit" parent="ListLoader"]
 unique_name_in_owner = true
@@ -1211,7 +1294,6 @@ size_flags_horizontal = 3
 text = "Load Tags"
 
 [node name="TagCreator" type="Control" parent="." node_paths=PackedStringArray("aliased_itemlist", "alias_lineedit", "alias_window_control", "add_parent_line_edit", "suggestion_line_edit")]
-visible = false
 layout_mode = 1
 anchor_top = 0.0666667
 anchor_right = 1.0
@@ -1242,7 +1324,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 8
 
 [node name="LeftPartVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(500, 0)
+custom_minimum_size = Vector2(456, 0)
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -1271,6 +1353,10 @@ layout_mode = 2
 tooltip_text = "If the tag has images associated to it. When reviewing it'll try to load images."
 button_pressed = true
 text = "Has Images"
+
+[node name="CheckButton" type="CheckButton" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer"]
+layout_mode = 2
+text = "Include in prompts"
 
 [node name="CatPrioHBox" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox"]
 custom_minimum_size = Vector2(0, 32)
@@ -1383,6 +1469,14 @@ expand_icon = true
 script = SubResource("GDScript_wmdca")
 searcher_node = NodePath("../../../../../../../AddAutoCompleteSuggestions")
 
+[node name="CenterPartVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+script = SubResource("GDScript_xftll")
+
+[node name="PromtIncluder" parent="TagCreator/VBoxContainer/HBoxContainer/CenterPartVBox" instance=ExtResource("14_svuby")]
+layout_mode = 2
+hide_buttons = true
+
 [node name="RightPartVBox" type="VBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -1408,7 +1502,6 @@ caret_blink = true
 [node name="CreateTagsButton" type="Button" parent="TagCreator/VBoxContainer"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-disabled = true
 text = "Create Tag"
 metadata/_edit_use_anchors_ = true
 
@@ -1935,7 +2028,7 @@ tag_prio_box = NodePath("AllItemsHBox/LeftVbox/TagPriorityHBox/TagPrioBox")
 tag_suggestion_list = NodePath("AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/TagSuggestionList")
 tag_suggestion_line_edit = NodePath("AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/SuggestionItemsHBox/TagSuggestionLineEdit")
 review_menu = NodePath("../MenuBar/Tag Editor")
-has_images_check_box = NodePath("AllItemsHBox/LeftVbox/TagNameHbox/HasImagesCheckBox")
+has_images_check_box = NodePath("AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer/HasImagesCheckBox")
 open_pic_folder_button = NodePath("AllItemsHBox/LeftVbox/TagPriorityHBox/OpenPicFolder")
 add_conflict_line_edit = NodePath("ConflictWindow/AddConflictLineEdit")
 conflicts_item_list = NodePath("ConflictWindow/ConflictsItemList")
@@ -1991,6 +2084,10 @@ layout_mode = 2
 text = "Search"
 metadata/_edit_use_anchors_ = true
 
+[node name="ShowPromptsBtn" type="CheckButton" parent="TagReviewer/AllItemsHBox/LeftVbox/SearcherHBox"]
+layout_mode = 2
+text = "Show prompts"
+
 [node name="TagNameHbox" type="HBoxContainer" parent="TagReviewer/AllItemsHBox/LeftVbox"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -2005,15 +2102,24 @@ metadata/_edit_use_anchors_ = true
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 alignment = 1
 editable = false
 metadata/_edit_use_anchors_ = true
 
-[node name="HasImagesCheckBox" type="CheckBox" parent="TagReviewer/AllItemsHBox/LeftVbox/TagNameHbox"]
+[node name="VBoxContainer" type="VBoxContainer" parent="TagReviewer/AllItemsHBox/LeftVbox/TagNameHbox"]
+layout_mode = 2
+
+[node name="HasImagesCheckBox" type="CheckBox" parent="TagReviewer/AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer"]
 layout_mode = 2
 disabled = true
 text = "Has images"
 metadata/_edit_use_anchors_ = true
+
+[node name="HasPromptData" type="CheckBox" parent="TagReviewer/AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer"]
+layout_mode = 2
+disabled = true
+text = "Has prompt data"
 
 [node name="TagCategoryHbox" type="HBoxContainer" parent="TagReviewer/AllItemsHBox/LeftVbox"]
 layout_mode = 2
@@ -2152,6 +2258,10 @@ layout_mode = 2
 disabled = true
 text = "Update Tag"
 metadata/_edit_use_anchors_ = true
+
+[node name="PromtIncluder" parent="TagReviewer/AllItemsHBox" instance=ExtResource("14_svuby")]
+layout_mode = 2
+hide_buttons = true
 
 [node name="RightVBox" type="VBoxContainer" parent="TagReviewer/AllItemsHBox"]
 layout_mode = 2
@@ -2755,6 +2865,30 @@ layout_mode = 1
 anchors_preset = -1
 anchor_top = -0.0588235
 
+[node name="VideoPlayer" type="CenterContainer" parent="Wiki"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -0.059
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 0.120003
+offset_right = -1.0
+script = SubResource("GDScript_h1pvg")
+
+[node name="ColorRect" type="ColorRect" parent="Wiki/VideoPlayer"]
+custom_minimum_size = Vector2(1280, 720)
+layout_mode = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="Wiki/VideoPlayer"]
+layout_mode = 2
+size_flags_vertical = 3
+expand = true
+loop = true
+buffering_msec = 1000
+script = SubResource("GDScript_exbap")
+
 [node name="Tools" type="Control" parent="."]
 visible = false
 layout_mode = 1
@@ -2843,6 +2977,10 @@ theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
 [node name="TypeLists" parent="Tools/ToolsTabContainer/Tag Groups" instance=ExtResource("20_k6o0m")]
+layout_mode = 2
+
+[node name="Prompt Categories" parent="Tools/ToolsTabContainer" instance=ExtResource("24_pw75l")]
+visible = false
 layout_mode = 2
 
 [node name="Tag Templates" type="MarginContainer" parent="Tools/ToolsTabContainer"]
@@ -3762,6 +3900,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

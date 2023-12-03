@@ -11,7 +11,6 @@ var template_item_scene = preload("res://Scenes/template_item_container.tscn")
 
 func _ready():
 	cancel_load_button.pressed.connect(hide)
-	
 
 
 func load_templates() -> void:

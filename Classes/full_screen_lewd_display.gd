@@ -28,11 +28,9 @@ func show_picture(texture_for_rect: Texture2D) -> void:
 	if lewd_texture.texture is AnimatedTexture:
 		lewd_texture.texture.pause = false
 	show()
-	# if resolution < 1280 x 720
-	#	expand_mode = TextureRect.EXPAND_KEEP_SIZE
-	#	stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	#else:
+
 
 func hide_window() -> void:
+	lewd_texture.texture = null
 	display_hidden.emit()
 	self.visible = false

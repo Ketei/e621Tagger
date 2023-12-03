@@ -46,6 +46,29 @@ class_name Tag
 ## Information about the tag. This is for people to read at review.
 @export var wiki_entry: String = ""
 
+@export var has_prompt_data: bool = false
+
+@export var prompt_category: String = "":
+	set(category):
+		prompt_category = just_capitalize(category)
+@export var prompt_category_img_tag: String = "":
+	set(tag):
+		prompt_category_img_tag = tag.to_lower()
+@export var prompt_category_desc: String = ""
+
+@export var prompt_subcat: String = "":
+	set(subcat):
+		prompt_subcat = just_capitalize(subcat)
+@export var prompt_subcat_img_tag: String = "":
+	set(tag):
+		prompt_subcat_img_tag = tag.to_lower()
+@export var prompt_subcat_desc: String = ""
+
+@export var prompt_title: String = "":
+	set(title):
+		prompt_title = just_capitalize(title)
+@export var prompt_desc: String = ""
+
 ## Saves the resource to user path.
 func save() -> String:
 	if file_name.is_empty():
@@ -60,4 +83,10 @@ func save() -> String:
 ## Gets the tag name appropiate for the site selected. Will be removed most likely.
 func get_tag() -> String:
 	return tag
+
+
+func just_capitalize(input_string: String) -> String:
+	var building_string: String = input_string.left(1).to_upper()
+	building_string += input_string.right(-1)
+	return building_string
 

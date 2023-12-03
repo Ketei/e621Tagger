@@ -1,0 +1,173 @@
+[gd_scene load_steps=2 format=3 uid="uid://2ec3s3x7jcpk"]
+
+[ext_resource type="Script" path="res://Scripts/promt_creator.gd" id="1_86uha"]
+
+[node name="PromtIncluder" type="PanelContainer"]
+custom_minimum_size = Vector2(384, 529)
+anchors_preset = -1
+anchor_right = 0.3
+anchor_bottom = 0.773611
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_86uha")
+metadata/_edit_use_anchors_ = true
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 2
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Category" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CategoryLabel" type="Label" parent="MarginContainer/VBoxContainer/Category"]
+layout_mode = 2
+text = "Category:"
+
+[node name="CategoryLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/Category"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CategoryImage" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CategoryImage"]
+layout_mode = 2
+text = "Category image tag:"
+
+[node name="CategoryImageTag" type="LineEdit" parent="MarginContainer/VBoxContainer/CategoryImage"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CategoryDesc" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CategoryDesc"]
+layout_mode = 2
+text = "Category Description:"
+
+[node name="CategoryDesc" type="TextEdit" parent="MarginContainer/VBoxContainer/CategoryDesc"]
+layout_mode = 2
+size_flags_horizontal = 3
+wrap_mode = 1
+
+[node name="SubCategory" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SubCatLabel" type="Label" parent="MarginContainer/VBoxContainer/SubCategory"]
+layout_mode = 2
+text = "Sub - Category:"
+
+[node name="SubCategoryLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/SubCategory"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SubCategoryImage" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SubCategoryImage"]
+layout_mode = 2
+text = "Sub - Category image tag:"
+
+[node name="SubCategoryImageTag" type="LineEdit" parent="MarginContainer/VBoxContainer/SubCategoryImage"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SubCategoryDesc" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/SubCategoryDesc"]
+layout_mode = 2
+text = "Sub - Category description:"
+
+[node name="SubCategoryDesc" type="TextEdit" parent="MarginContainer/VBoxContainer/SubCategoryDesc"]
+layout_mode = 2
+size_flags_horizontal = 3
+wrap_mode = 1
+
+[node name="Name" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ItemNameLabel" type="Label" parent="MarginContainer/VBoxContainer/Name"]
+layout_mode = 2
+text = "Item name:"
+
+[node name="ItemName" type="LineEdit" parent="MarginContainer/VBoxContainer/Name"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ItemDesc" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ItemDesc"]
+layout_mode = 2
+text = "Item Description:"
+
+[node name="ItemDesc" type="TextEdit" parent="MarginContainer/VBoxContainer/ItemDesc"]
+layout_mode = 2
+size_flags_horizontal = 3
+wrap_mode = 1
+
+[node name="TargetTag" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TagLabel" type="Label" parent="MarginContainer/VBoxContainer/TargetTag"]
+layout_mode = 2
+text = "Tag:"
+
+[node name="TagLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/TargetTag"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Cancel" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_vertical = 8
+text = "Cancel"
+
+[node name="Save" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "Save"
+
+[node name="DisabledRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 2
+color = Color(0, 0, 0, 0.392157)
+
+[node name="ErrorTimer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true

@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://61qwtnsjohnu"]
+[gd_scene load_steps=3 format=3 uid="uid://61qwtnsjohnu"]
 
 [ext_resource type="Script" path="res://Scripts/suggestion_or_adder.gd" id="1_qiiam"]
+
+[sub_resource type="GDScript" id="GDScript_cbkuh"]
+resource_name = "limit_size"
+script/source = "extends OptionButton
+
+
+func _ready():
+	get_popup().max_size.y = 256
+"
 
 [node name="SuggestionOrAdder" type="Control"]
 custom_minimum_size = Vector2(512, 72)
@@ -51,6 +60,7 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
+script = SubResource("GDScript_cbkuh")
 
 [node name="AcceptButton" type="Button" parent="HBoxContainer"]
 custom_minimum_size = Vector2(128, 32)

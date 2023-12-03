@@ -1,0 +1,93 @@
+[gd_scene load_steps=2 format=3 uid="uid://drohtxalwqrnc"]
+
+[ext_resource type="Script" path="res://Scripts/special_add.gd" id="1_r070l"]
+
+[node name="SpecialAdd" type="PanelContainer"]
+custom_minimum_size = Vector2(1088, 512)
+anchors_preset = -1
+anchor_right = 0.85
+anchor_bottom = 0.711111
+offset_bottom = -3.05176e-05
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_r070l")
+metadata/_edit_use_anchors_ = true
+
+[node name="BackgroundColRect" type="ColorRect" parent="."]
+layout_mode = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="GeneralContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="PictureContainer" type="MarginContainer" parent="GeneralContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="ImageTexture" type="TextureRect" parent="GeneralContainer/PictureContainer"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DataContainer" type="MarginContainer" parent="GeneralContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GeneralContainer/DataContainer"]
+layout_mode = 2
+
+[node name="GeneralItemOptions" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text_overrun_behavior = 3
+clip_text = true
+fit_to_longest_item = false
+
+[node name="GenericItemDesc" type="RichTextLabel" parent="GeneralContainer/DataContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="Subcats" type="HBoxContainer" parent="GeneralContainer/DataContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SubcatItemOptions" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer/Subcats"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SpecificItemButton" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer/Subcats"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+clip_text = true
+fit_to_longest_item = false
+
+[node name="SpecificItemDesc" type="RichTextLabel" parent="GeneralContainer/DataContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="GeneralContainer/DataContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="GeneralContainer/DataContainer/VBoxContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="AcceptButton" type="Button" parent="GeneralContainer/DataContainer/VBoxContainer/ButtonsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Add"

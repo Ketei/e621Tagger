@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://b3y7wmpj3uqvl"]
+
+[ext_resource type="PackedScene" uid="uid://drohtxalwqrnc" path="res://Scenes/special_add.tscn" id="1_5hws7"]
+
+[node name="SpecialAddInstance" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 656.0
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SpecialAdd" parent="CenterContainer" instance=ExtResource("1_5hws7")]
+layout_mode = 2

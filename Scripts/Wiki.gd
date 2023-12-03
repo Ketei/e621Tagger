@@ -14,10 +14,13 @@ signal tag_updated
 @onready var wiki_image_requester = $WikiImageRequester
 @onready var wiki_popup_menu: PopupMenu = $"../MenuBar/Wiki"
 @onready var main_application = $".."
+@onready var video_player = $VideoPlayer
 
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
+var video_thumbnails = preload("res://Scenes/video_thumbnail.tscn")
 
 var images_to_display: Array[ImageTexture] = []
+var videos_to_display: Array[String] = []
 
 #var thread: Thread
 
@@ -48,8 +51,12 @@ func _ready():
 
 
 func _unhandled_key_input(event):
-	if event.is_action_pressed("ui_cancel") and full_screen_display.visible:
-		full_screen_display.hide_window()
+	if event.is_action_pressed("ui_cancel"):
+		if full_screen_display.visible:
+			full_screen_display.hide_window()
+		if video_player.visible:
+			video_player.hide_window()
+			play_all_gifs()
 
 
 func set_new_picture_columns(columns_to_display: int) -> void:
@@ -81,8 +88,12 @@ func show_node() -> void:
 func clear_wiki() -> void:
 	current_search = ""
 	images_to_display.clear()
+	videos_to_display.clear()
 	for child in lewd_pic_container.get_children():
-		child.lewd_pic_pressed.disconnect(display_big_pic)
+		if child is LewdTextureRect:
+			child.lewd_pic_pressed.disconnect(display_big_pic)
+		elif child is VideoThumbnail:
+			child.thumbnail_clicked.disconnect(display_vid_player)
 		child.queue_free()
 	wiki_edit.text = ""
 	wiki_popup_menu.set_item_disabled(
@@ -152,10 +163,9 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var final_file_names: Array = []
 	
 	var return_dictionary: Dictionary = {}
-	
 	for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
 		var file_extension: String = file_name.get_extension()
-		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif":
+		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
 			continue
 		if file_extension == "gif":
 			if Tagger.settings.load_local_gifs:
@@ -233,15 +243,16 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 		var tempstring: String = file_name
 		
 		var file_extension = tempstring.get_extension()
-
-		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif":
+		
+		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
 			preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
 			continue
-		
 		if file_extension == "gif":
 			var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + "/" + file_name, 256)
 			new_gif_display.pause = false
 			display_image.call_deferred(new_gif_display)
+		elif  file_extension == "ogv":
+			display_video.call_deferred(Tagger.tag_images_path + folder_name + "/" + file_name)
 		else:
 			var _new_image := Image.load_from_file(Tagger.tag_images_path + folder_name + "/" + file_name)
 			_new_image.generate_mipmaps()
@@ -275,10 +286,7 @@ func create_and_display_image(image_file: Texture2D) -> void:
 func display_image(image_texture: Texture2D):
 	var new_child_thumb: LewdTextureRect = lewd_display.instantiate()
 	new_child_thumb.texture = image_texture
-#	if image_texture.get_size() < Vector2(1280, 720):
-#		new_child_thumb.can_zoom = false
-#		new_child_thumb.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
-	
+
 	var texture_size: Vector2 = image_texture.get_size()
 	
 	var new_heigth: float = (texture_size.y / texture_size.x) * amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)]
@@ -289,6 +297,17 @@ func display_image(image_texture: Texture2D):
 	
 	lewd_pic_container.add_child(new_child_thumb)
 	new_child_thumb.lewd_pic_pressed.connect(display_big_pic)
+	increase_progress()
+
+
+func display_video(path_to_vid: String) -> void:
+	var vid_thumbnail: VideoThumbnail = video_thumbnails.instantiate()
+	vid_thumbnail.video_path = path_to_vid
+	#vid_thumbnail.texture = load()
+	vid_thumbnail.thumbnail_clicked.connect(display_vid_player)
+	vid_thumbnail.custom_minimum_size = Vector2(amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)], amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)])
+	vid_thumbnail.tooltip_text = path_to_vid.get_file().get_basename()
+	lewd_pic_container.add_child(vid_thumbnail)
 	increase_progress()
 
 
@@ -340,13 +359,20 @@ func display_big_pic(texture_to_load: Texture2D) -> void:
 	full_screen_display.show_picture(texture_to_load)
 
 
+func display_vid_player(path_to_vid: String, node_reference: TextureRect) -> void:
+	pause_all_gifs()
+	video_player.play_video_stream(path_to_vid, node_reference)
+
+
 func pause_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
-		child.pause_texture(true)
+		if child is LewdTextureRect:
+			child.pause_texture(true)
 
 
 func play_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
-		child.pause_texture(false)
+		if child is LewdTextureRect:
+			child.pause_texture(false)
 
 

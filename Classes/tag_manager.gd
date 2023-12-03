@@ -59,7 +59,7 @@ func get_tag(tag_name: String) -> Tag:
 		return null
 
 
-func recreate_implications() -> void:
+func recreate_imfplications() -> void:
 	var sorted_files = {}
 	
 	for tag in DirAccess.get_files_at(Tagger.tags_path):
@@ -95,9 +95,10 @@ func recreate_implications() -> void:
 			if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_filename.get_basename()):
 				DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_filename.get_basename())
 			
-			var _valid_tag: Tag = ResourceLoader.load(Tagger.tags_path + tag_filename)
+			var _tag_exists: bool = ResourceLoader.exists(Tagger.tags_path + tag_filename, "Tag")
 			
-			if _valid_tag:
+			if _tag_exists:
+				var _valid_tag: Tag = ResourceLoader.load(Tagger.tags_path + tag_filename)
 				_implication.tag_implications[_valid_tag.tag] = Tagger.tags_path + tag_filename
 				
 				if not relation_database.has(chara):
@@ -108,6 +109,11 @@ func recreate_implications() -> void:
 				for alias in _valid_tag.aliases:
 					Tagger.register_aliases.emit(alias, _valid_tag.tag)
 				
+				# ---------- Register prompts here -----------------
+				if _valid_tag.has_prompt_data:
+					Tagger.prompt_resources.register_category(_valid_tag.prompt_category, _valid_tag.prompt_category_desc, _valid_tag.prompt_category_img_tag)
+					Tagger.prompt_resources.register_subcategory(_valid_tag.prompt_category, _valid_tag.prompt_subcat, _valid_tag.prompt_subcat_desc, _valid_tag.prompt_subcat_img_tag)
+					Tagger.prompt_resources.register_title(_valid_tag.prompt_category, _valid_tag.prompt_subcat, _valid_tag.prompt_title, _valid_tag.tag, _valid_tag.prompt_desc)
 				
 		relation_paths[chara] = Tagger.implications_path + _implication.file_name
 		_implication.save()

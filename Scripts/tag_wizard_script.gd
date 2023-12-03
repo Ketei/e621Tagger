@@ -99,6 +99,9 @@ signal wizard_tags_created(tags_array)
 #@onready var body_colors: SpinBox = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/HBoxContainer/BodyColors
 @onready var magic_container_2: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox
 
+@onready var dim_lights = $DimLights
+@onready var what_my_gender = $WhatMyGender
+@onready var guess_my_g_button: Button = $MarginContainer/Margin/MarginContainer/All/GenderHBox/HBoxContainer/GuessMyGButton
 
 
 var background_types = ["simple background", "detailed background"]
@@ -112,6 +115,7 @@ func _ready():
 	done_button.pressed.connect(create_basic_tags)
 	cancel_button.pressed.connect(cancel_button_pressed)
 	items_scroll_container.set_deferred("scroll_vertical", 0)
+	guess_my_g_button.pressed.connect(guess_my_gender)
 
 
 func magic_clean() -> void:
@@ -546,3 +550,10 @@ func calculate_clothing_level() -> Array:
 
 func cancel_button_pressed() -> void:
 	wizard_tags_created.emit([])
+
+
+func guess_my_gender() -> void:
+	what_my_gender.clear_fields()
+	dim_lights.show()
+	what_my_gender.show()
+

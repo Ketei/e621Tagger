@@ -41,6 +41,8 @@ const valid_fixes: Array[String] = ["*", "|", "#"]
 
 @onready var set_as_tag = $SetAsTag
 @onready var template_loader = $TemplateLoader
+@onready var prompt_tag_window = $PromptTagAdd
+@onready var special_add: PromptAddTag = $PromptTagAdd/CenterContainer/SpecialAdd
 
 
 var main_application
@@ -139,7 +141,8 @@ func is_any_window_open() -> bool:
 			spinbox_adder.visible or\
 			weezard.visible or\
 			set_as_tag.visible or\
-			template_loader.visible
+			template_loader.visible or\
+			prompt_tag_window.visible
 	return is_anything_open
 
 
@@ -176,7 +179,7 @@ func append_empty_tag(tag_to_append: String) -> void:
 	}
 
 
-func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
+func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add: bool = true, search_suggestions: bool = true) -> void:
 	if tag_name.is_empty() or tag_dict.is_empty():
 		return
 
@@ -207,7 +210,7 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 		else:
 			add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
 		
-		item_list.select(add_index)
+		
 		item_list.set_item_custom_fg_color(
 					add_index,
 					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_dict["category"]]]))
@@ -223,13 +226,16 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary) -> void:
 #			tag_queue.append(tag_name)
 #			start_suggestion_lookup()
 			tag_holder.add_to_search_queue({tag_name: self})
+		
+		if select_on_add:
+			item_list.select(add_index)
+			item_list.ensure_current_is_visible()
 	
-	item_list.ensure_current_is_visible()
-	
-	for related_tag in tag_dict["related_tags"]:
-		add_suggested_tag(related_tag)
-	for suggested_tag in tag_dict["suggested_tags"]:
-		add_suggested_tag(suggested_tag)
+	if search_suggestions:
+		for related_tag in tag_dict["related_tags"]:
+			add_suggested_tag(related_tag)
+		for suggested_tag in tag_dict["suggested_tags"]:
+			add_suggested_tag(suggested_tag)
 	
 	check_minimum_requirements()
 
@@ -706,7 +712,8 @@ func load_tag_list(tags_to_load: Array, replace_tags: bool) -> void:
 
 func disconnect_and_free() -> void:
 	close_instance()
-	tagger_menu_bar.id_pressed.disconnect(tagger_menu_pressed)
+	if tagger_menu_bar.id_pressed.is_connected(tagger_menu_pressed):
+		tagger_menu_bar.id_pressed.disconnect(tagger_menu_pressed)
 	tagger_menu_bar = null
 	main_application = null
 	tag_holder = null
@@ -763,6 +770,12 @@ func left_click_context_menu_clicked(id_pressed: int) -> void:
 		add_from_suggested(called_index, list_called)
 
 
+func open_prompt_tag_window() -> void:
+	if tag_holder.active_instance != instance_name:
+		return
+	add_prompt_tag()
+
+
 func sort_tags_by_category() -> void:
 	if tag_holder.active_instance != instance_name:
 		return
@@ -773,6 +786,7 @@ func sort_tags_by_category() -> void:
 	var final_array: Array = []
 	var sorting_array: Array = []
 	var current_tags: Dictionary = tags_inputed.duplicate()
+	var backup_tags: Dictionary = tags_inputed.duplicate()
 	
 	var order_array: Array = [
 		Tagger.Categories.ARTIST,
@@ -799,7 +813,7 @@ func sort_tags_by_category() -> void:
 	clear_inputted_tags()
 	
 	for item in final_array:
-		add_new_tag(item, false, false, [], Tagger.Categories.GENERAL, false)
+		append_prefilled_tag(item, backup_tags[item], false, false)
 
 
 func tagger_menu_pressed(option_id: int) -> void:
@@ -818,6 +832,8 @@ func tagger_menu_pressed(option_id: int) -> void:
 		open_wizard()
 	elif option_id == 11:
 		open_template_loader()
+	elif option_id == 12:
+		open_prompt_tag_window()
 
 
 func open_set_tagger() -> void:
@@ -825,14 +841,20 @@ func open_set_tagger() -> void:
 	set_as_tag.set_target_tag(tag_to_set)
 	set_as_tag.show()
 	
-	var selected_category: int = await set_as_tag.category_selected
+	await set_as_tag.set_as_accepted
 	
-	if selected_category != -1:
-		tags_inputed[context_tag]["category"] = selected_category
-		add_to_category(selected_category as Tagger.Categories)
+	if set_as_tag.change_prio:
+		tags_inputed[context_tag]["priority"] = set_as_tag.prio_selected
+	
+	if set_as_tag.change_category:
+		tags_inputed[context_tag]["category"] = set_as_tag.category_select
+		add_to_category(set_as_tag.category_select as Tagger.Categories)
+		item_list.set_item_custom_fg_color(
+				called_index,
+				Tagger.settings.category_color_code[
+						Tagger.Categories.keys()[set_as_tag.category_select]])
 	
 	set_as_tag.hide()
-	
 
 
 func open_wizard() -> void:
@@ -910,4 +932,15 @@ func change_platform(site_id: int) -> void:
 			final_tag_list_array,
 			Tagger.site_settings.valid_sites[site_key]["whitespace"],
 			Tagger.site_settings.valid_sites[site_key]["separator"])
+
+
+func add_prompt_tag() -> void:
+	prompt_tag_window.show()
+	special_add.load_categories()
+	special_add.reset_selections()
+	var prompt_response: String = await special_add.item_selected
+	prompt_tag_window.hide()
+	if prompt_response.is_empty():
+		return
+	add_new_tag(prompt_response, false)
 
