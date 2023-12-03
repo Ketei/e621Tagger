@@ -46,6 +46,11 @@ var suggestions_array: Array[String] = []
 
 @onready var open_auto_complete_parents_btn: Button = $AllItemsHBox/LeftVbox/ItemListsHBox/ParentTagsVbox/PArentsLineHbox/OpenAutoCompleteBTN
 @onready var open_auto_complete_suggestions_btn: Button = $AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/SuggestionItemsHBox/OpenAutoCompleteBTN
+@onready var show_prompts_btn: CheckButton = $AllItemsHBox/LeftVbox/SearcherHBox/ShowPromptsBtn
+@onready var prompt_includer = $AllItemsHBox/PromtIncluder
+@onready var has_prompt_data: CheckBox = $AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer/HasPromptData
+@onready var right_v_box = $AllItemsHBox/RightVBox
+
 
 
 #var samples_downloader_queue: Dictionary = {}
@@ -60,7 +65,8 @@ var tag_aliases_array: Array = []
 
 func _ready():
 	hide()
-	
+	prompt_includer.hide()
+	show_prompts_btn.toggled.connect(on_prompt_visibility_toggle)
 	parents_item_list.associated_array = parents
 	tag_suggestion_list.associated_array = suggestions_array
 	
@@ -103,6 +109,11 @@ func _ready():
 	add_alias_lineedit.text_submitted.connect(add_tag_alias)
 
 
+func on_prompt_visibility_toggle(is_toggled: bool) -> void:
+	prompt_includer.visible = is_toggled
+	right_v_box.visible = not is_toggled
+
+
 func search_for_tag(new_text: String) -> void:
 	if new_text.is_empty():
 		clear_and_disable()
@@ -127,6 +138,8 @@ func search_for_tag(new_text: String) -> void:
 	
 	alias_itemlist.clear()
 	tag_aliases_array.clear()
+	
+	prompt_includer.clear_fields()
 	
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 
@@ -160,7 +173,24 @@ func search_for_tag(new_text: String) -> void:
 	
 	if has_images_check_box.button_pressed:
 		open_pic_folder_button.disabled = false
+
+	if _tag.has_prompt_data:
+		has_prompt_data.button_pressed = true
+		var prompt_tag: Dictionary =  {
+			"category": _tag.prompt_category,
+			"category_img": _tag.prompt_category_img_tag,
+			"category_desc": _tag.prompt_category_desc,
+			"subcategory": _tag.prompt_subcat,
+			"subcategory_img": _tag.prompt_subcat_img_tag,
+			"subcategory_desc": _tag.prompt_subcat_desc,
+			"item_name": _tag.prompt_title,
+			"item_desc": _tag.prompt_desc
+		}
+		prompt_includer.fill_data(prompt_tag)
+	else:
+		has_prompt_data.button_pressed = false
 	
+	has_prompt_data.disabled = false
 	add_conflict_line_edit.editable = true
 	has_images_check_box.disabled = false
 	tag_suggestion_line_edit.editable = true
@@ -185,8 +215,16 @@ func open_alias_window() -> void:
 
 
 func update_tag() -> void:
-	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
+	var are_prompts_good: bool = prompt_includer.is_valid_prompt()
 	
+	if has_prompt_data.button_pressed:
+		if not are_prompts_good:
+			prompt_includer.highlight_errors()
+			return
+	
+	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
+	var prompt_data: Dictionary = prompt_includer.get_data()
+
 	_tag.category = categories_menu.selected as Tagger.Categories
 	_tag.parents = parents.duplicate()
 	_tag.wiki_entry = wiki_edit.text
@@ -196,6 +234,14 @@ func update_tag() -> void:
 	_tag.conflicts = conflicts_array.duplicate()
 	_tag.tooltip = tag_tooltip_line_edit.text.strip_edges()
 	_tag.aliases = PackedStringArray(tag_aliases_array)
+	_tag.prompt_category = prompt_data["category"]
+	_tag.prompt_category_img_tag = prompt_data["category_img"]
+	_tag.prompt_category_desc = prompt_data["category_desc"]
+	_tag.prompt_subcat = prompt_data["subcategory"]
+	_tag.prompt_subcat_img_tag = prompt_data["subcategory_img"]
+	_tag.prompt_subcat_desc = prompt_data["subcategory_desc"]
+	_tag.prompt_title = prompt_data["item_name"]
+	_tag.prompt_desc = prompt_data["item_desc"]
 	_tag.save()
 	
 	tag_updated.emit(_tag.tag)
@@ -329,6 +375,7 @@ func clear_and_disable() -> void:
 	add_parent_line_edit.editable = false
 	wiki_edit.clear()
 	wiki_edit.editable = false
+	prompt_includer.clear_fields()
 	review_menu.set_item_disabled(review_menu.get_item_index(0), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
@@ -336,6 +383,7 @@ func clear_and_disable() -> void:
 	tag_update_button.disabled = true
 	open_auto_complete_parents_btn.disabled = true
 	open_auto_complete_suggestions_btn.disabled = true
+	has_prompt_data.disabled = true
 
 
 func button_search_pressed() -> void:

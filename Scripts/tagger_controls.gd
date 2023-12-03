@@ -936,6 +936,7 @@ func change_platform(site_id: int) -> void:
 
 func add_prompt_tag() -> void:
 	prompt_tag_window.show()
+	special_add.load_categories()
 	special_add.reset_selections()
 	var prompt_response: String = await special_add.item_selected
 	prompt_tag_window.hide()

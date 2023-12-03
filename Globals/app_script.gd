@@ -192,6 +192,7 @@ func _notification(what):
 		Tagger.site_settings.save()
 		Tagger.settings_lists.save()
 		Tagger.alias_database.save()
+		Tagger.prompt_resources.save()
 		
 		if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 			Tagger.common_thread.wait_to_finish()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=32 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://Scripts/angle_view_wiz_tool.gd" id="10_3npvb"]
 [ext_resource type="Texture2D" uid="uid://75bqwb1rf3al" path="res://Textures/AngleHeads/regular-front.png" id="11_yms3t"]
 [ext_resource type="Script" path="res://Scripts/include_wizzard_sugs.gd" id="13_yw5to"]
+[ext_resource type="Script" path="res://Scripts/guess_my_gender.gd" id="16_qpii0"]
+[ext_resource type="ButtonGroup" uid="uid://dwwnuxetb64nk" path="res://ButtonGroups/wizard_gmg_bod_type.tres" id="17_8lvxo"]
 
 [sub_resource type="GDScript" id="GDScript_26vi0"]
 resource_name = "hide_show"
@@ -634,11 +636,21 @@ text = "Eyewear"
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/HBoxContainer"]
 layout_mode = 2
 text = "Genders"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="GuessMyGButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/HBoxContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "?"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox"]
 layout_mode = 2
@@ -1594,3 +1606,169 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Done"
+
+[node name="DimLights" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="WhatMyGender" type="Control" parent="."]
+visible = false
+custom_minimum_size = Vector2(416, 336)
+layout_mode = 1
+anchor_left = 0.0875
+anchor_top = 0.111
+anchor_right = 0.412
+anchor_bottom = 0.577778
+offset_top = 0.0799942
+offset_right = 0.639954
+offset_bottom = -3.05176e-05
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("16_qpii0")
+
+[node name="WizardEdge" type="ColorRect" parent="WhatMyGender"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.47451, 0.517647, 0.6, 1)
+
+[node name="WizardBGRectLight" type="ColorRect" parent="WhatMyGender"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="WhatMyGender"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="RichTextLabel" parent="WhatMyGender/VBoxContainer"]
+custom_minimum_size = Vector2(368, 86)
+layout_mode = 2
+bbcode_enabled = true
+text = "[center][b]How-to:[/b][/center]
+Select all the [u]VISIBLE/CLEARLY APPARENT[/u] features of the character. Then press  the \"what is this gender\" button."
+
+[node name="Genitals" type="HBoxContainer" parent="WhatMyGender/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="WhatMyGender/VBoxContainer/Genitals"]
+layout_mode = 2
+text = "Genitals:"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="WhatMyGender/VBoxContainer/Genitals"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PenisCheckBox" type="CheckBox" parent="WhatMyGender/VBoxContainer/Genitals/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Visible or just the shape/outline of it (bulge)."
+text = "Penis"
+
+[node name="VaginaCheckBox" type="CheckBox" parent="WhatMyGender/VBoxContainer/Genitals/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Visible or just the shape/outline of it (camel toe)"
+text = "Vagina"
+
+[node name="BodyTypes" type="HBoxContainer" parent="WhatMyGender/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="WhatMyGender/VBoxContainer/BodyTypes"]
+layout_mode = 2
+text = "Body Type:"
+
+[node name="BodyTypesChecks" type="HBoxContainer" parent="WhatMyGender/VBoxContainer/BodyTypes"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="MascCheckBox" type="CheckBox" parent="WhatMyGender/VBoxContainer/BodyTypes/BodyTypesChecks"]
+layout_mode = 2
+tooltip_text = "Characteristics may include wide shoulders, narrow hips, musculature, jaw line, facial hair, body hair, etc."
+button_group = ExtResource("17_8lvxo")
+text = "Masculine"
+
+[node name="FemCheckBox" type="CheckBox" parent="WhatMyGender/VBoxContainer/BodyTypes/BodyTypesChecks"]
+layout_mode = 2
+tooltip_text = "Characteristics may include wide hips, narrow waist, eyelashes, lack of facial hair, round/soft face, thick thighs less pronounced musculature, etc."
+button_group = ExtResource("17_8lvxo")
+text = "Feminine"
+
+[node name="OtherFeatures" type="HBoxContainer" parent="WhatMyGender/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="WhatMyGender/VBoxContainer/OtherFeatures"]
+layout_mode = 2
+text = "Body features:"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="WhatMyGender/VBoxContainer/OtherFeatures"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="BreastsCheckBox" type="CheckBox" parent="WhatMyGender/VBoxContainer/OtherFeatures/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Visible or just the shape/outline of them."
+text = "Breasts"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="WhatMyGender/VBoxContainer"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="WhatMyGender/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "Close"
+
+[node name="SubmitButton" type="Button" parent="WhatMyGender/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "What is this gender?"
+
+[node name="GenderResult" type="HBoxContainer" parent="WhatMyGender/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Label" type="Label" parent="WhatMyGender/VBoxContainer/GenderResult"]
+layout_mode = 2
+text = "This gender is:"
+
+[node name="GenderResult" type="Label" parent="WhatMyGender/VBoxContainer/GenderResult"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.392157, 1, 0.352941, 1)
+text = "Male"

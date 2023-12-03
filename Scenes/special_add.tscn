@@ -3,10 +3,10 @@
 [ext_resource type="Script" path="res://Scripts/special_add.gd" id="1_r070l"]
 
 [node name="SpecialAdd" type="PanelContainer"]
-custom_minimum_size = Vector2(768, 384)
+custom_minimum_size = Vector2(1088, 512)
 anchors_preset = -1
-anchor_right = 0.6
-anchor_bottom = 0.533333
+anchor_right = 0.85
+anchor_bottom = 0.711111
 offset_bottom = -3.05176e-05
 grow_horizontal = 2
 grow_vertical = 2
@@ -57,9 +57,17 @@ layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
 
-[node name="SpecificItemButton" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer"]
+[node name="Subcats" type="HBoxContainer" parent="GeneralContainer/DataContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SubcatItemOptions" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer/Subcats"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SpecificItemButton" type="OptionButton" parent="GeneralContainer/DataContainer/VBoxContainer/Subcats"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+size_flags_horizontal = 3
 text_overrun_behavior = 3
 clip_text = true
 fit_to_longest_item = false

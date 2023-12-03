@@ -1,0 +1,116 @@
+[gd_scene load_steps=3 format=3 uid="uid://cds4jrd1h62jv"]
+
+[ext_resource type="Script" path="res://Scripts/tool_categories.gd" id="1_bj0nv"]
+[ext_resource type="PackedScene" uid="uid://2ec3s3x7jcpk" path="res://Scenes/promt_creator.tscn" id="3_16m7b"]
+
+[node name="Prompt Categories" type="MarginContainer"]
+custom_minimum_size = Vector2(1024, 592)
+offset_right = 1248.0
+offset_bottom = 621.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+script = ExtResource("1_bj0nv")
+
+[node name="AllElements" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="Categories" type="VBoxContainer" parent="AllElements"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="AddCat" type="HBoxContainer" parent="AllElements/Categories"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddCatLineEdit" type="LineEdit" parent="AllElements/Categories/AddCat"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddCatButton" type="Button" parent="AllElements/Categories/AddCat"]
+layout_mode = 2
+text = "Create"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="AllElements/Categories"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CategoryItems" type="VBoxContainer" parent="AllElements/Categories/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SubCategories" type="VBoxContainer" parent="AllElements"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="AddSubCat" type="HBoxContainer" parent="AllElements/SubCategories"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SubCatLineEdit" type="LineEdit" parent="AllElements/SubCategories/AddSubCat"]
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="AddSubCatBtn" type="Button" parent="AllElements/SubCategories/AddSubCat"]
+layout_mode = 2
+disabled = true
+text = "Create"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="AllElements/SubCategories"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SubCategoryItems" type="VBoxContainer" parent="AllElements/SubCategories/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Titles" type="VBoxContainer" parent="AllElements"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="AddTitle" type="HBoxContainer" parent="AllElements/Titles"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLineEdit" type="LineEdit" parent="AllElements/Titles/AddTitle"]
+layout_mode = 2
+size_flags_horizontal = 3
+editable = false
+
+[node name="AddTitleCatBtn" type="Button" parent="AllElements/Titles/AddTitle"]
+layout_mode = 2
+disabled = true
+text = "Create"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="AllElements/Titles"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TitleItems" type="VBoxContainer" parent="AllElements/Titles/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="PromtIncluder" parent="AllElements" instance=ExtResource("3_16m7b")]
+layout_mode = 2
+display_target_tag = true
+force_key_save = true
+start_disabled = true
+hide_cancel = true
+disable_category = true
+disable_subcategory = true
+disable_item_name = true

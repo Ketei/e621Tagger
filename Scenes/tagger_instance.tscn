@@ -955,6 +955,16 @@ anchor_bottom = 0.911111
 script = SubResource("GDScript_f1sda")
 metadata/_edit_use_anchors_ = true
 
+[node name="DimLight" type="ColorRect" parent="PromptTagAdd"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 80.0001
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
 [node name="CenterContainer" type="CenterContainer" parent="PromptTagAdd"]
 layout_mode = 1
 anchors_preset = 15

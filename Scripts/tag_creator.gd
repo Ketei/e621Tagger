@@ -32,6 +32,9 @@ signal register_alias(old_name, new_name)
 @onready var e_621api_request: E621API = $"../e621APIRequest"
 @onready var downloading_samples_lbl: Label = $DownloadingSamplesLbl
 @onready var creator_pop_up_menu: PopupMenu = $CreatorPopUpMenu
+@onready var include_in_prompts: CheckButton = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/CheckButton
+@onready var center_part_v_box = $VBoxContainer/HBoxContainer/CenterPartVBox
+@onready var prompt_includer = $VBoxContainer/HBoxContainer/CenterPartVBox/PromtIncluder
 
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
@@ -58,6 +61,7 @@ func _ready():
 	parent_item_list.associated_array = parent_tags
 	suggestion_item_list.associated_array = tag_suggestion_array
 	bbc_preview_button.pressed.connect(preview_bcc)
+	include_in_prompts.toggled.connect(on_include_prompts)
 	
 	has_images_check_box.toggled.connect(has_images_toggled)
 	
@@ -72,8 +76,7 @@ func _ready():
 	suggestion_line_edit.text_submitted.connect(add_suggestion)
 	suggestion_item_list.item_activated.connect(remove_suggestion)
 
-	create_tags_button.pressed.connect(create_tag)
-	tag_to_add_line_edit.text_changed.connect(check_if_can_add_tag)
+	create_tags_button.pressed.connect(try_create_tag)
 	add_parent_line_edit.text_submitted.connect(add_parent)
 	parent_item_list.item_activated.connect(remove_parent)
 	
@@ -92,6 +95,13 @@ func _ready():
 	aliased_itemlist.item_activated.connect(remove_alias_item)
 
 
+func on_include_prompts(is_toggled: bool) -> void:
+	if is_toggled:
+		center_part_v_box.show()
+	else:
+		center_part_v_box.hide()
+
+
 func show_popup_menu(tag_clicked: String, element_position: Vector2, item_position: Vector2, _is_delete_allowed: bool, _who_called: ItemList, _item_index: int) -> void:
 	left_context_tag = tag_clicked
 	creator_pop_up_menu.position = element_position + item_position
@@ -102,7 +112,6 @@ func menu_id_pressed(menu_id: int) -> void:
 	print(menu_id)
 	if menu_id == 0:
 		main_application.go_to_wiki(left_context_tag)
-	
 
 
 func preview_bcc() -> void:
@@ -166,13 +175,6 @@ func remove_suggestion(item_id: int) -> void:
 	suggestion_item_list.remove_item(item_id)
 
 
-func check_if_can_add_tag(new_text: String) -> void:
-	if new_text == "" and not create_tags_button.disabled:
-		create_tags_button.disabled = true
-	elif new_text != "" and create_tags_button.disabled:
-		create_tags_button.disabled = false
-
-
 func add_parent(new_parent:String) -> void:
 	new_parent = new_parent.to_lower().strip_edges()
 
@@ -196,25 +198,69 @@ func remove_parent(parent_index: int) -> void:
 	parent_item_list.remove_item(parent_index)
 
 
+func try_create_tag() -> void:
+	var tag_name: bool = not tag_to_add_line_edit.text.strip_edges().is_empty()
+	var prompts_activated: bool = include_in_prompts.button_pressed
+	var prompts_valid: bool = prompt_includer.is_valid_prompt()
+	
+	var can_add: bool = false
+	
+	if prompts_activated:
+		can_add = tag_name and prompts_valid
+	else:
+		can_add = tag_name
+		
+	if can_add:
+		create_tag()
+	else:
+		if not prompts_valid:
+			prompt_includer.highlight_errors()
+
+
 func create_tag() -> void:
 	var target_tag: String = tag_to_add_line_edit.text
 	target_tag = target_tag.strip_edges().to_lower()
 	if Tagger.tag_manager.has_tag(target_tag):
 		clear_menu_items("Tag already exists!!!")
 		return
+	
+	var prompt_data: Dictionary = {
+		"category": "",
+		"category_img": "",
+		"category_desc": "",
+		"subcategory": "",
+		"subcategory_img": "",
+		"subcategory_desc": "",
+		"item_name": "",
+		"item_desc": ""
+		}
+	
+	if include_in_prompts.button_pressed:
+		prompt_data = prompt_includer.get_data()
+		prompt_includer.target_tag = target_tag
+		prompt_includer.on_save()
 
 	var _tag_path: String = TagMaker.make_tag(
-			target_tag,
-			parent_tags,
-			categories_menu.selected,
-			wiki_info.text,
-			int(tag_prio_box.value),
-			tag_suggestion_array,
-			has_images_check_box.button_pressed,
-			conflicts_array,
-			tooltip_line_edit.text.strip_edges(),
-			aliased_tags
-			)
+		target_tag,
+		parent_tags,
+		categories_menu.selected,
+		wiki_info.text,
+		int(tag_prio_box.value),
+		tag_suggestion_array,
+		has_images_check_box.button_pressed,
+		conflicts_array,
+		tooltip_line_edit.text.strip_edges(),
+		aliased_tags,
+		prompt_data["category"],
+		prompt_data["category_img"],
+		prompt_data["category_desc"],
+		prompt_data["subcategory"],
+		prompt_data["subcategory_img"],
+		prompt_data["subcategory_desc"],
+		prompt_data["item_name"],
+		prompt_data["item_desc"],
+		include_in_prompts.button_pressed
+		)
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
@@ -268,6 +314,7 @@ func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
 	parent_tags.clear()
 	parent_item_list.clear()
 	wiki_info.clear()
+	prompt_includer.clear_fields()
 	
 	if change_text:
 		create_tags_button.text = btn_message

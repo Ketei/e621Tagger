@@ -1,7 +1,7 @@
 class_name TagMaker
 extends Node
 
-static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = [], has_images: bool = true, tag_conflicts: Array[String] = [], tag_tooltip: String = "", aliased_tags: Array = []) -> String:
+static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.Categories, tag_wiki_info: String = "", tag_prio: int = 0, tag_suggestions: Array[String] = [], has_images: bool = true, tag_conflicts: Array[String] = [], tag_tooltip: String = "", aliased_tags: Array = [], pr_cat: String = "", pr_cat_img: String = "", pr_cat_desc: String = "", pr_sub_cat := "", pr_sub_cat_img := "", pr_sub_cat_desc := "", pr_title := "", pr_desc := "", has_prompt_data := false) -> String:
 	var _tag_dict: Dictionary = {}
 	#aliases: Dictionary = {}
 	var _tag := Tag.new()
@@ -15,11 +15,19 @@ static func make_tag(tag_name: String, tag_parents: Array, tag_category: Tagger.
 	_tag.conflicts = tag_conflicts.duplicate()
 	_tag.tooltip = tag_tooltip
 	_tag.aliases = PackedStringArray(aliased_tags)
+	_tag.prompt_category = pr_cat
+	_tag.prompt_category_img_tag = pr_cat_img
+	_tag.prompt_category_desc = pr_cat_desc
+	_tag.prompt_subcat = pr_sub_cat
+	_tag.prompt_subcat_img_tag = pr_sub_cat_img
+	_tag.prompt_subcat_desc = pr_sub_cat_desc
+	_tag.prompt_title = pr_title
+	_tag.prompt_desc = pr_desc
+	_tag.has_prompt_data = has_prompt_data
 	var tag_path: String = _tag.save()
 	
 	if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_path.get_basename()):
 		DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_path.get_basename())
-	
 	
 	var _implication : ImplicationDictionary
 	

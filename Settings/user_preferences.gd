@@ -28,7 +28,6 @@ extends Resource
 @export_range(1, 3, 1) var picture_columns_to_search: int = 2
 
 @export var delete_with_pictures: bool = false
-
 @export var category_color_code: Dictionary = {
 	"GENERAL": "cccccc",
 	"ARTIST": "f2ac08",
