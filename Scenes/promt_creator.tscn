@@ -16,7 +16,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 2
-color = Color(0.211765, 0.239216, 0.290196, 1)
+color = Color(0.25098, 0.282353, 0.341176, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
