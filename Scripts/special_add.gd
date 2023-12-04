@@ -8,10 +8,10 @@ var item_options: Dictionary = {}
 
 @onready var image_texture: TextureRect = $GeneralContainer/PictureContainer/ImageTexture
 
-@onready var general_item_options: OptionButton = $GeneralContainer/DataContainer/VBoxContainer/GeneralItemOptions
+@onready var general_item_options: OptionButton = $GeneralContainer/DataContainer/VBoxContainer/HBoxContainer/GeneralItemOptions
 @onready var generic_item_desc: RichTextLabel = $GeneralContainer/DataContainer/VBoxContainer/GenericItemDesc
-@onready var subcat_item_options: OptionButton = $GeneralContainer/DataContainer/VBoxContainer/Subcats/SubcatItemOptions
-@onready var specific_item_button: OptionButton = $GeneralContainer/DataContainer/VBoxContainer/Subcats/SpecificItemButton
+@onready var subcat_item_options: OptionButton = $GeneralContainer/DataContainer/VBoxContainer/Subcats/SubcatContainer/SubcatItemOptions
+@onready var specific_item_button: OptionButton = $GeneralContainer/DataContainer/VBoxContainer/Subcats/ItemContainer/SpecificItemButton
 @onready var specific_item_desc: RichTextLabel = $GeneralContainer/DataContainer/VBoxContainer/SpecificItemDesc
 
 @onready var cancel_button: Button = $GeneralContainer/DataContainer/VBoxContainer/ButtonsContainer/CancelButton
