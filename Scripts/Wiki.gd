@@ -39,6 +39,9 @@ var amount_vs_resolution: Dictionary = {
 
 var current_search: String = ""
 
+# To-Do: Create an Hydrus implementation. Make it send HTTP requests and once
+# it answers make a threaded function load the picture and then call
+# display_image.
 
 func _ready():
 	wiki_edit.search_in_wiki.connect(search_for_tag)
@@ -141,6 +144,11 @@ func search_for_tag(new_text: String) -> void:
 	
 	var local_image_data: Dictionary = get_local_filenames(_tag)
 	
+	#To-Do: Also make a hydrus request here. until it gets a response, don't unlock
+	# once we get the array with posts IDs add it to the progress bar. Then it
+	# should start requesting files, loading them in the background and displaying
+	# them
+	
 	if 0 < local_image_data["count"]:
 		is_local_loading_done = false
 		preview_progress_load.max_value += local_image_data["count"]
@@ -182,10 +190,7 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 					file_names.erase(tag_to_transfer)
 			else:
 				final_file_names = file_names
-			
-#			if 0 < array_size:
-#				get_local_images(target_tag.file_name.get_basename(), final_file_names)
-	
+
 	return_dictionary["folder"] = target_tag.file_name.get_basename()
 	return_dictionary["files"] = final_file_names
 	return_dictionary["count"] = final_file_names.size()
@@ -258,7 +263,6 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 			_new_image.generate_mipmaps()
 			var _new_texture := ImageTexture.create_from_image(_new_image)
 			display_image.call_deferred(_new_texture)
-
 	merge_thread.call_deferred()
 
 
