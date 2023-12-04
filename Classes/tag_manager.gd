@@ -237,3 +237,12 @@ func search_for_content(contain_search: String) -> Dictionary:
 	
 	return return_dictionary
 
+
+func get_tag_type(tag_name: String) -> Tagger.Categories:
+	if has_tag(tag_name):
+		return get_tag(tag_name).category
+	else:
+		return Tagger.Categories.GENERAL
+
+
+

@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://cis78toxdlpik"]
+
+[ext_resource type="Script" path="res://Scripts/hydrus_api_main.gd" id="1_7ldyf"]
+
+[node name="HydrusAPIRequest" type="Node"]
+script = ExtResource("1_7ldyf")
+
+[node name="RequestAPI" type="HTTPRequest" parent="."]
+timeout = 5.0
+
+[node name="PictureDownloader" type="HTTPRequest" parent="."]
