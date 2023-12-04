@@ -225,7 +225,7 @@ func update_tag() -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
 	var prompt_data: Dictionary = prompt_includer.get_data()
 
-	_tag.category = categories_menu.selected as Tagger.Categories
+	_tag.category = categories_menu.get_item_id(categories_menu.selected) as Tagger.Categories
 	_tag.parents = parents.duplicate()
 	_tag.wiki_entry = wiki_edit.text
 	_tag.tag_priority = int(tag_prio_box.value)

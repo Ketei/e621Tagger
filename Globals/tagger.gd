@@ -27,8 +27,36 @@ enum Categories {
 	PROFESSION,
 	META,
 	LOCATION,
-	FURNITURE
+	FURNITURE,
+	LORE,
 }
+const CategorySorting: Array = [
+	Categories.GENERAL,
+	Categories.ARTIST,
+	Categories.COPYRIGHT,
+	Categories.CHARACTER,
+	Categories.SPECIES,
+	Categories.GENDER,
+	Categories.BODY_TYPES,
+	Categories.ANATOMY,
+	Categories.MARKINGS,
+	Categories.POSES_AND_STANCES,
+	Categories.ACTIONS_AND_INTERACTIONS,
+	Categories.SEX_AND_POSITIONS,
+	Categories.PENETRATION,
+	Categories.FLUIDS,
+	Categories.EXPRESSIONS,
+	Categories.COLORS,
+	Categories.OBJECTS,
+	Categories.CLOTHING,
+	Categories.ACCESSORIES,
+	Categories.FURNITURE,
+	Categories.PROFESSION,
+	Categories.LOCATION,
+	Categories.META,
+	Categories.LORE,
+]
+
 
 enum Sites {
 	E621,

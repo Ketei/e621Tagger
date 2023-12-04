@@ -243,7 +243,7 @@ func create_tag() -> void:
 	var _tag_path: String = TagMaker.make_tag(
 		target_tag,
 		parent_tags,
-		categories_menu.selected,
+		categories_menu.get_item_id(categories_menu.selected),
 		wiki_info.text,
 		int(tag_prio_box.value),
 		tag_suggestion_array,
