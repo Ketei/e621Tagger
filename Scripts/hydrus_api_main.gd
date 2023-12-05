@@ -1,5 +1,9 @@
+class_name HydrusRequestAPI
 extends Node
 
+
+signal texture_created(texture_data)
+signal thread_finished
 
 const api_address: String = "http://127.0.0.1:{0}/"
 const search_endpoint: String = "get_files/search_files?"
@@ -17,13 +21,19 @@ var valid_api: bool = false
 
 
 func _ready():
-	valid_api = await verify_access_key()
-	if valid_api:
-		print(await search_for_tags(["bear", "cum"], 264))
+	picture_downloader.request_completed.connect(_on_picture_found)
+
+
+func set_data(port: String, key: String, verify_immediatly := false) -> void:
+	api_port = port
+	api_key = key
+	if verify_immediatly:
+		verify_access_key()
 
 
 func verify_access_key() -> bool:
 	if api_port.is_empty() or api_key.is_empty():
+		valid_api = false
 		return false
 	
 	var access_string = api_address.format([api_port]) + verify_access_endpoint
@@ -34,6 +44,7 @@ func verify_access_key() -> bool:
 
 	if response[0] != OK:
 		print_debug("API responded with: " + str(response[0]))
+		valid_api = false
 		return false
 	else:
 		if headers.server.begins_with("client api"):
@@ -44,15 +55,19 @@ func verify_access_key() -> bool:
 			
 			if response[1] == 200:
 				if parsed["basic_permissions"].has(3.0):
+					valid_api = true
 					return true
 				else:
 					print_debug("Key doesn't have Search/Fetch permission(3)")
+					valid_api = false
 					return false
 			else:
 				print_debug(parsed["error"])
 				print_debug(parsed["exception_type"])
+				valid_api = false
 				return false
 		else:
+			valid_api =false
 			return false
 
 
@@ -68,8 +83,12 @@ func build_headers() -> Array:
 	return ["Hydrus-Client-API-Access-Key:{0}".format([api_key])]
 
 
-func verify_response(response: int) -> bool:
-	return response == OK
+func is_valid_headers(header_data: Dictionary) -> bool:
+	if header_data.has("server"):
+		if typeof(header_data.server) == 4:
+			if header_data.server.begins_with("client api"):
+				return true
+	return false
 
 
 func search_for_tags(tags_array: Array, tag_count: int) -> Array:
@@ -117,4 +136,63 @@ func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 	var parsed = json.get_data()
 	
 	return parsed["file_ids"]
+
+
+func get_thumbnails(ids_array: Array) -> void:
+	if not valid_api:
+		return
+	
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+		Tagger.common_thread.wait_to_finish()
+	
+	var url_building: String = api_address.format([api_port]) + thumbnail_endpoint
+	for pic_id in ids_array:
+		picture_downloader.request(url_building + "file_id=" + str(pic_id), build_headers())
+		await thread_finished
+
+
+func _on_picture_found(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	if not valid_api:
+		return
+	
+	if result != OK:
+		print_debug("File got {0} as result".format([str(result)]))
+		return
+
+	if response_code != 200:
+		var json = JSON.new()
+		json.parse(body.get_string_from_utf8())
+		var parsed = json.data
+		print_debug("File got {0} as response".format([str(response_code)]))
+		print_debug("Error: " + parsed["error"])
+		print_debug("Exception type: " + parsed["exception_type"])
+		return
+	
+	var header_data = headers_parse(headers)
+	
+	if not is_valid_headers(header_data):
+		print_debug("Headers don't match with Hydrus API")
+		return
+
+	Tagger.common_thread.start(create_texture.bind(body, header_data["content-type"].split("/")[1]))
+
+
+func create_texture(image_data: PackedByteArray, image_format: String) -> void:
+	var image := Image.new()
+	var texture: ImageTexture
+	if image_format == "jpeg" or image_format == "jpg":
+		image.load_jpg_from_buffer(image_data)
+		texture = ImageTexture.create_from_image(image)
+		call_deferred("emit_signal", "texture_created", texture)
+	elif image_format == "png":
+		image.load_png_from_buffer(image_data)
+		texture = ImageTexture.create_from_image(image)
+		call_deferred("emit_signal", "texture_created", texture)
+	clean_thread.call_deferred()
+
+
+func clean_thread() -> void:
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+		Tagger.common_thread.wait_to_finish()
+	thread_finished.emit()
 
