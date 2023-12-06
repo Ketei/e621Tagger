@@ -3169,7 +3169,6 @@ visible = false
 layout_mode = 2
 
 [node name="Settings" type="Control" parent="."]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -3252,27 +3251,21 @@ alignment = 1
 editable = false
 suffix = "column(s)"
 
-[node name="ReviewImagesOptions" type="Control" parent="Settings/SettingsContainer/SettingsSets/LoadImages"]
+[node name="ReviewImagesOptions" type="PanelContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages"]
 custom_minimum_size = Vector2(272, 104)
 layout_mode = 2
 
 [node name="ColorRect" type="ColorRect" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 color = Color(0.188235, 0.215686, 0.258824, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions"]
-layout_mode = 0
-offset_right = 272.0
-offset_bottom = 104.0
+layout_mode = 2
 alignment = 1
 
 [node name="ToggleButtons" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="e621LoadButton" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/ToggleButtons"]
@@ -3287,24 +3280,38 @@ size_flags_horizontal = 6
 disabled = true
 text = "Local"
 
+[node name="HydrusLoadButton" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/ToggleButtons"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Hydrus"
+
 [node name="AmountToLoad" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="e621SpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/AmountToLoad"]
 layout_mode = 2
 size_flags_horizontal = 6
-max_value = 10.0
+max_value = 6.0
 editable = false
 
 [node name="LocalSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/AmountToLoad"]
 layout_mode = 2
 size_flags_horizontal = 6
-max_value = 20.0
+max_value = 24.0
+editable = false
+
+[node name="HydrusSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/AmountToLoad"]
+layout_mode = 2
+size_flags_horizontal = 6
+max_value = 72.0
 editable = false
 
 [node name="LoadGifs" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer"]
 layout_mode = 2
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="LoadGife6CheckBox" type="CheckBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/LoadGifs"]
@@ -3314,6 +3321,12 @@ disabled = true
 text = "Load GIFs"
 
 [node name="LoadGifLocalCheckBox" type="CheckBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/LoadGifs"]
+layout_mode = 2
+size_flags_horizontal = 6
+disabled = true
+text = "Load GIFs"
+
+[node name="LoadGifHydrusCheckBox" type="CheckBox" parent="Settings/SettingsContainer/SettingsSets/LoadImages/ReviewImagesOptions/VBoxContainer/LoadGifs"]
 layout_mode = 2
 size_flags_horizontal = 6
 disabled = true
@@ -3901,6 +3914,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
