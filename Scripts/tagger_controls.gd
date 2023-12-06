@@ -209,12 +209,15 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add:
 			add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 		else:
 			add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
-		
-		
+
 		item_list.set_item_custom_fg_color(
 					add_index,
 					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_dict["category"]]]))
-		
+		# --
+		if Tagger.tag_manager.has_tag(tag_name):
+			var tar_resource: Tag = Tagger.tag_manager.get_tag(tag_name)
+			update_parents(tar_resource, search_suggestions)
+		# ----
 		if character_bodytypes.has(tag_name):
 			body_types_added += 1
 		elif character_genders.has(tag_name):
@@ -223,8 +226,6 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add:
 			character_count_added += 1
 	
 		if Tagger.settings.search_suggested:
-#			tag_queue.append(tag_name)
-#			start_suggestion_lookup()
 			tag_holder.add_to_search_queue({tag_name: self})
 		
 		if select_on_add:
@@ -757,7 +758,7 @@ func open_context_menu(tag_name: String, itembox_position: Vector2, item_positio
 
 func left_click_context_menu_clicked(id_pressed: int) -> void:
 	if id_pressed == 0:
-		main_application.go_to_create_tag(context_tag, tags_inputed[context_tag]["parents"], tags_inputed[context_tag]["suggested_tags"] + tags_inputed[context_tag]["related_tags"], tags_inputed[context_tag]["category"])
+		main_application.go_to_create_tag(context_tag, tags_inputed[context_tag]["parents"], tags_inputed[context_tag]["suggested_tags"] + tags_inputed[context_tag]["related_tags"], tags_inputed[context_tag]["category"], tags_inputed[context_tag]["priority"])
 	elif id_pressed == 1:
 		main_application.go_to_edit_tag(context_tag)
 	elif id_pressed == 2:
@@ -814,6 +815,7 @@ func sort_tags_by_category() -> void:
 	
 	for item in final_array:
 		append_prefilled_tag(item, backup_tags[item], false, false)
+	implied_list.sort_items_by_text()
 
 
 func tagger_menu_pressed(option_id: int) -> void:
@@ -838,21 +840,21 @@ func tagger_menu_pressed(option_id: int) -> void:
 
 func open_set_tagger() -> void:
 	var tag_to_set: String = context_tag
-	set_as_tag.set_target_tag(tag_to_set)
+
+	set_as_tag.set_target_tag(tag_to_set, tags_inputed[context_tag]["category"], tags_inputed[context_tag]["priority"])
 	set_as_tag.show()
 	
-	await set_as_tag.set_as_accepted
-	
-	if set_as_tag.change_prio:
-		tags_inputed[context_tag]["priority"] = set_as_tag.prio_selected
-	
-	if set_as_tag.change_category:
-		tags_inputed[context_tag]["category"] = set_as_tag.category_select
-		add_to_category(set_as_tag.category_select as Tagger.Categories)
-		item_list.set_item_custom_fg_color(
-				called_index,
-				Tagger.settings.category_color_code[
-						Tagger.Categories.keys()[set_as_tag.category_select]])
+	if await set_as_tag.set_as_accepted:
+		if set_as_tag.change_prio:
+			tags_inputed[context_tag]["priority"] = set_as_tag.prio_selected
+		
+		if set_as_tag.change_category:
+			tags_inputed[context_tag]["category"] = set_as_tag.category_select
+			add_to_category(set_as_tag.category_select as Tagger.Categories)
+			item_list.set_item_custom_fg_color(
+					called_index,
+					Tagger.settings.category_color_code[
+							Tagger.Categories.keys()[set_as_tag.category_select]])
 	
 	set_as_tag.hide()
 
