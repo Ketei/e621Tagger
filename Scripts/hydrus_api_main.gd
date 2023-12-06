@@ -2,7 +2,10 @@ class_name HydrusRequestAPI
 extends Node
 
 
-signal texture_created(texture_data)
+signal thumbnail_created(texture_data)
+signal image_created(texture_data)
+signal thumbnails_grabbed
+signal file_grabbed
 signal thread_finished
 
 const api_address: String = "http://127.0.0.1:{0}/"
@@ -11,8 +14,14 @@ const thumbnail_endpoint: String = "get_files/thumbnail?"
 const file_endpoint: String = "get_files/file?"
 const verify_access_endpoint: String = "verify_access_key"
 
+enum TextureMode {
+	THUMBNAIL,
+	FILE,
+}
+
 var api_key: String = ""
 var api_port: String = ""
+var texture_mode: TextureMode = TextureMode.FILE
 
 var valid_api: bool = false
 
@@ -24,8 +33,8 @@ func _ready():
 	picture_downloader.request_completed.connect(_on_picture_found)
 
 
-func set_data(port: String, key: String, verify_immediatly := false) -> void:
-	api_port = port
+func set_data(port: int, key: String, verify_immediatly := false) -> void:
+	api_port = str(port)
 	api_key = key
 	if verify_immediatly:
 		verify_access_key()
@@ -118,7 +127,10 @@ func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 					tag_to_check = "lore:" + tag_to_check
 			tags_to_format += "\"" +  tag_to_check.strip_edges() + "\","
 		tags_to_format += "\"system:limit={0}\",".format([str(tag_count)])
-		tags_to_format += "\"system:filetype=image,gif\","
+		tags_to_format += "\"system:filetype=image"
+		if Tagger.settings.load_hydrus_gifs: # Load gifs
+			tags_to_format += ",gif"
+		tags_to_format += "\","
 		tags_to_format += "\"system:archive\""
 		tags_to_format += "]"
 		request_url += tags_to_format.uri_encode() + "&"
@@ -144,19 +156,28 @@ func get_thumbnails(ids_array: Array) -> void:
 	
 	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 		Tagger.common_thread.wait_to_finish()
+		
+	texture_mode = TextureMode.THUMBNAIL
 	
 	var url_building: String = api_address.format([api_port]) + thumbnail_endpoint
+	
 	for pic_id in ids_array:
-		picture_downloader.request(url_building + "file_id=" + str(pic_id), build_headers())
+		picture_downloader.request(
+				url_building + "file_id=" + str(pic_id),
+				build_headers())
 		await thread_finished
+	
+	thumbnails_grabbed.emit()
 
 
 func _on_picture_found(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	if not valid_api:
+		thread_finished.emit()
 		return
 	
 	if result != OK:
 		print_debug("File got {0} as result".format([str(result)]))
+		thread_finished.emit()
 		return
 
 	if response_code != 200:
@@ -166,12 +187,14 @@ func _on_picture_found(result: int, response_code: int, headers: PackedStringArr
 		print_debug("File got {0} as response".format([str(response_code)]))
 		print_debug("Error: " + parsed["error"])
 		print_debug("Exception type: " + parsed["exception_type"])
+		thread_finished.emit()
 		return
 	
 	var header_data = headers_parse(headers)
 	
 	if not is_valid_headers(header_data):
 		print_debug("Headers don't match with Hydrus API")
+		thread_finished.emit()
 		return
 
 	Tagger.common_thread.start(create_texture.bind(body, header_data["content-type"].split("/")[1]))
@@ -180,14 +203,27 @@ func _on_picture_found(result: int, response_code: int, headers: PackedStringArr
 func create_texture(image_data: PackedByteArray, image_format: String) -> void:
 	var image := Image.new()
 	var texture: ImageTexture
+	var anim_texture: AnimatedTexture
 	if image_format == "jpeg" or image_format == "jpg":
 		image.load_jpg_from_buffer(image_data)
 		texture = ImageTexture.create_from_image(image)
-		call_deferred("emit_signal", "texture_created", texture)
+		if texture_mode == TextureMode.FILE:
+			call_deferred("emit_signal", "image_created", texture)
+		elif texture_mode == TextureMode.THUMBNAIL:
+			call_deferred("emit_signal", "thumbnail_created", texture)
 	elif image_format == "png":
 		image.load_png_from_buffer(image_data)
 		texture = ImageTexture.create_from_image(image)
-		call_deferred("emit_signal", "texture_created", texture)
+		if texture_mode == TextureMode.FILE:
+			call_deferred("emit_signal", "image_created", texture)
+		elif texture_mode == TextureMode.THUMBNAIL:
+			call_deferred("emit_signal", "thumbnail_created", texture)
+	elif image_format == "gif":
+		anim_texture = GifManager.animated_texture_from_buffer(image_data, 256)
+		if texture_mode == TextureMode.FILE:
+			call_deferred("emit_signal", "image_created", anim_texture)
+		elif texture_mode == TextureMode.THUMBNAIL:
+			call_deferred("emit_signal", "thumbnail_created", anim_texture)
 	clean_thread.call_deferred()
 
 
@@ -195,4 +231,24 @@ func clean_thread() -> void:
 	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 		Tagger.common_thread.wait_to_finish()
 	thread_finished.emit()
+
+
+func get_file(file_id: int) -> void:
+	if not valid_api:
+		return
+	
+	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
+		Tagger.common_thread.wait_to_finish()
+	
+	texture_mode = TextureMode.FILE
+	
+	var url_building: String = api_address.format([api_port]) + file_endpoint
+	
+	picture_downloader.request(
+			url_building + "file_id=" + str(file_id), 
+			build_headers())
+	
+	await thread_finished
+	
+	file_grabbed.emit()
 
