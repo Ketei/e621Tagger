@@ -145,7 +145,7 @@ func trigger_options(id: int) -> void:
 		quit_app()
 
 
-func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL) -> void:
+func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL, priority: int = 0) -> void:
 	tag_creator.clear_menu_items("", false)
 	tag_creator.tag_to_add_line_edit.text = tag_to_create
 	tag_creator.tag_to_add_line_edit.text_changed.emit(tag_to_create)
@@ -156,6 +156,7 @@ func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion
 		if tag != tag_to_create:
 			tag_creator.add_parent(tag)
 	tag_creator.categories_menu.select(category)
+	tag_creator.tag_prio_box.value = priority
 	trigger_options(4)
 
 
