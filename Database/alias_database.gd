@@ -24,10 +24,16 @@ func has_alias(tag_name: String) -> bool:
 	return aliases.has(tag_name)
 
 
-func get_alias(tag_name: String) -> String:
+func get_alias(tag_name: String, _starting_tag: String = "") -> String:
+	if _starting_tag.is_empty():
+		_starting_tag = tag_name
+	
 	if aliases.has(tag_name):
 		if aliases.has(aliases[tag_name]):
-			return get_alias(aliases[tag_name])
+			if aliases[tag_name] == _starting_tag:
+				return tag_name
+			else:
+				return get_alias(aliases[tag_name], _starting_tag)
 		else:
 			return aliases[tag_name]
 	else:
