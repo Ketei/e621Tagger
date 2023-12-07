@@ -74,12 +74,12 @@ func toggle_load_gifs_e621(toggle_state: bool) -> void:
 
 
 func toggle_load_gifs_local(toggle_state: bool) -> void:
-	Tagger.settings.load_hydrus_gifs = toggle_state
+	Tagger.settings.load_local_gifs = toggle_state
 
 
 func toggle_load_gifs_hydrus(toggle_state: bool) -> void:
-	Tagger.settings.load_local_gifs = toggle_state
-
+	Tagger.settings.load_hydrus_gifs = toggle_state
+	
 
 func e621_gif_checkbox_set_enabled(is_enabled: bool) -> void:
 	load_gif_e621_check_box.disabled = not is_enabled
