@@ -23,6 +23,10 @@ extends Resource
 @export var hydrus_review_amount: int = 6
 @export var load_hydrus_gifs: bool = false
 
+@export var hydrus_remember_data: bool = false
+@export var hydrus_port: int = 0
+@export var hydrus_key: String = ""
+
 @export var file_version: String = "1.0"
 
 @export var open_tag_folder_on_creation: bool = false
