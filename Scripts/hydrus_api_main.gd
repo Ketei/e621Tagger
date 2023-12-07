@@ -2,8 +2,8 @@ class_name HydrusRequestAPI
 extends Node
 
 
-signal thumbnail_created(texture_data)
-signal image_created(texture_data)
+signal thumbnail_created(texture_data, file_id)
+signal image_created(texture_data, file_id)
 signal thumbnails_grabbed
 signal file_grabbed
 signal thread_finished
@@ -20,10 +20,12 @@ enum TextureMode {
 }
 
 var api_key: String = ""
-var api_port: String = ""
+var api_port: int = 0
 var texture_mode: TextureMode = TextureMode.FILE
 
 var valid_api: bool = false
+
+var _current_id: int = 0
 
 @onready var request_api: HTTPRequest = $RequestAPI
 @onready var picture_downloader: HTTPRequest = $PictureDownloader
@@ -34,14 +36,20 @@ func _ready():
 
 
 func set_data(port: int, key: String, verify_immediatly := false) -> void:
-	api_port = str(port)
+	api_port = port
 	api_key = key
 	if verify_immediatly:
 		verify_access_key()
 
 
+func reset_connection() -> void:
+	api_port = 0
+	api_key = ""
+	valid_api = false
+
+
 func verify_access_key() -> bool:
-	if api_port.is_empty() or api_key.is_empty():
+	if api_key.is_empty():
 		valid_api = false
 		return false
 	
@@ -100,6 +108,37 @@ func is_valid_headers(header_data: Dictionary) -> bool:
 	return false
 
 
+func to_valid_system_tag(input_tag: String) -> String:
+	var final_tag: String = ""
+	
+	if input_tag.begins_with("-"):
+		input_tag = input_tag.trim_prefix("-")
+		final_tag += "-"
+	
+	var aliased_tag = Tagger.alias_database.get_alias(input_tag)
+	
+	if Tagger.tag_manager.has_tag(aliased_tag):
+		var tag_class: Tagger.Categories = Tagger.tag_manager.get_tag_type(aliased_tag)
+		if tag_class == Tagger.Categories.ARTIST:
+			final_tag += "creator:" + aliased_tag
+		elif tag_class == Tagger.Categories.SPECIES:
+			final_tag += "species:" + aliased_tag
+		elif tag_class == Tagger.Categories.COPYRIGHT:
+			final_tag += "series:" + aliased_tag
+		elif tag_class == Tagger.Categories.CHARACTER:
+			final_tag += "character:" + aliased_tag
+		elif tag_class == Tagger.Categories.META:
+			final_tag += "meta:" + aliased_tag
+		elif tag_class == Tagger.Categories.LORE:
+			final_tag += "lore:" + aliased_tag
+		else:
+			final_tag += aliased_tag
+	else:
+		final_tag += aliased_tag
+	
+	return final_tag
+
+
 func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 	if not valid_api:
 		return []
@@ -110,21 +149,7 @@ func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 		request_url += "tags="
 		var tags_to_format: String = "["
 		for tag:String in tags_array:
-			var tag_to_check = Tagger.alias_database.get_alias(tag.strip_edges())
-			if Tagger.tag_manager.has_tag(tag_to_check):
-				var tag_class: Tagger.Categories = Tagger.tag_manager.get_tag_type(tag_to_check)
-				if tag_class == Tagger.Categories.ARTIST:
-					tag_to_check = "creator:" + tag_to_check
-				elif tag_class == Tagger.Categories.SPECIES:
-					tag_to_check = "species:" + tag_to_check
-				elif tag_class == Tagger.Categories.COPYRIGHT:
-					tag_to_check = "series:" + tag_to_check
-				elif tag_class == Tagger.Categories.CHARACTER:
-					tag_to_check = "character:" + tag_to_check
-				elif tag_class == Tagger.Categories.META:
-					tag_to_check = "meta:" + tag_to_check
-				elif tag_class == Tagger.Categories.LORE:
-					tag_to_check = "lore:" + tag_to_check
+			var tag_to_check = to_valid_system_tag(tag.strip_edges())
 			tags_to_format += "\"" +  tag_to_check.strip_edges() + "\","
 		tags_to_format += "\"system:limit={0}\",".format([str(tag_count)])
 		tags_to_format += "\"system:filetype=image"
@@ -134,7 +159,7 @@ func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 		tags_to_format += "\"system:archive\""
 		tags_to_format += "]"
 		request_url += tags_to_format.uri_encode() + "&"
-	
+		print(tags_to_format)
 	request_url += "file_sort_type=4"
 	request_api.request(request_url, build_headers())
 	var response = await request_api.request_completed
@@ -162,6 +187,7 @@ func get_thumbnails(ids_array: Array) -> void:
 	var url_building: String = api_address.format([api_port]) + thumbnail_endpoint
 	
 	for pic_id in ids_array:
+		_current_id = pic_id
 		picture_downloader.request(
 				url_building + "file_id=" + str(pic_id),
 				build_headers())
@@ -208,22 +234,22 @@ func create_texture(image_data: PackedByteArray, image_format: String) -> void:
 		image.load_jpg_from_buffer(image_data)
 		texture = ImageTexture.create_from_image(image)
 		if texture_mode == TextureMode.FILE:
-			call_deferred("emit_signal", "image_created", texture)
+			call_deferred("emit_signal", "image_created", texture, _current_id)
 		elif texture_mode == TextureMode.THUMBNAIL:
-			call_deferred("emit_signal", "thumbnail_created", texture)
+			call_deferred("emit_signal", "thumbnail_created", texture, _current_id)
 	elif image_format == "png":
 		image.load_png_from_buffer(image_data)
 		texture = ImageTexture.create_from_image(image)
 		if texture_mode == TextureMode.FILE:
-			call_deferred("emit_signal", "image_created", texture)
+			call_deferred("emit_signal", "image_created", texture, _current_id)
 		elif texture_mode == TextureMode.THUMBNAIL:
-			call_deferred("emit_signal", "thumbnail_created", texture)
+			call_deferred("emit_signal", "thumbnail_created", texture, _current_id)
 	elif image_format == "gif":
 		anim_texture = GifManager.animated_texture_from_buffer(image_data, 256)
 		if texture_mode == TextureMode.FILE:
-			call_deferred("emit_signal", "image_created", anim_texture)
+			call_deferred("emit_signal", "image_created", anim_texture, _current_id)
 		elif texture_mode == TextureMode.THUMBNAIL:
-			call_deferred("emit_signal", "thumbnail_created", anim_texture)
+			call_deferred("emit_signal", "thumbnail_created", anim_texture, _current_id)
 	clean_thread.call_deferred()
 
 
