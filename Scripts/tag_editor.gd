@@ -234,6 +234,7 @@ func update_tag() -> void:
 	_tag.conflicts = conflicts_array.duplicate()
 	_tag.tooltip = tag_tooltip_line_edit.text.strip_edges()
 	_tag.aliases = PackedStringArray(tag_aliases_array)
+	_tag.has_prompt_data = has_prompt_data.button_pressed
 	_tag.prompt_category = prompt_data["category"]
 	_tag.prompt_category_img_tag = prompt_data["category_img"]
 	_tag.prompt_category_desc = prompt_data["category_desc"]
