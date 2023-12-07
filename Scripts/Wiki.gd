@@ -16,8 +16,13 @@ signal tag_updated
 @onready var main_application = $".."
 @onready var video_player = $VideoPlayer
 
+@onready var hydrus_api_request: HydrusRequestAPI = $"../HydrusAPIRequest"
+@onready var preview_stopper: ColorRect = $PreviewStopper
+
+
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
 var video_thumbnails = preload("res://Scenes/video_thumbnail.tscn")
+var hydrus_thumbnail = preload("res://Scenes/hydrus_rect.tscn")
 
 var images_to_display: Array[ImageTexture] = []
 var videos_to_display: Array[String] = []
@@ -38,7 +43,7 @@ var amount_vs_resolution: Dictionary = {
 }
 
 var current_search: String = ""
-
+var hydrus_thumbnail_amount: int = 0
 # To-Do: Create an Hydrus implementation. Make it send HTTP requests and once
 # it answers make a threaded function load the picture and then call
 # display_image.
@@ -51,6 +56,10 @@ func _ready():
 	wiki_image_requester.image_created.connect(display_image)
 	wiki_image_requester.image_skipped.connect(increase_progress)
 	wiki_image_requester.posts_found.connect(web_progress_set)
+	
+	hydrus_api_request.thumbnail_created.connect(display_hydrus_thumbnail)
+	hydrus_api_request.image_created.connect(display_big_pic)
+	hydrus_api_request.thumbnails_grabbed.connect(hydrus_progress_fallback)
 
 
 func _unhandled_key_input(event):
@@ -97,6 +106,8 @@ func clear_wiki() -> void:
 			child.lewd_pic_pressed.disconnect(display_big_pic)
 		elif child is VideoThumbnail:
 			child.thumbnail_clicked.disconnect(display_vid_player)
+		elif child is HydrusTextureRect:
+			child.thumbnail_pressed.disconnect(display_hydrus_file)
 		child.queue_free()
 	wiki_edit.text = ""
 	wiki_popup_menu.set_item_disabled(
@@ -139,15 +150,15 @@ func search_for_tag(new_text: String) -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 	wiki_edit.text = build_wiki_entry(_tag)
 	
-	preview_progress_load.max_value = 0
-	preview_progress_load.value = 0
-	
 	var local_image_data: Dictionary = get_local_filenames(_tag)
+	var hydrus_ids_array: Array = []
 	
-	#To-Do: Also make a hydrus request here. until it gets a response, don't unlock
-	# once we get the array with posts IDs add it to the progress bar. Then it
-	# should start requesting files, loading them in the background and displaying
-	# them
+	if hydrus_api_request.valid_api and Tagger.settings.load_wiki_hydrus and _tag.has_pictures:
+		var search_tags: Array = [_tag.tag]
+		for _blacklist_tag in Tagger.settings_lists.suggestion_review_blacklist:
+			if _blacklist_tag != _tag.tag:
+				search_tags.append("-" + _blacklist_tag)
+		hydrus_ids_array = await hydrus_api_request.search_for_tags(search_tags, Tagger.settings.hydrus_review_amount)
 	
 	if 0 < local_image_data["count"]:
 		is_local_loading_done = false
@@ -155,7 +166,12 @@ func search_for_tag(new_text: String) -> void:
 		get_local_images(local_image_data["folder"], local_image_data["files"])
 	else:
 		is_local_loading_done = true
-
+	
+	if not hydrus_ids_array.is_empty():
+		hydrus_thumbnail_amount = hydrus_ids_array.size()
+		preview_progress_load.max_value += hydrus_thumbnail_amount
+		hydrus_api_request.get_thumbnails(hydrus_ids_array)
+	
 	if _tag.has_pictures and Tagger.settings.can_load_from_e6():
 		is_web_loading_done = false
 		search_web_images(_tag.tag)
@@ -164,7 +180,7 @@ func search_for_tag(new_text: String) -> void:
 
 	if is_web_loading_done and is_local_loading_done:
 		tag_search_line_edit.editable = true
-
+	preview_progress_load.max_value -= 1
 
 func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var file_names: Array = []
@@ -304,6 +320,32 @@ func display_image(image_texture: Texture2D):
 	increase_progress()
 
 
+func display_hydrus_thumbnail(texture: Texture2D, thumbnail_id: int) -> void:
+	var new_h_thumb: HydrusTextureRect = hydrus_thumbnail.instantiate()
+	new_h_thumb.picture_id = thumbnail_id
+	new_h_thumb.texture = texture
+	
+	var texture_size: Vector2 = texture.get_size()
+	var new_heigth: float = (texture_size.y / texture_size.x) * amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)]
+	
+	new_h_thumb.custom_minimum_size = Vector2(amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)], new_heigth)
+	
+	new_h_thumb.pause_texture(not self.visible)
+	
+	lewd_pic_container.add_child(new_h_thumb)
+	new_h_thumb.thumbnail_pressed.connect(display_hydrus_file)
+	hydrus_thumbnail_amount -= 1
+	increase_progress()
+	
+
+func display_hydrus_file(file_id: int) -> void:
+	pause_all_gifs()
+	hydrus_api_request.get_file(file_id)
+	preview_stopper.show()
+	await hydrus_api_request.file_grabbed
+	preview_stopper.hide()
+	
+
 func display_video(path_to_vid: String) -> void:
 	var vid_thumbnail: VideoThumbnail = video_thumbnails.instantiate()
 	vid_thumbnail.video_path = path_to_vid
@@ -349,16 +391,15 @@ func search_web_images(tag_names: String) -> void:
 	search_tags.append(tag_names)
 	
 	for blacklist_tag in Tagger.settings_lists.suggestion_review_blacklist:
-		if search_tags.has(blacklist_tag):
-			continue
-		search_tags.append("-" + blacklist_tag)
+		if blacklist_tag != tag_names:
+			search_tags.append("-" + blacklist_tag)
 	
 	wiki_image_requester.match_name = search_tags.duplicate()
 	wiki_image_requester.get_posts_and_download()
 	wiki_search_cooldown.start()
 
 
-func display_big_pic(texture_to_load: Texture2D) -> void:
+func display_big_pic(texture_to_load: Texture2D, _picture_id: int = -1) -> void:
 	pause_all_gifs()
 	full_screen_display.show_picture(texture_to_load)
 
@@ -370,13 +411,20 @@ func display_vid_player(path_to_vid: String, node_reference: TextureRect) -> voi
 
 func pause_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
-		if child is LewdTextureRect:
+		if child is LewdTextureRect or child is HydrusTextureRect:
 			child.pause_texture(true)
 
 
 func play_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
-		if child is LewdTextureRect:
+		if child is LewdTextureRect or child is HydrusTextureRect:
 			child.pause_texture(false)
 
+
+func hydrus_progress_fallback() -> void:
+	preview_progress_load.value += hydrus_thumbnail_amount
+	if preview_progress_load.value == preview_progress_load.max_value:
+		if wiki_search_cooldown.is_stopped():
+			await wiki_search_cooldown.timeout
+		tag_search_line_edit.editable = true
 
