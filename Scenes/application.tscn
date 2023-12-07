@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=65 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://Scripts/taglist_instancer.gd" id="2_h37oq"]
 [ext_resource type="Script" path="res://Scripts/new_tagger_instance_maker.gd" id="2_pptx1"]
 [ext_resource type="Script" path="res://Classes/list_loader.gd" id="3_nde26"]
+[ext_resource type="PackedScene" uid="uid://cis78toxdlpik" path="res://Scenes/hydrus_api_request.tscn" id="4_jly38"]
 [ext_resource type="Texture2D" uid="uid://bjbjeeop8rv8x" path="res://Textures/WhiteWizard.svg" id="4_xwxxc"]
 [ext_resource type="Script" path="res://Scripts/list_name_loader.gd" id="5_jy0w4"]
 [ext_resource type="Script" path="res://Scripts/tag_editor.gd" id="5_o42l3"]
@@ -43,6 +44,7 @@
 [ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
 [ext_resource type="Script" path="res://Scripts/change_db_confirm.gd" id="31_g7kp8"]
 [ext_resource type="Script" path="res://Scripts/database_file_dialog.gd" id="32_3ueat"]
+[ext_resource type="Script" path="res://Scripts/hydrus_login_script.gd" id="41_uxv55"]
 
 [sub_resource type="GDScript" id="GDScript_t2bdg"]
 resource_name = "open_search_parents"
@@ -352,6 +354,15 @@ func new_value_changed(new_value: float) -> void:
 func hide_and_restore() -> void:
 	hide()
 	self.self_modulate = Color.CORNFLOWER_BLUE
+"
+
+[sub_resource type="GDScript" id="GDScript_rjg60"]
+resource_name = "start_hidden"
+script/source = "extends ColorRect
+
+
+func _ready():
+	hide()
 "
 
 [sub_resource type="GDScript" id="GDScript_h1pvg"]
@@ -814,6 +825,8 @@ get_sample_if_available = false
 wait_time = 1.5
 one_shot = true
 
+[node name="HydrusAPIRequest" parent="." instance=ExtResource("4_jly38")]
+
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -960,9 +973,11 @@ item_1/id = 1
 item_1/disabled = true
 
 [node name="API" type="PopupMenu" parent="MenuBar"]
-item_count = 1
-item_0/text = "API key"
+item_count = 2
+item_0/text = "e621"
 item_0/id = 0
+item_1/text = "Hydrus"
+item_1/id = 1
 
 [node name="NewTagger" type="Control" parent="."]
 anchors_preset = 0
@@ -2807,8 +2822,8 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Wiki/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(624, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="TagSearcher" type="LineEdit" parent="Wiki/VBoxContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
@@ -2854,11 +2869,24 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 
 [node name="LewdPicsContainer" type="GridContainer" parent="Wiki/VBoxContainer/HBoxContainer/Imeges/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="PreviewStopper" type="ColorRect" parent="Wiki"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.180392, 0.180392, 0.180392, 0.784314)
+script = SubResource("GDScript_rjg60")
 
 [node name="FullScreenDisplay" parent="Wiki" instance=ExtResource("7_bjv2t")]
 visible = false
@@ -3168,12 +3196,13 @@ metadata/_edit_use_anchors_ = true
 visible = false
 layout_mode = 2
 
-[node name="Settings" type="Control" parent="."]
+[node name="Settings" type="Control" parent="." node_paths=PackedStringArray("aliases_vbox")]
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
 offset_bottom = 720.0
 script = ExtResource("24_kxx7k")
+aliases_vbox = NodePath("SettingsContainer/SettingsSets/Aliases")
 
 [node name="SettingsContainer" type="HBoxContainer" parent="Settings"]
 layout_mode = 0
@@ -3563,6 +3592,125 @@ size_flags_vertical = 3
 tooltip_text = "When dowloading samples, the posts with these tags won't be downloaded."
 theme = ExtResource("8_rcl5d")
 
+[node name="Labels" type="CenterContainer" parent="Settings"]
+layout_mode = 0
+anchor_left = 0.9
+anchor_top = -0.0843373
+anchor_right = 1.0
+anchor_bottom = -0.0120482
+metadata/_edit_use_anchors_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/Labels"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="VersionLabel" type="Label" parent="Settings/Labels/VBoxContainer"]
+modulate = Color(0, 0, 0, 0.392157)
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "v 1.2.0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AuthorLabel" type="Label" parent="Settings/Labels/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 0.392157)
+text = "by Ketei"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WarningRect" type="Control" parent="Settings"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -56.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("31_g7kp8")
+
+[node name="ColorRect" type="ColorRect" parent="Settings/WarningRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="Warning" type="CenterContainer" parent="Settings/WarningRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChangeDBControl" type="Control" parent="Settings/WarningRect/Warning"]
+custom_minimum_size = Vector2(320, 144)
+layout_mode = 2
+
+[node name="BackgroundColorRect" type="ColorRect" parent="Settings/WarningRect/Warning/ChangeDBControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.529412, 0.572549, 0.65098, 1)
+
+[node name="ColorRect" type="ColorRect" parent="Settings/WarningRect/Warning/ChangeDBControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/WarningRect/Warning/ChangeDBControl"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.089
+anchor_right = 0.95
+anchor_bottom = 0.628
+offset_top = 3.184
+offset_bottom = 37.568
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer"]
+layout_mode = 2
+text = "Warning!
+Changing the database location will cause the software to close. Continue?"
+horizontal_alignment = 3
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirm"
+
+[node name="CancelButton" type="Button" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel
+"
+
 [node name="APILoader" type="Control" parent="Settings"]
 visible = false
 layout_mode = 1
@@ -3776,123 +3924,92 @@ offset_right = 888.0
 offset_bottom = 40.0
 text = "X"
 
-[node name="CenterContainer" type="CenterContainer" parent="Settings"]
-layout_mode = 0
-offset_left = 1152.0
-offset_top = -56.0
-offset_right = 1280.0
-offset_bottom = -8.0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Settings/CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 0
-alignment = 1
-
-[node name="VersionLabel" type="Label" parent="Settings/CenterContainer/VBoxContainer"]
-modulate = Color(0, 0, 0, 0.392157)
-layout_mode = 2
-theme_override_font_sizes/font_size = 25
-text = "v 1.0.0"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="AuthorLabel" type="Label" parent="Settings/CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 0.392157)
-text = "by Ketei"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="WarningRect" type="Control" parent="Settings"]
+[node name="HydrusAPI" type="CenterContainer" parent="Settings"]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = -1
+anchor_top = -0.0843373
+anchor_right = 1.00625
 anchor_bottom = 1.0
-offset_top = -56.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("31_g7kp8")
+script = ExtResource("41_uxv55")
+metadata/_edit_use_anchors_ = true
 
-[node name="ColorRect" type="ColorRect" parent="Settings/WarningRect"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ColorRect" type="ColorRect" parent="Settings/HydrusAPI"]
+custom_minimum_size = Vector2(1280, 720)
+layout_mode = 2
 color = Color(0, 0, 0, 0.588235)
 
-[node name="Warning" type="CenterContainer" parent="Settings/WarningRect"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ChangeDBControl" type="Control" parent="Settings/WarningRect/Warning"]
-custom_minimum_size = Vector2(320, 144)
+[node name="Hydrus" type="PanelContainer" parent="Settings/HydrusAPI"]
+custom_minimum_size = Vector2(400, 200)
 layout_mode = 2
 
-[node name="BackgroundColorRect" type="ColorRect" parent="Settings/WarningRect/Warning/ChangeDBControl"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.529412, 0.572549, 0.65098, 1)
-
-[node name="ColorRect" type="ColorRect" parent="Settings/WarningRect/Warning/ChangeDBControl"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ColorRect" type="ColorRect" parent="Settings/HydrusAPI/Hydrus"]
+layout_mode = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Settings/WarningRect/Warning/ChangeDBControl"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.05
-anchor_top = 0.089
-anchor_right = 0.95
-anchor_bottom = 0.628
-offset_top = 3.184
-offset_bottom = 37.568
-grow_horizontal = 2
-grow_vertical = 2
+[node name="MarginContainer" type="MarginContainer" parent="Settings/HydrusAPI/Hydrus"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer"]
+layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer"]
+[node name="Label" type="Label" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Warning!
-Changing the database location will cause the software to close. Continue?"
-horizontal_alignment = 3
+text = "Hydrus API"
+horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer"]
+[node name="Port" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Port"]
+layout_mode = 2
+text = "Port:"
+
+[node name="PortBox" type="SpinBox" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Port"]
+layout_mode = 2
+max_value = 65535.0
+
+[node name="Key" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="APIKeyLbl" type="Label" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Key"]
+layout_mode = 2
+text = "API Key:"
+
+[node name="KeyLine" type="LineEdit" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Key"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="ConfirmButton" type="Button" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer/HBoxContainer"]
+[node name="CancelButton" type="Button" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Buttons"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Confirm"
+text = "Close"
 
-[node name="CancelButton" type="Button" parent="Settings/WarningRect/Warning/ChangeDBControl/VBoxContainer/HBoxContainer"]
+[node name="TestButton" type="Button" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Buttons"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Cancel
-"
+text = "Connect to Hydrus"
+
+[node name="RememberCheck" type="CheckBox" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Buttons"]
+layout_mode = 2
+tooltip_text = "Warning: Data will be saved to settings file as plain text if checked."
+text = "Remember"
+
+[node name="Notifications" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ErrorLabel" type="Label" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Notifications"]
+layout_mode = 2
 
 [node name="DefaultFolderFileDialog" type="FileDialog" parent="Settings"]
 title = "Open a Directory"
