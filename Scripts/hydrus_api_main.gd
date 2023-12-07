@@ -159,7 +159,6 @@ func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 		tags_to_format += "\"system:archive\""
 		tags_to_format += "]"
 		request_url += tags_to_format.uri_encode() + "&"
-		print(tags_to_format)
 	request_url += "file_sort_type=4"
 	request_api.request(request_url, build_headers())
 	var response = await request_api.request_completed
