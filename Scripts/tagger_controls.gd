@@ -595,14 +595,12 @@ func add_from_suggested(item_activated: int, list_reference: ItemList) -> void: 
 		return
 	
 	list_reference.remove_item_from_list(item_activated)
-#	suggested_list.remove_item(item_activated)
-#	suggestion_tags_array.remove_at(item_activated)
-	
+
 	if not full_tag_list.has(_tag_text):
 		add_new_tag(_tag_text, false)
 	
 		if Tagger.settings.search_suggested:
-			tag_holder.add_to_search_queue(_tag_text)
+			tag_holder.add_to_api_queue(_tag_text, 1, self)
 
 
 func regenerate_parents() -> void:

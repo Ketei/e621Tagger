@@ -2865,7 +2865,6 @@ text = "Add"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagGroupsReview" type="Control" parent="TagReviewer"]
-visible = false
 layout_mode = 1
 anchor_top = -0.0712164
 anchor_right = 1.0
