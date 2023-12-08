@@ -161,11 +161,11 @@ func search_for_tag(new_text: String) -> void:
 		hydrus_ids_array = await hydrus_api_request.search_for_tags(search_tags, Tagger.settings.hydrus_review_amount)
 	
 	if 0 < local_image_data["count"]:
-		is_local_loading_done = false
+		#is_local_loading_done = false
 		preview_progress_load.max_value += local_image_data["count"]
 		get_local_images(local_image_data["folder"], local_image_data["files"])
-	else:
-		is_local_loading_done = true
+	#else:
+		#is_local_loading_done = true
 	
 	if not hydrus_ids_array.is_empty():
 		hydrus_thumbnail_amount = hydrus_ids_array.size()
@@ -173,14 +173,18 @@ func search_for_tag(new_text: String) -> void:
 		hydrus_api_request.get_thumbnails(hydrus_ids_array)
 	
 	if _tag.has_pictures and Tagger.settings.can_load_from_e6():
-		is_web_loading_done = false
+		preview_progress_load.max_value += 1
 		search_web_images(_tag.tag)
-	else:
-		is_web_loading_done = true
+	#else:
+		#is_web_loading_done = true
 
-	if is_web_loading_done and is_local_loading_done:
-		tag_search_line_edit.editable = true
+	#if is_web_loading_done and is_local_loading_done:
+		#tag_search_line_edit.editable = true
 	preview_progress_load.max_value -= 1
+	
+	if preview_progress_load.max_value == 0:
+		tag_search_line_edit.editable = true
+
 
 func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var file_names: Array = []
@@ -266,7 +270,8 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 		var file_extension = tempstring.get_extension()
 		
 		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
-			preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
+			#preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
+			increase_progress.call_deferred()
 			continue
 		if file_extension == "gif":
 			var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + "/" + file_name, 256)
@@ -293,14 +298,9 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 	if preview_progress_load.value == preview_progress_load.max_value:
 		finished_loading_local.emit()
-		if wiki_search_cooldown.is_stopped():
+		if not wiki_search_cooldown.is_stopped():
 			await wiki_search_cooldown.timeout
 		tag_search_line_edit.editable = true
-
-
-func create_and_display_image(image_file: Texture2D) -> void:
-#	var _new_texture := ImageTexture.create_from_image(image_file)
-	display_image(image_file)
 
 
 func display_image(image_texture: Texture2D):
@@ -362,18 +362,13 @@ func merge_thread():
 		Tagger.common_thread.wait_to_finish()
 	thread_working = false
 	thread_interrupt = false
-	is_local_loading_done = true
-	
-	if is_local_loading_done and is_web_loading_done:
-		tag_search_line_edit.editable = true
 
 
 func web_progress_set(amount: int) -> void:
-	preview_progress_load.max_value += amount
-	if amount == 0:
-		is_web_loading_done = true
+	preview_progress_load.max_value += amount - 1
 	
-	if is_local_loading_done and is_web_loading_done:
+	if preview_progress_load.max_value == 0:
+		#is_web_loading_done = true
 		tag_search_line_edit.editable = true
 
 
