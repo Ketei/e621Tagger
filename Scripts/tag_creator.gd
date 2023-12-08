@@ -283,24 +283,26 @@ func create_tag() -> void:
 	
 	Tagger.tag_manager.relation_database[target_tag.left(1)][target_tag] = _tag_path
 	
-	if has_images_check_box.button_pressed and tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)):
-		OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
-	
-	if download_samples_check_box.button_pressed and has_images_check_box.button_pressed:
-		if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag_path.get_basename()):
-			DirAccess.make_dir_absolute(Tagger.tag_images_path + _tag_path.get_basename())
-	
-		var search_tags: Array[String] = ["~type:jpg", "~type:png", "order:score"]
+	if has_images_check_box.button_pressed:
+		if tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)) or download_samples_check_box.button_pressed:
+			if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag_path.get_basename()):
+				DirAccess.make_dir_absolute(Tagger.tag_images_path + _tag_path.get_basename())
 		
-		for blacklist_tag in Tagger.settings_lists.samples_blacklist:
-			if blacklist_tag == target_tag:
-				continue
-			search_tags.append("-" + blacklist_tag)
-		
-		search_tags.append(target_tag)
+		if download_samples_check_box.button_pressed:
+			var search_tags: Array[String] = ["~type:jpg", "~type:png", "order:score"]
+			
+			for blacklist_tag in Tagger.settings_lists.samples_blacklist:
+				if blacklist_tag == target_tag:
+					continue
+				search_tags.append("-" + blacklist_tag)
+			
+			search_tags.append(target_tag)
 
-		e_621api_request.add_to_queue(search_tags, 5, E621API.SEARCH_TYPES.DOWNLOAD, self, Tagger.tag_images_path + _tag_path.get_file().get_basename() + "/")
-		downloads_queued += 1
+			e_621api_request.add_to_queue(search_tags, 5, E621API.SEARCH_TYPES.DOWNLOAD, self, Tagger.tag_images_path + _tag_path.get_file().get_basename() + "/")
+			downloads_queued += 1
+	
+		if tag_creator_menu.is_item_checked(tag_creator_menu.get_item_index(1)):
+			OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
 	
 	for alias in aliased_tags:
 		register_alias.emit(alias, target_tag)
