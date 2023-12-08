@@ -231,6 +231,7 @@ func create_texture(image_data: PackedByteArray, image_format: String) -> void:
 	var anim_texture: AnimatedTexture
 	if image_format == "jpeg" or image_format == "jpg":
 		image.load_jpg_from_buffer(image_data)
+		image.generate_mipmaps()
 		texture = ImageTexture.create_from_image(image)
 		if texture_mode == TextureMode.FILE:
 			call_deferred("emit_signal", "image_created", texture, _current_id)
@@ -238,6 +239,7 @@ func create_texture(image_data: PackedByteArray, image_format: String) -> void:
 			call_deferred("emit_signal", "thumbnail_created", texture, _current_id)
 	elif image_format == "png":
 		image.load_png_from_buffer(image_data)
+		image.generate_mipmaps()
 		texture = ImageTexture.create_from_image(image)
 		if texture_mode == TextureMode.FILE:
 			call_deferred("emit_signal", "image_created", texture, _current_id)
