@@ -59,6 +59,7 @@ func on_gen_item_selected(_index_selected: int) -> void:
 			image_texture.texture = gif
 		else:
 			var image := Image.load_from_file(image_path)
+			image.generate_mipmaps()
 			image_texture.texture = ImageTexture.create_from_image(image)
 	subcat_item_options.clear()
 	specific_item_button.clear()
@@ -93,6 +94,7 @@ func on_subcat_item_selected(_index_selected: int) -> void:
 			image_texture.texture = gif
 		else:
 			var image := Image.load_from_file(image_path)
+			image.generate_mipmaps()
 			image_texture.texture = ImageTexture.create_from_image(image)
 	
 	for specific in item_options[cat]["types"][sub_cat]["types"].keys():
@@ -129,6 +131,7 @@ func on_spec_item_selected(_index_selected: int) -> void:
 			image_texture.texture = gif
 		else:
 			var image := Image.load_from_file(image_path)
+			image.generate_mipmaps()
 			image_texture.texture = ImageTexture.create_from_image(image)
 
 
