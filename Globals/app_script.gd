@@ -188,6 +188,11 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if not Tagger.settings.hydrus_remember_data:
+			if Tagger.settings.hydrus_port != 0:
+				Tagger.settings.hydrus_port = 0
+			if not Tagger.settings.hydrus_key.is_empty():
+				Tagger.settings.hydrus_key = ""
 		
 		Tagger.settings.save()
 		Tagger.site_settings.save()
@@ -198,6 +203,7 @@ func _notification(what):
 		if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 			Tagger.common_thread.wait_to_finish()
 			Tagger.common_thread = null
+		
 		
 		get_tree().quit()
 

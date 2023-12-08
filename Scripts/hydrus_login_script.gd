@@ -21,8 +21,13 @@ func _ready():
 	key_line.text = Tagger.settings.hydrus_key
 	remember_check.button_pressed = Tagger.settings.hydrus_remember_data
 	on_load_check.toggled.connect(on_load_button_pressed)
-	if on_load_check.button_pressed:
+	remember_check.toggled.connect(on_remember_check_toggle)
+	if on_load_check.button_pressed and remember_check.button_pressed:
 		test_login()
+
+
+func on_remember_check_toggle(is_toggled: bool) -> void:
+	Tagger.settings.hydrus_remember_data = is_toggled
 
 
 func on_load_button_pressed(is_toggled: bool) -> void:
