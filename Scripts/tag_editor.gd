@@ -184,19 +184,20 @@ func search_for_tag(new_text: String) -> void:
 
 	if _tag.has_prompt_data:
 		has_prompt_data.button_pressed = true
-		var prompt_tag: Dictionary =  {
-			"category": _tag.prompt_category,
-			"category_img": _tag.prompt_category_img_tag,
-			"category_desc": _tag.prompt_category_desc,
-			"subcategory": _tag.prompt_subcat,
-			"subcategory_img": _tag.prompt_subcat_img_tag,
-			"subcategory_desc": _tag.prompt_subcat_desc,
-			"item_name": _tag.prompt_title,
-			"item_desc": _tag.prompt_desc
-		}
-		prompt_includer.fill_data(prompt_tag)
 	else:
 		has_prompt_data.button_pressed = false
+	
+	var prompt_tag: Dictionary =  {
+		"category": _tag.prompt_category,
+		"category_img": _tag.prompt_category_img_tag,
+		"category_desc": _tag.prompt_category_desc,
+		"subcategory": _tag.prompt_subcat,
+		"subcategory_img": _tag.prompt_subcat_img_tag,
+		"subcategory_desc": _tag.prompt_subcat_desc,
+		"item_name": _tag.prompt_title,
+		"item_desc": _tag.prompt_desc
+	}
+	prompt_includer.fill_data(prompt_tag)
 	
 	has_prompt_data.disabled = false
 	add_conflict_line_edit.editable = true
