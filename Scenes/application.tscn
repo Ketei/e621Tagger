@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=66 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -30,6 +30,7 @@
 [ext_resource type="Script" path="res://Scripts/constant_list_script.gd" id="16_msuae"]
 [ext_resource type="Script" path="res://Scripts/aliases_script.gd" id="16_ojscj"]
 [ext_resource type="Script" path="res://Scripts/review_blacklist_script.gd" id="17_g6q24"]
+[ext_resource type="Script" path="res://Scripts/creator_tag_groups.gd" id="17_wevu5"]
 [ext_resource type="Script" path="res://Scripts/tool_shortcuts_script.gd" id="18_1bj38"]
 [ext_resource type="Script" path="res://Scripts/sample_dl_blacklist_script.gd" id="18_aw7pf"]
 [ext_resource type="PackedScene" uid="uid://cp2je846gropp" path="res://Scenes/sites_tool.tscn" id="19_1am3x"]
@@ -919,27 +920,29 @@ item_12/id = 3
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
-size = Vector2i(271, 123)
+size = Vector2i(276, 146)
 hide_on_checkable_item_selection = false
-item_count = 5
+item_count = 6
 item_0/text = "Tag aliases"
 item_0/id = 4
 item_1/text = "Conflicts"
 item_1/id = 2
-item_2/text = "Options"
-item_2/id = 0
-item_2/separator = true
-item_3/text = "Clear fields"
-item_3/id = 3
-item_4/text = "Open image folder on creation"
-item_4/checkable = 1
-item_4/checked = true
-item_4/id = 1
+item_2/text = "Included tag groups"
+item_2/id = 5
+item_3/text = "Options"
+item_3/id = 0
+item_3/separator = true
+item_4/text = "Clear fields"
+item_4/id = 3
+item_5/text = "Open image folder on creation"
+item_5/checkable = 1
+item_5/checked = true
+item_5/id = 1
 
 [node name="Tag Editor" type="PopupMenu" parent="MenuBar"]
 size = Vector2i(274, 197)
 hide_on_checkable_item_selection = false
-item_count = 7
+item_count = 8
 item_0/text = "Tags"
 item_0/id = 100
 item_0/separator = true
@@ -955,13 +958,16 @@ item_3/disabled = true
 item_4/text = "Tag Aliases"
 item_4/id = 4
 item_4/disabled = true
-item_5/text = "Settings"
-item_5/id = 101
+item_5/text = "Tag groups"
+item_5/id = 7
 item_5/disabled = true
-item_5/separator = true
-item_6/text = "Delete images"
-item_6/checkable = 1
-item_6/id = 3
+item_6/text = "Settings"
+item_6/id = 101
+item_6/disabled = true
+item_6/separator = true
+item_7/text = "Delete images"
+item_7/checkable = 1
+item_7/id = 3
 
 [node name="Wiki" type="PopupMenu" parent="MenuBar"]
 size = Vector2i(123, 54)
@@ -1372,7 +1378,7 @@ text = "Has Images"
 
 [node name="CheckButton" type="CheckButton" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer"]
 layout_mode = 2
-text = "Include in prompts"
+text = "Has prompt data"
 
 [node name="CatPrioHBox" type="HBoxContainer" parent="TagCreator/VBoxContainer/HBoxContainer/LeftPartVBox"]
 custom_minimum_size = Vector2(0, 32)
@@ -2016,6 +2022,73 @@ size = Vector2i(132, 31)
 item_count = 1
 item_0/text = "Search in Wiki"
 item_0/id = 0
+
+[node name="TagGroups" type="Control" parent="TagCreator"]
+visible = false
+anchors_preset = 0
+anchor_top = -0.0712164
+anchor_right = 1.0
+anchor_bottom = 0.99703
+script = ExtResource("17_wevu5")
+metadata/_edit_use_anchors_ = true
+
+[node name="ColorRect" type="ColorRect" parent="TagCreator/TagGroups"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.556863)
+
+[node name="CenterContainer" type="CenterContainer" parent="TagCreator/TagGroups"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="TagCreator/TagGroups/CenterContainer"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="TagCreator/TagGroups/CenterContainer/PanelContainer"]
+layout_mode = 2
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="TagCreator/TagGroups/CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TagCreator/TagGroups/CenterContainer/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(704, 448)
+layout_mode = 2
+
+[node name="TypeLists" parent="TagCreator/TagGroups/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" instance=ExtResource("20_k6o0m")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+settings_variant = false
+
+[node name="KeyLine" type="LineEdit" parent="TagCreator/TagGroups/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TypeLists/AddMenu" index="2"]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+placeholder_text = "Key"
+alignment = 1
+max_length = 10
+
+[node name="AddButton" type="Button" parent="TagCreator/TagGroups/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TypeLists/AddMenu" index="3"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "Add Key"
+
+[node name="CloseButton" type="Button" parent="TagCreator/TagGroups/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Close"
 
 [node name="TagReviewer" type="Control" parent="." node_paths=PackedStringArray("alias_itemlist", "add_alias_lineedit", "aliases_window", "tag_searcher", "tag_search_button", "name_line", "categories_menu", "wiki_edit", "tag_update_button", "parents_item_list", "add_parent_line_edit", "tag_prio_box", "tag_suggestion_list", "tag_suggestion_line_edit", "review_menu", "has_images_check_box", "open_pic_folder_button", "add_conflict_line_edit", "conflicts_item_list", "tag_tooltip_line_edit", "text_change_timer", "preview_bbc_button", "rich_text_label", "preview_bbc_window")]
 visible = false
@@ -2791,6 +2864,73 @@ tooltip_text = "Adds all selected tags to the main list"
 text = "Add"
 metadata/_edit_use_anchors_ = true
 
+[node name="TagGroupsReview" type="Control" parent="TagReviewer"]
+visible = false
+layout_mode = 1
+anchor_top = -0.0712164
+anchor_right = 1.0
+anchor_bottom = 0.99703
+script = ExtResource("17_wevu5")
+metadata/_edit_use_anchors_ = true
+
+[node name="ColorRect" type="ColorRect" parent="TagReviewer/TagGroupsReview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.556863)
+
+[node name="CenterContainer" type="CenterContainer" parent="TagReviewer/TagGroupsReview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="TagReviewer/TagGroupsReview/CenterContainer"]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer"]
+layout_mode = 2
+color = Color(0.25098, 0.282353, 0.341176, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(704, 448)
+layout_mode = 2
+
+[node name="TypeLists" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" instance=ExtResource("20_k6o0m")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+settings_variant = false
+
+[node name="KeyLine" type="LineEdit" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TypeLists/AddMenu" index="2"]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+placeholder_text = "Key"
+alignment = 1
+max_length = 10
+
+[node name="AddButton" type="Button" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TypeLists/AddMenu" index="3"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "Add Key"
+
+[node name="CloseButton" type="Button" parent="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
 [node name="Wiki" type="Control" parent="."]
 visible = false
 layout_mode = 1
@@ -2919,7 +3059,6 @@ buffering_msec = 1000
 script = SubResource("GDScript_exbap")
 
 [node name="Tools" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.089
 anchor_right = 1.0
@@ -3997,6 +4136,7 @@ layout_mode = 2
 text = "Close"
 
 [node name="TestButton" type="Button" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(168, 0)
 layout_mode = 2
 text = "Connect to Hydrus"
 
@@ -4004,6 +4144,11 @@ text = "Connect to Hydrus"
 layout_mode = 2
 tooltip_text = "Warning: Data will be saved to settings file as plain text if checked."
 text = "Remember"
+
+[node name="OnLoadCheck" type="CheckBox" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Buttons"]
+layout_mode = 2
+tooltip_text = "If valid data was saved it'll try to log in to hydrus on load"
+text = "Connect on load"
 
 [node name="Notifications" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -4032,6 +4177,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -4046,3 +4192,6 @@ script = SubResource("GDScript_hos7x")
 
 [connection signal="dir_selected" from="Settings/DefaultFolderFileDialog" to="Settings/DefaultFolderFileDialog" method="folder_selected"]
 [connection signal="dir_selected" from="Settings/DatabaseLocationFileDialog" to="Settings/DatabaseLocationFileDialog" method="folder_selected"]
+
+[editable path="TagCreator/TagGroups/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TypeLists"]
+[editable path="TagReviewer/TagGroupsReview/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TypeLists"]

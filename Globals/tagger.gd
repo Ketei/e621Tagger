@@ -3,6 +3,7 @@ extends Node
 
 signal register_aliases(old_alias, new_alias)
 signal reload_prompts
+signal reload_tag_groups
 
 enum Categories {
 	GENERAL,

@@ -35,6 +35,7 @@ signal register_alias(old_name, new_name)
 @onready var include_in_prompts: CheckButton = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/CheckButton
 @onready var center_part_v_box = $VBoxContainer/HBoxContainer/CenterPartVBox
 @onready var prompt_includer = $VBoxContainer/HBoxContainer/CenterPartVBox/PromtIncluder
+@onready var tag_groups = $TagGroups
 
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
@@ -152,6 +153,8 @@ func tag_creator_menu_changed(id_selected: int) -> void:
 	elif id_selected == 4:
 		if not alias_window_control.visible:
 			alias_window_control.show()
+	elif  id_selected == 5:
+		tag_groups.show()
 
 
 func add_suggestion(new_suggestion: String) -> void:
@@ -239,7 +242,9 @@ func create_tag() -> void:
 		prompt_data = prompt_includer.get_data()
 		prompt_includer.target_tag = target_tag
 		prompt_includer.on_save()
-
+	
+	var tag_groups_dict: Dictionary = tag_groups.get_tag_types_entries()
+	
 	var _tag_path: String = TagMaker.make_tag(
 		target_tag,
 		parent_tags,
@@ -259,8 +264,19 @@ func create_tag() -> void:
 		prompt_data["subcategory_desc"],
 		prompt_data["item_name"],
 		prompt_data["item_desc"],
-		include_in_prompts.button_pressed
+		include_in_prompts.button_pressed,
+		tag_groups_dict
 		)
+	
+	for entry in tag_groups_dict.keys():
+		if not Tagger.settings_lists.tag_types.has(entry):
+			Tagger.settings_lists.tag_types[entry] = []
+		for types in tag_groups_dict[entry]:
+			Tagger.settings_lists.tag_types[entry].append(types)
+		
+		Tagger.settings_lists.tag_types[entry].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	Tagger.reload_tag_groups.emit()
 	
 	if not Tagger.tag_manager.relation_database.has(target_tag.left(1)):
 		Tagger.tag_manager.relation_database[target_tag.left(1)] = {}
@@ -271,6 +287,9 @@ func create_tag() -> void:
 		OS.shell_open(ProjectSettings.globalize_path(Tagger.tag_images_path + _tag_path.get_file().get_basename()))
 	
 	if download_samples_check_box.button_pressed and has_images_check_box.button_pressed:
+		if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + _tag_path.get_basename()):
+			DirAccess.make_dir_absolute(Tagger.tag_images_path + _tag_path.get_basename())
+	
 		var search_tags: Array[String] = ["~type:jpg", "~type:png", "order:score"]
 		
 		for blacklist_tag in Tagger.settings_lists.samples_blacklist:
@@ -319,6 +338,8 @@ func clear_menu_items(btn_message: String, change_text: bool = true) -> void:
 	if change_text:
 		create_tags_button.text = btn_message
 		text_timer.start()
+	
+	tag_groups.clean_all()
 
 
 func on_timer_timeout() -> void:

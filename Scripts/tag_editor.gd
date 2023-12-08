@@ -50,6 +50,7 @@ var suggestions_array: Array[String] = []
 @onready var prompt_includer = $AllItemsHBox/PromtIncluder
 @onready var has_prompt_data: CheckBox = $AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer/HasPromptData
 @onready var right_v_box = $AllItemsHBox/RightVBox
+@onready var tag_groups_review = $TagGroupsReview
 
 
 
@@ -139,6 +140,8 @@ func search_for_tag(new_text: String) -> void:
 	alias_itemlist.clear()
 	tag_aliases_array.clear()
 	
+	tag_groups_review.clean_all()
+	
 	prompt_includer.clear_fields()
 	
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
@@ -161,6 +164,11 @@ func search_for_tag(new_text: String) -> void:
 	for alias in _tag.aliases:
 		alias_itemlist.add_item(alias)
 		tag_aliases_array.append(alias)
+	
+	var tag_groups: Dictionary = _tag.get_tag_groups()
+	
+	for group_entry in tag_groups.keys():
+		tag_groups_review.load_group(group_entry, tag_groups[group_entry])
 	
 	wiki_edit.clear()
 	wiki_edit.text = _tag.wiki_entry
@@ -207,6 +215,7 @@ func search_for_tag(new_text: String) -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(7), false)
 	tag_searcher.clear()
 
 
@@ -243,6 +252,7 @@ func update_tag() -> void:
 	_tag.prompt_subcat_desc = prompt_data["subcategory_desc"]
 	_tag.prompt_title = prompt_data["item_name"]
 	_tag.prompt_desc = prompt_data["item_desc"]
+	_tag.tag_groups = tag_groups_review.get_tag_types_entries().duplicate()
 	_tag.save()
 	
 	tag_updated.emit(_tag.tag)
@@ -347,6 +357,8 @@ func activate_menu_bar(id_button: int) -> void:
 	elif id_button == 4:
 		if not aliases_window.visible:
 			aliases_window.show()
+	elif id_button == 7:
+		tag_groups_review.show()
 
 
 func clear_and_disable() -> void:
@@ -381,6 +393,7 @@ func clear_and_disable() -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
+	review_menu.set_item_disabled(review_menu.get_item_index(7), true)
 	tag_update_button.disabled = true
 	open_auto_complete_parents_btn.disabled = true
 	open_auto_complete_suggestions_btn.disabled = true
