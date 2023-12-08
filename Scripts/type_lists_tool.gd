@@ -64,6 +64,7 @@ func clear_all_items() -> void:
 		if child.entry_removed.is_connected(entry_item_removed):
 			child.entry_removed.disconnect(entry_item_removed)
 		child.queue_free()
+	entry_tracker.clear()
 
 
 func entry_item_removed(entry_key: String, node_ref: Node) -> void:
