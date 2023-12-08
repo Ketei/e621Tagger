@@ -147,7 +147,9 @@ func search_for_tag(new_text: String) -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 
 	name_line.text = _tag.tag
-	categories_menu.select(_tag.category)
+	categories_menu.select(
+		categories_menu.get_item_index(_tag.category)
+	)
 
 	for parent_tag in _tag.parents:
 		parents.append(parent_tag)
