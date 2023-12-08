@@ -11,3 +11,4 @@ export_presets.cfg
 .mono/
 data_*/
 Tagger/
+addons/godotgif/bin/~godotgif.windows.template_debug.x86_64.dll
