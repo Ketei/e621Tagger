@@ -9,15 +9,24 @@ extends CenterContainer
 
 @onready var error_label: Label = $Hydrus/MarginContainer/VBoxContainer/Notifications/ErrorLabel
 @onready var remember_check: CheckBox = $Hydrus/MarginContainer/VBoxContainer/Buttons/RememberCheck
+@onready var on_load_check: CheckBox = $Hydrus/MarginContainer/VBoxContainer/Buttons/OnLoadCheck
 
 
 func _ready():
 	hide()
+	on_load_check.button_pressed = Tagger.settings.hydrus_connect_on_load
 	cancel_button.pressed.connect(hide)
 	test_button.pressed.connect(test_login)
 	port_box.value = Tagger.settings.hydrus_port
 	key_line.text = Tagger.settings.hydrus_key
 	remember_check.button_pressed = Tagger.settings.hydrus_remember_data
+	on_load_check.toggled.connect(on_load_button_pressed)
+	if on_load_check.button_pressed:
+		test_login()
+
+
+func on_load_button_pressed(is_toggled: bool) -> void:
+	Tagger.settings.hydrus_connect_on_load = is_toggled
 
 
 func test_login() -> void:
