@@ -161,11 +161,8 @@ func search_for_tag(new_text: String) -> void:
 		hydrus_ids_array = await hydrus_api_request.search_for_tags(search_tags, Tagger.settings.hydrus_review_amount)
 	
 	if 0 < local_image_data["count"]:
-		#is_local_loading_done = false
 		preview_progress_load.max_value += local_image_data["count"]
 		get_local_images(local_image_data["folder"], local_image_data["files"])
-	#else:
-		#is_local_loading_done = true
 	
 	if not hydrus_ids_array.is_empty():
 		hydrus_thumbnail_amount = hydrus_ids_array.size()
@@ -175,11 +172,7 @@ func search_for_tag(new_text: String) -> void:
 	if _tag.has_pictures and Tagger.settings.can_load_from_e6():
 		preview_progress_load.max_value += 1
 		search_web_images(_tag.tag)
-	#else:
-		#is_web_loading_done = true
 
-	#if is_web_loading_done and is_local_loading_done:
-		#tag_search_line_edit.editable = true
 	preview_progress_load.max_value -= 1
 	
 	if preview_progress_load.max_value == 0:
@@ -191,25 +184,26 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var final_file_names: Array = []
 	
 	var return_dictionary: Dictionary = {}
-	for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
-		var file_extension: String = file_name.get_extension()
-		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
-			continue
-		if file_extension == "gif":
-			if Tagger.settings.load_local_gifs:
+	
+	if DirAccess.dir_exists_absolute(Tagger.tag_images_path + target_tag.file_name.get_basename()):
+		for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
+			var file_extension: String = file_name.get_extension()
+			if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
+				continue
+			if file_extension == "gif":
+				if Tagger.settings.load_local_gifs:
+					file_names.append(file_name)
+			else:
 				file_names.append(file_name)
-		else:
-			file_names.append(file_name)
 
 	if target_tag.has_pictures and Tagger.settings.can_load_from_local():
-		if DirAccess.dir_exists_absolute(Tagger.tag_images_path + target_tag.file_name.get_basename()):
-			if Tagger.settings.local_review_amount < file_names.size():
-				for ignored in range(Tagger.settings.local_review_amount):
-					var tag_to_transfer = file_names.pick_random()
-					final_file_names.append(tag_to_transfer)
-					file_names.erase(tag_to_transfer)
-			else:
-				final_file_names = file_names
+		if Tagger.settings.local_review_amount < file_names.size():
+			for ignored in range(Tagger.settings.local_review_amount):
+				var tag_to_transfer = file_names.pick_random()
+				final_file_names.append(tag_to_transfer)
+				file_names.erase(tag_to_transfer)
+		else:
+			final_file_names = file_names
 
 	return_dictionary["folder"] = target_tag.file_name.get_basename()
 	return_dictionary["files"] = final_file_names
