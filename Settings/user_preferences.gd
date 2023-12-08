@@ -27,6 +27,8 @@ extends Resource
 @export var hydrus_port: int = 0
 @export var hydrus_key: String = ""
 
+@export var hydrus_connect_on_load: bool = false
+
 @export var file_version: String = "1.0"
 
 @export var open_tag_folder_on_creation: bool = false
