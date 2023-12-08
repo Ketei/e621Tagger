@@ -92,9 +92,6 @@ func recreate_imfplications() -> void:
 			if tag_filename.get_extension() != "tres":
 				continue
 			
-			if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_filename.get_basename()):
-				DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_filename.get_basename())
-			
 			var _tag_exists: bool = ResourceLoader.exists(Tagger.tags_path + tag_filename, "Tag")
 			
 			if _tag_exists:
