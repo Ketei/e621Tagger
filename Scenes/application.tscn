@@ -1,4 +1,4 @@
-[gd_scene load_steps=66 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=67 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -46,6 +46,7 @@
 [ext_resource type="Script" path="res://Scripts/change_db_confirm.gd" id="31_g7kp8"]
 [ext_resource type="Script" path="res://Scripts/database_file_dialog.gd" id="32_3ueat"]
 [ext_resource type="Script" path="res://Scripts/hydrus_login_script.gd" id="41_uxv55"]
+[ext_resource type="Texture2D" uid="uid://dfjt1p86v6ykl" path="res://Textures/Cross.svg" id="44_wvsh6"]
 
 [sub_resource type="GDScript" id="GDScript_t2bdg"]
 resource_name = "open_search_parents"
@@ -4098,11 +4099,24 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
 layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_vertical = 1
 text = "Hydrus API"
 horizontal_alignment = 1
-vertical_alignment = 1
+vertical_alignment = 2
+
+[node name="TextureRect" type="TextureRect" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer/Header"]
+self_modulate = Color(0.745098, 0.235294, 0.294118, 1)
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("44_wvsh6")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Port" type="HBoxContainer" parent="Settings/HydrusAPI/Hydrus/MarginContainer/VBoxContainer"]
 layout_mode = 2
