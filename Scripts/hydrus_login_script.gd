@@ -10,6 +10,8 @@ extends CenterContainer
 @onready var error_label: Label = $Hydrus/MarginContainer/VBoxContainer/Notifications/ErrorLabel
 @onready var remember_check: CheckBox = $Hydrus/MarginContainer/VBoxContainer/Buttons/RememberCheck
 @onready var on_load_check: CheckBox = $Hydrus/MarginContainer/VBoxContainer/Buttons/OnLoadCheck
+@onready var success_icon: TextureRect = $Hydrus/MarginContainer/VBoxContainer/Header/TextureRect
+
 
 
 func _ready():
@@ -43,6 +45,8 @@ func test_login() -> void:
 	if is_logged_in:
 		test_button.pressed.disconnect(test_login)
 		test_button.pressed.connect(disconnect_api)
+		success_icon.texture = load("res://Textures/CheckMark.svg")
+		success_icon.self_modulate = Color8(120, 160, 95)
 		if remember_check.button_pressed:
 			Tagger.settings.hydrus_port = int(port_box.value)
 			Tagger.settings.hydrus_key = key_line.text
@@ -55,6 +59,8 @@ func test_login() -> void:
 		display_error("Successfully connected to Hydrus")
 	else:
 		display_error("Couldn't connect to Hydrus")
+		success_icon.texture = load("res://Textures/Cross.svg")
+		success_icon.self_modulate = Color8(190, 60, 75)
 	test_button.disabled = false
 
 
