@@ -89,8 +89,8 @@ signal wizard_tags_created(tags_array)
 @onready var collar_checkbox: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/CollarCheckBox
 @onready var eyewear_check_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/EyewearCheckBox
 
-@onready var is_comic: CheckButton =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/IsComicCheckBox
-@onready var has_multiple_scenes: CheckBox =$MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/ShowsMultipleCheckBox
+@onready var is_comic: CheckButton = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/IsComicCheckBox
+@onready var has_multiple_scenes: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ShowsMultipleCheckBox
 @onready var perspect_elements: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox
 @onready var smart_checkboxes: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes
 @onready var lying_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/LyingOptionButton
@@ -102,6 +102,12 @@ signal wizard_tags_created(tags_array)
 @onready var dim_lights = $DimLights
 @onready var what_my_gender = $WhatMyGender
 @onready var guess_my_g_button: Button = $MarginContainer/Margin/MarginContainer/All/GenderHBox/HBoxContainer/GuessMyGButton
+
+@onready var cover_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Covers/CoverCheck
+@onready var back_cover_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Covers/BackCoverCheck
+@onready var first_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Pages/FirstCheck
+@onready var end_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Pages/EndCheck
+@onready var page_num_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Extras/PageNumCheck
 
 
 var background_types = ["simple background", "detailed background"]
@@ -167,13 +173,7 @@ func magic_clean() -> void:
 	media_type_option_button.select(0)
 	media_type_option_button.item_selected.emit(0)
 	defined_media_opt_button.select(0)
-	
-#	fur_check_box.set_pressed_no_signal(false)
-#	scales_check_box.set_pressed_no_signal(false)
-#	feathers_check_box.set_pressed_no_signal(false)
-#	wool_check_box.set_pressed_no_signal(false)
-#	skin_check_box.set_pressed_no_signal(false)
-#	exo_check_box.set_pressed_no_signal(false)
+
 	magic_container_2.magic_cleanup()
 	
 	fr_by_fr_anim_chk_btn.set_pressed_no_signal(false)
@@ -211,7 +211,11 @@ func magic_clean() -> void:
 	
 	lying_option_button.select(0)
 	sitting_option_button.select(0)
-#	body_colors.value = 0
+	cover_check.set_pressed_no_signal(false)
+	back_cover_check.set_pressed_no_signal(false)
+	first_check.set_pressed_no_signal(false)
+	end_check.set_pressed_no_signal(false)
+	page_num_check.set_pressed_no_signal(false)
 
 
 func create_basic_tags() -> void:
@@ -397,8 +401,8 @@ func create_basic_tags() -> void:
 			return_array.append("webm")
 		elif format_opt_btn.selected == 2:
 			return_array.append("animated png")
-		
-	return_array.append(defined_media_opt_button.get_item_text(defined_media_opt_button.selected).to_lower())
+	if not defined_media_opt_button.get_item_text(defined_media_opt_button.selected).is_empty():
+		return_array.append(defined_media_opt_button.get_item_text(defined_media_opt_button.selected).to_lower())
 	
 	for child in magic_container_2.get_children():
 		if not child is WizzardCheckbox:
@@ -413,6 +417,17 @@ func create_basic_tags() -> void:
 	
 	if is_comic.button_pressed:
 		return_array.append("comic")
+		if cover_check.button_pressed:
+			return_array.append("cover page")
+		elif back_cover_check.button_pressed:
+			return_array.append("back cover")
+		elif first_check.button_pressed:
+			return_array.append("first page")
+		elif end_check.button_pressed:
+			return_array.append("end page")
+		if page_num_check.button_pressed:
+			return_array.append("page number")
+
 	if has_multiple_scenes.button_pressed:
 		return_array.append("multiple scenes")
 	
@@ -422,11 +437,7 @@ func create_basic_tags() -> void:
 		if child.button_pressed:
 			return_array.append_array(Array(child.get_tags()))
 			suggestions_types.append_array(Array(child.get_tags()))
-#			for tag in child.tags_array:
-#				return_array.append(tag)
-#			for sugg in child.suggestions_array:
-#				suggestions_types.append(sugg)
-	
+
 	if lying_option_button.visible:
 		return_array.append(
 			lying_option_button.get_item_text(lying_option_button.selected).to_lower())
