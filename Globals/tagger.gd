@@ -3,6 +3,7 @@ extends Node
 
 signal register_aliases(old_alias, new_alias)
 signal reload_prompts
+signal reload_tag_groups
 
 enum Categories {
 	GENERAL,
@@ -27,8 +28,36 @@ enum Categories {
 	PROFESSION,
 	META,
 	LOCATION,
-	FURNITURE
+	FURNITURE,
+	LORE,
 }
+const CategorySorting: Array = [
+	Categories.GENERAL,
+	Categories.ARTIST,
+	Categories.COPYRIGHT,
+	Categories.CHARACTER,
+	Categories.SPECIES,
+	Categories.GENDER,
+	Categories.BODY_TYPES,
+	Categories.ANATOMY,
+	Categories.MARKINGS,
+	Categories.POSES_AND_STANCES,
+	Categories.ACTIONS_AND_INTERACTIONS,
+	Categories.SEX_AND_POSITIONS,
+	Categories.PENETRATION,
+	Categories.FLUIDS,
+	Categories.EXPRESSIONS,
+	Categories.COLORS,
+	Categories.OBJECTS,
+	Categories.CLOTHING,
+	Categories.ACCESSORIES,
+	Categories.FURNITURE,
+	Categories.PROFESSION,
+	Categories.LOCATION,
+	Categories.META,
+	Categories.LORE,
+]
+
 
 enum Sites {
 	E621,
@@ -42,7 +71,7 @@ enum Notifications {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/1.1.0 (by Ketei)",
+	"User-Agent": "TaglistMaker/1.2.0 (by Ketei)",
 }
 
 const valid_textures: Array[String] = ["jpg", "png", "gif"]

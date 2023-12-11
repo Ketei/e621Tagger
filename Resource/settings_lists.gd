@@ -547,21 +547,7 @@ extends Resource
 	"!": "{0}/{1}"
 }
 
-@export var tag_types: Dictionary = {
-	"body-part": ["anus", "arms", "balls", "butt", "ears", "face", "feet", "genitalia", "hands", "head", "legs", "neck", "penis", "pussy", "tail", "torso", "wings"],
-	"body-type": ["anthro", "feral", "human", "humanoid", "semi-anthro", "taur"],
-	"color": ["black", "blue", "brown", "green", "grey", "orange", "pink", "purple", "red", "tan", "teal", "white", "yellow"],
-	"gender": ["andromorph", "female", "gynomorph", "herm", "male", "maleherm"],
-	"length": ["short", "long"],
-	"looking-at": ["another", "anus", "breasts", "bulge", "butt", "genitalia", "partner", "pussy", "self", "viewer"],
-	"orifice": ["ass", "cloaca", "mouth", "pussy", "slit", "uterus"],
-	"p-view": ["anus", "balls", "belly", "breasts", "cloaca", "crotch", "hindquarters", "mouth", "penis", "pussy", "sheath", "slit"], # Presenting
-	"scale": ["smaller", "larger"],
-	"sex-pen": ["anal", "cloacal", "oral", "vaginal"],
-	"size": ["small", "big", "huge", "hyper"],
-	"surface": ["bed", "bench", "chair", "counter", "desk", "ground", "pillow", "table", "throne", "toilet", "sofa"],
-	"tuft": ["ankle", "arm", "ball", "cheek", "crotch", "ear", "elbow", "feather", "head", "hip", "inner ear", "knee", "leg", "neck", "nipple", "shoulder", "tail", "toe", "wrist"]
-}
+@export var tag_types: Dictionary = {}
 
 static func load_database(lists_path: String) -> SettingLists:
 	if ResourceLoader.exists(lists_path, "SettingLists"):

@@ -68,6 +68,8 @@ class_name Tag
 	set(title):
 		prompt_title = just_capitalize(title)
 @export var prompt_desc: String = ""
+@export var tag_groups: Dictionary = {}
+
 
 ## Saves the resource to user path.
 func save() -> String:
@@ -89,4 +91,16 @@ func just_capitalize(input_string: String) -> String:
 	var building_string: String = input_string.left(1).to_upper()
 	building_string += input_string.right(-1)
 	return building_string
+
+
+func get_tag_groups() -> Dictionary:
+	for group in tag_groups.keys():
+		if typeof(tag_groups[group]) != 28:
+			tag_groups.erase(group)
+		else:
+			for _tag in tag_groups[group]:
+				if typeof(tag) != 4:
+					tag_groups[group].erase(_tag)
+	
+	return tag_groups
 

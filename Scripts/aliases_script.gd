@@ -10,11 +10,19 @@ extends VBoxContainer
 func _ready():
 	old_alias.text_changed.connect(old_alias_update)
 	new_alias.text_changed.connect(new_alias_update)
-	remove_alias_button.pressed.connect(remove_alias)
-	add_alias_button.pressed.connect(add_alias)
+	remove_alias_button.pressed.connect(on_remove_alias_pressed)
+	add_alias_button.pressed.connect(on_add_alias_pressed)
 	
 	old_alias.text_submitted.connect(submit_old_alias)
 	new_alias.text_submitted.connect(submit_new_alias)
+
+
+func on_add_alias_pressed() -> void:
+	add_alias(old_alias.text, new_alias.text, false)
+
+
+func on_remove_alias_pressed() -> void:
+	remove_alias(old_alias.text)
 
 
 func submit_new_alias(text_submitted: String) -> void:

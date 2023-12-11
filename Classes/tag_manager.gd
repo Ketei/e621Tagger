@@ -92,9 +92,6 @@ func recreate_imfplications() -> void:
 			if tag_filename.get_extension() != "tres":
 				continue
 			
-			if not DirAccess.dir_exists_absolute(Tagger.tag_images_path + tag_filename.get_basename()):
-				DirAccess.make_dir_absolute(Tagger.tag_images_path + tag_filename.get_basename())
-			
 			var _tag_exists: bool = ResourceLoader.exists(Tagger.tags_path + tag_filename, "Tag")
 			
 			if _tag_exists:
@@ -115,9 +112,23 @@ func recreate_imfplications() -> void:
 					Tagger.prompt_resources.register_subcategory(_valid_tag.prompt_category, _valid_tag.prompt_subcat, _valid_tag.prompt_subcat_desc, _valid_tag.prompt_subcat_img_tag)
 					Tagger.prompt_resources.register_title(_valid_tag.prompt_category, _valid_tag.prompt_subcat, _valid_tag.prompt_title, _valid_tag.tag, _valid_tag.prompt_desc)
 				
+				var valid_tag_groups: Dictionary = _valid_tag.get_tag_groups()
+				
+				for tag_group in valid_tag_groups.keys():
+					if not Tagger.settings_lists.tag_types.has(tag_group):
+						Tagger.settings_lists.tag_types[tag_group] = []
+					
+					for group_entry in valid_tag_groups[tag_group]:
+						if not Tagger.settings_lists.tag_types[tag_group].has(group_entry):
+							Tagger.settings_lists.tag_types[tag_group].append(group_entry)
+
 		relation_paths[chara] = Tagger.implications_path + _implication.file_name
+		Tagger.settings_lists.save()
 		_implication.save()
 	
+	for tag_group in Tagger.settings_lists.tag_types.keys():
+		Tagger.settings_lists.tag_types[tag_group].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	Tagger.reload_tag_groups.emit()
 	Tagger.implication_reload()
 
 
@@ -201,9 +212,7 @@ func search_with_suffix(suffix_search: String) -> Dictionary:
 				"is_locked": false,
 				"is_registered": true
 			}
-	
-#	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
-	
+
 	return return_dict
 	
 
@@ -236,4 +245,13 @@ func search_for_content(contain_search: String) -> Dictionary:
 #	return_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	
 	return return_dictionary
+
+
+func get_tag_type(tag_name: String) -> Tagger.Categories:
+	if has_tag(tag_name):
+		return get_tag(tag_name).category
+	else:
+		return Tagger.Categories.GENERAL
+
+
 

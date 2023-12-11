@@ -16,8 +16,13 @@ signal tag_updated
 @onready var main_application = $".."
 @onready var video_player = $VideoPlayer
 
+@onready var hydrus_api_request: HydrusRequestAPI = $"../HydrusAPIRequest"
+@onready var preview_stopper: ColorRect = $PreviewStopper
+
+
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
 var video_thumbnails = preload("res://Scenes/video_thumbnail.tscn")
+var hydrus_thumbnail = preload("res://Scenes/hydrus_rect.tscn")
 
 var images_to_display: Array[ImageTexture] = []
 var videos_to_display: Array[String] = []
@@ -38,7 +43,10 @@ var amount_vs_resolution: Dictionary = {
 }
 
 var current_search: String = ""
-
+var hydrus_thumbnail_amount: int = 0
+# To-Do: Create an Hydrus implementation. Make it send HTTP requests and once
+# it answers make a threaded function load the picture and then call
+# display_image.
 
 func _ready():
 	wiki_edit.search_in_wiki.connect(search_for_tag)
@@ -48,6 +56,10 @@ func _ready():
 	wiki_image_requester.image_created.connect(display_image)
 	wiki_image_requester.image_skipped.connect(increase_progress)
 	wiki_image_requester.posts_found.connect(web_progress_set)
+	
+	hydrus_api_request.thumbnail_created.connect(display_hydrus_thumbnail)
+	hydrus_api_request.image_created.connect(display_big_pic)
+	hydrus_api_request.thumbnails_grabbed.connect(hydrus_progress_fallback)
 
 
 func _unhandled_key_input(event):
@@ -94,6 +106,8 @@ func clear_wiki() -> void:
 			child.lewd_pic_pressed.disconnect(display_big_pic)
 		elif child is VideoThumbnail:
 			child.thumbnail_clicked.disconnect(display_vid_player)
+		elif child is HydrusTextureRect:
+			child.thumbnail_pressed.disconnect(display_hydrus_file)
 		child.queue_free()
 	wiki_edit.text = ""
 	wiki_popup_menu.set_item_disabled(
@@ -136,25 +150,32 @@ func search_for_tag(new_text: String) -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 	wiki_edit.text = build_wiki_entry(_tag)
 	
-	preview_progress_load.max_value = 0
-	preview_progress_load.value = 0
-	
 	var local_image_data: Dictionary = get_local_filenames(_tag)
+	var hydrus_ids_array: Array = []
+	
+	if hydrus_api_request.valid_api and Tagger.settings.load_wiki_hydrus and _tag.has_pictures:
+		var search_tags: Array = [_tag.tag]
+		for _blacklist_tag in Tagger.settings_lists.suggestion_review_blacklist:
+			if _blacklist_tag != _tag.tag:
+				search_tags.append("-" + _blacklist_tag)
+		hydrus_ids_array = await hydrus_api_request.search_for_tags(search_tags, Tagger.settings.hydrus_review_amount)
 	
 	if 0 < local_image_data["count"]:
-		is_local_loading_done = false
 		preview_progress_load.max_value += local_image_data["count"]
 		get_local_images(local_image_data["folder"], local_image_data["files"])
-	else:
-		is_local_loading_done = true
-
+	
+	if not hydrus_ids_array.is_empty():
+		hydrus_thumbnail_amount = hydrus_ids_array.size()
+		preview_progress_load.max_value += hydrus_thumbnail_amount
+		hydrus_api_request.get_thumbnails(hydrus_ids_array)
+	
 	if _tag.has_pictures and Tagger.settings.can_load_from_e6():
-		is_web_loading_done = false
+		preview_progress_load.max_value += 1
 		search_web_images(_tag.tag)
-	else:
-		is_web_loading_done = true
 
-	if is_web_loading_done and is_local_loading_done:
+	preview_progress_load.max_value -= 1
+	
+	if preview_progress_load.max_value == 0:
 		tag_search_line_edit.editable = true
 
 
@@ -163,29 +184,27 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var final_file_names: Array = []
 	
 	var return_dictionary: Dictionary = {}
-	for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
-		var file_extension: String = file_name.get_extension()
-		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
-			continue
-		if file_extension == "gif":
-			if Tagger.settings.load_local_gifs:
+	
+	if DirAccess.dir_exists_absolute(Tagger.tag_images_path + target_tag.file_name.get_basename()):
+		for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
+			var file_extension: String = file_name.get_extension()
+			if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
+				continue
+			if file_extension == "gif":
+				if Tagger.settings.load_local_gifs:
+					file_names.append(file_name)
+			else:
 				file_names.append(file_name)
-		else:
-			file_names.append(file_name)
 
 	if target_tag.has_pictures and Tagger.settings.can_load_from_local():
-		if DirAccess.dir_exists_absolute(Tagger.tag_images_path + target_tag.file_name.get_basename()):
-			if Tagger.settings.local_review_amount < file_names.size():
-				for ignored in range(Tagger.settings.local_review_amount):
-					var tag_to_transfer = file_names.pick_random()
-					final_file_names.append(tag_to_transfer)
-					file_names.erase(tag_to_transfer)
-			else:
-				final_file_names = file_names
-			
-#			if 0 < array_size:
-#				get_local_images(target_tag.file_name.get_basename(), final_file_names)
-	
+		if Tagger.settings.local_review_amount < file_names.size():
+			for ignored in range(Tagger.settings.local_review_amount):
+				var tag_to_transfer = file_names.pick_random()
+				final_file_names.append(tag_to_transfer)
+				file_names.erase(tag_to_transfer)
+		else:
+			final_file_names = file_names
+
 	return_dictionary["folder"] = target_tag.file_name.get_basename()
 	return_dictionary["files"] = final_file_names
 	return_dictionary["count"] = final_file_names.size()
@@ -245,7 +264,8 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 		var file_extension = tempstring.get_extension()
 		
 		if file_extension != "png" and file_extension != "jpg" and file_extension != "gif" and file_extension != "ogv":
-			preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
+			#preview_progress_load.call_deferred("set_value", preview_progress_load.value + 1)
+			increase_progress.call_deferred()
 			continue
 		if file_extension == "gif":
 			var new_gif_display: AnimatedTexture = GifManager.animated_texture_from_file(Tagger.tag_images_path + folder_name + "/" + file_name, 256)
@@ -258,7 +278,6 @@ func load_local_images(final_file_names: Array, folder_name) -> void:
 			_new_image.generate_mipmaps()
 			var _new_texture := ImageTexture.create_from_image(_new_image)
 			display_image.call_deferred(_new_texture)
-
 	merge_thread.call_deferred()
 
 
@@ -273,14 +292,9 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 	if preview_progress_load.value == preview_progress_load.max_value:
 		finished_loading_local.emit()
-		if wiki_search_cooldown.is_stopped():
+		if not wiki_search_cooldown.is_stopped():
 			await wiki_search_cooldown.timeout
 		tag_search_line_edit.editable = true
-
-
-func create_and_display_image(image_file: Texture2D) -> void:
-#	var _new_texture := ImageTexture.create_from_image(image_file)
-	display_image(image_file)
 
 
 func display_image(image_texture: Texture2D):
@@ -300,6 +314,32 @@ func display_image(image_texture: Texture2D):
 	increase_progress()
 
 
+func display_hydrus_thumbnail(texture: Texture2D, thumbnail_id: int) -> void:
+	var new_h_thumb: HydrusTextureRect = hydrus_thumbnail.instantiate()
+	new_h_thumb.picture_id = thumbnail_id
+	new_h_thumb.texture = texture
+	
+	var texture_size: Vector2 = texture.get_size()
+	var new_heigth: float = (texture_size.y / texture_size.x) * amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)]
+	
+	new_h_thumb.custom_minimum_size = Vector2(amount_vs_resolution[str(Tagger.settings.picture_columns_to_search)], new_heigth)
+	
+	new_h_thumb.pause_texture(not self.visible)
+	
+	lewd_pic_container.add_child(new_h_thumb)
+	new_h_thumb.thumbnail_pressed.connect(display_hydrus_file)
+	hydrus_thumbnail_amount -= 1
+	increase_progress()
+	
+
+func display_hydrus_file(file_id: int) -> void:
+	pause_all_gifs()
+	hydrus_api_request.get_file(file_id)
+	preview_stopper.show()
+	await hydrus_api_request.file_grabbed
+	preview_stopper.hide()
+	
+
 func display_video(path_to_vid: String) -> void:
 	var vid_thumbnail: VideoThumbnail = video_thumbnails.instantiate()
 	vid_thumbnail.video_path = path_to_vid
@@ -316,18 +356,13 @@ func merge_thread():
 		Tagger.common_thread.wait_to_finish()
 	thread_working = false
 	thread_interrupt = false
-	is_local_loading_done = true
-	
-	if is_local_loading_done and is_web_loading_done:
-		tag_search_line_edit.editable = true
 
 
 func web_progress_set(amount: int) -> void:
-	preview_progress_load.max_value += amount
-	if amount == 0:
-		is_web_loading_done = true
+	preview_progress_load.max_value += amount - 1
 	
-	if is_local_loading_done and is_web_loading_done:
+	if preview_progress_load.max_value == 0:
+		#is_web_loading_done = true
 		tag_search_line_edit.editable = true
 
 
@@ -345,16 +380,15 @@ func search_web_images(tag_names: String) -> void:
 	search_tags.append(tag_names)
 	
 	for blacklist_tag in Tagger.settings_lists.suggestion_review_blacklist:
-		if search_tags.has(blacklist_tag):
-			continue
-		search_tags.append("-" + blacklist_tag)
+		if blacklist_tag != tag_names:
+			search_tags.append("-" + blacklist_tag)
 	
 	wiki_image_requester.match_name = search_tags.duplicate()
 	wiki_image_requester.get_posts_and_download()
 	wiki_search_cooldown.start()
 
 
-func display_big_pic(texture_to_load: Texture2D) -> void:
+func display_big_pic(texture_to_load: Texture2D, _picture_id: int = -1) -> void:
 	pause_all_gifs()
 	full_screen_display.show_picture(texture_to_load)
 
@@ -366,13 +400,20 @@ func display_vid_player(path_to_vid: String, node_reference: TextureRect) -> voi
 
 func pause_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
-		if child is LewdTextureRect:
+		if child is LewdTextureRect or child is HydrusTextureRect:
 			child.pause_texture(true)
 
 
 func play_all_gifs() -> void:
 	for child in lewd_pic_container.get_children():
-		if child is LewdTextureRect:
+		if child is LewdTextureRect or child is HydrusTextureRect:
 			child.pause_texture(false)
 
+
+func hydrus_progress_fallback() -> void:
+	preview_progress_load.value += hydrus_thumbnail_amount
+	if preview_progress_load.value == preview_progress_load.max_value:
+		if wiki_search_cooldown.is_stopped():
+			await wiki_search_cooldown.timeout
+		tag_search_line_edit.editable = true
 

@@ -145,7 +145,8 @@ func trigger_options(id: int) -> void:
 		quit_app()
 
 
-func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL) -> void:
+func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion_tags: Array = [], category := Tagger.Categories.GENERAL, priority: int = 0) -> void:
+	trigger_options(4)
 	tag_creator.clear_menu_items("", false)
 	tag_creator.tag_to_add_line_edit.text = tag_to_create
 	tag_creator.tag_to_add_line_edit.text_changed.emit(tag_to_create)
@@ -156,17 +157,17 @@ func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion
 		if tag != tag_to_create:
 			tag_creator.add_parent(tag)
 	tag_creator.categories_menu.select(category)
-	trigger_options(4)
+	tag_creator.tag_prio_box.value = priority
 
 
 func go_to_edit_tag(tag_to_edit: String) -> void:
-	tag_reviewer.search_for_tag(tag_to_edit)
 	trigger_options(5)
+	tag_reviewer.search_for_tag(tag_to_edit)
 
 
 func go_to_wiki(tag_to_look_for: String) -> void:
-	wiki.search_for_tag(tag_to_look_for)
 	trigger_options(7)
+	wiki.search_for_tag(tag_to_look_for)
 
 
 func load_tags(tags_array: Array) -> void:
@@ -187,6 +188,11 @@ func quit_app() -> void:
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if not Tagger.settings.hydrus_remember_data:
+			if Tagger.settings.hydrus_port != 0:
+				Tagger.settings.hydrus_port = 0
+			if not Tagger.settings.hydrus_key.is_empty():
+				Tagger.settings.hydrus_key = ""
 		
 		Tagger.settings.save()
 		Tagger.site_settings.save()
@@ -197,6 +203,7 @@ func _notification(what):
 		if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 			Tagger.common_thread.wait_to_finish()
 			Tagger.common_thread = null
+		
 		
 		get_tree().quit()
 

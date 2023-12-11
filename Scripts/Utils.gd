@@ -39,7 +39,10 @@ func array_to_string(array_to_stringify: Array, divisor_char: String = ", ") -> 
 	return return_string
 
 
-func just_capitalize(input_string: String) -> String:
+func just_capitalize(input_string: String, body_to_lower: bool = true) -> String:
 	var building_string: String = input_string.left(1).to_upper()
-	building_string += input_string.right(-1)
+	if body_to_lower:
+		building_string += input_string.right(-1).to_lower()
+	else:
+		building_string += input_string.right(-1)
 	return building_string

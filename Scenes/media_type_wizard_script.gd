@@ -7,31 +7,31 @@ extends OptionButton
 
 var elements_array: Array = [
 		[
-			"digital drawing (artwork)",
-			"digital painting (artwork)",
-			"pixel (artwork)",
-			"3d (artwork)",
-			"oekaki",
+			"Digital drawing (artwork)",
+			"Digital painting (artwork)",
+			"Pixel (artwork)",
+			"3D (artwork)",
+			"Oekaki",
 		], # Digital
 		[
-			"colored pencil (artwork)",
-			"marker (artwork)",
-			"crayon (artwork)",
-			"pastel (artwork)",
-			"painting (artwork)",
-			"pen (artwork)",
-			"sculpture (artwork)",
-			"graphite (artwork)",
-			"chalk (artwork)",
-			"charcoal (artwork)",
-			"engraving (artwork)",
-			"airbrush (artwork)",
+			"Colored pencil (artwork)",
+			"Marker (artwork)",
+			"Crayon (artwork)",
+			"Pastel (artwork)",
+			"Painting (artwork)",
+			"Pen (artwork)",
+			"Sculpture (artwork)",
+			"Graphite (artwork)",
+			"Chalk (artwork)",
+			"Charcoal (artwork)",
+			"Engraving (artwork)",
+			"Airbrush (artwork)",
 		], # Traditional
 		[""], # Photography
 		[
-			"2d animation",
-			"3d animation",
-			"pixel animation"
+			"2D animation",
+			"3D animation",
+			"Pixel animation"
 		]# Animated
 ]
 

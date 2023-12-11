@@ -7,6 +7,8 @@
 custom_minimum_size = Vector2(1024, 592)
 offset_right = 1248.0
 offset_bottom = 621.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
@@ -15,12 +17,18 @@ script = ExtResource("1_bj0nv")
 
 [node name="AllElements" type="HBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 8
 
 [node name="Categories" type="VBoxContainer" parent="AllElements"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="AllElements/Categories"]
+layout_mode = 2
+text = "Categories"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AddCat" type="HBoxContainer" parent="AllElements/Categories"]
 layout_mode = 2
@@ -33,6 +41,11 @@ size_flags_horizontal = 3
 [node name="AddCatButton" type="Button" parent="AllElements/Categories/AddCat"]
 layout_mode = 2
 text = "Create"
+
+[node name="ColorRect" type="ColorRect" parent="AllElements/Categories"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 0.470588)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="AllElements/Categories"]
 layout_mode = 2
@@ -50,6 +63,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
+[node name="Label" type="Label" parent="AllElements/SubCategories"]
+layout_mode = 2
+text = "Subcategories"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="AddSubCat" type="HBoxContainer" parent="AllElements/SubCategories"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -63,6 +82,11 @@ editable = false
 layout_mode = 2
 disabled = true
 text = "Create"
+
+[node name="ColorRect" type="ColorRect" parent="AllElements/SubCategories"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 0.470588)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="AllElements/SubCategories"]
 layout_mode = 2
@@ -80,6 +104,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
+[node name="Label" type="Label" parent="AllElements/Titles"]
+layout_mode = 2
+text = "Items"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="AddTitle" type="HBoxContainer" parent="AllElements/Titles"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -94,6 +124,11 @@ layout_mode = 2
 disabled = true
 text = "Create"
 
+[node name="ColorRect" type="ColorRect" parent="AllElements/Titles"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 0.470588)
+
 [node name="ScrollContainer" type="ScrollContainer" parent="AllElements/Titles"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -104,6 +139,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
+
+[node name="ColorRect3" type="ColorRect" parent="AllElements"]
+custom_minimum_size = Vector2(8, 0)
+layout_mode = 2
+color = Color(0.129412, 0.14902, 0.180392, 0.470588)
 
 [node name="PromtIncluder" parent="AllElements" instance=ExtResource("3_16m7b")]
 layout_mode = 2

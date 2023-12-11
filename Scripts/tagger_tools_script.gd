@@ -24,7 +24,6 @@ func _ready():
 	hide()
 	
 	search_with_prio_button.pressed.connect(search_threaded_priority)
-#	search_with_cat_button.pressed.connect(search_with_category)
 	search_with_cat_button.pressed.connect(search_threaded_category)
 	
 	replace_cat_checkbox.toggled.connect(replace_category_toggled)
@@ -42,7 +41,7 @@ func search_threaded_category() -> void:
 	search_with_prio_button.disabled = true
 	if is_instance_valid(Tagger.common_thread) and Tagger.common_thread.is_started():
 		Tagger.common_thread.wait_to_finish()
-	Tagger.common_thread.start(search_with_category.bind(Tagger.tag_manager.duplicate(false), category_opt_button.selected))
+	Tagger.common_thread.start(search_with_category.bind(Tagger.tag_manager.duplicate(false), category_opt_button.get_item_id(category_opt_button.selected)))
 
 
 func search_threaded_priority() -> void:
@@ -111,7 +110,7 @@ func mass_edit_selected() -> void:
 			_tag_to_update.tag_priority = int(new_prio_button.value)
 		
 		if replace_cat_checkbox.button_pressed:
-			_tag_to_update.category = new_cat_opt_button.selected as Tagger.Categories
+			_tag_to_update.category = new_cat_opt_button.get_item_id(new_cat_opt_button.selected) as Tagger.Categories
 		
 		_tag_to_update.save()
 		

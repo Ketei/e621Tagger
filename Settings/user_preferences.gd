@@ -17,7 +17,17 @@ extends Resource
 @export var e621_review_amount: int = 2
 
 @export var load_review_local: bool = false
-@export var local_review_amount: int = 4
+@export var local_review_amount: int = 6
+
+@export var load_wiki_hydrus: bool = false
+@export var hydrus_review_amount: int = 6
+@export var load_hydrus_gifs: bool = false
+
+@export var hydrus_remember_data: bool = false
+@export var hydrus_port: int = 0
+@export var hydrus_key: String = ""
+
+@export var hydrus_connect_on_load: bool = false
 
 @export var file_version: String = "1.0"
 

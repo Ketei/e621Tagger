@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=33 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://Scripts/angle_view_wiz_tool.gd" id="10_3npvb"]
 [ext_resource type="Texture2D" uid="uid://75bqwb1rf3al" path="res://Textures/AngleHeads/regular-front.png" id="11_yms3t"]
 [ext_resource type="Script" path="res://Scripts/include_wizzard_sugs.gd" id="13_yw5to"]
+[ext_resource type="ButtonGroup" uid="uid://ckkxv4kqddsta" path="res://ButtonGroups/wizard_comic_buttongroup.tres" id="14_smty2"]
 [ext_resource type="Script" path="res://Scripts/guess_my_gender.gd" id="16_qpii0"]
 [ext_resource type="ButtonGroup" uid="uid://dwwnuxetb64nk" path="res://ButtonGroups/wizard_gmg_bod_type.tres" id="17_8lvxo"]
 
@@ -331,15 +332,23 @@ script/source = "extends CheckButton
 
 @onready var shows_multiple_checkbox: CheckBox = $\"../ShowsMultipleCheckBox\"
 
+@onready var cover_check: CheckBox = $\"../ComicElements/Covers/CoverCheck\"
+@onready var back_cover_check: CheckBox = $\"../ComicElements/Covers/BackCoverCheck\"
+@onready var first_check: CheckBox = $\"../ComicElements/Pages/FirstCheck\"
+@onready var end_check: CheckBox = $\"../ComicElements/Pages/EndCheck\"
+@onready var page_num_check: CheckBox = $\"../ComicElements/Extras/PageNumCheck\"
 
 func _ready():
 	toggled.connect(is_comic_checked)
 
 
 func is_comic_checked(is_comic: bool) -> void:
-	if is_comic:
-		shows_multiple_checkbox.button_pressed = true
-	shows_multiple_checkbox.disabled = is_comic
+	cover_check.disabled = not is_comic
+	back_cover_check.disabled = not is_comic
+	first_check.disabled = not is_comic
+	end_check.disabled = not is_comic
+	page_num_check.disabled = not is_comic
+
 "
 
 [node name="TagWizard" type="Control"]
@@ -391,6 +400,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Margin" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
+horizontal_scroll_mode = 0
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Margin"]
 layout_mode = 2
@@ -1453,19 +1463,88 @@ custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 texture = ExtResource("11_yms3t")
 
-[node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+[node name="Comics" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ComicLable" type="Label" parent="MarginContainer/Margin/MarginContainer/All/Comics"]
+layout_mode = 2
+text = "Scenes"
+
+[node name="Elements" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics"]
+layout_mode = 2
+
+[node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "When a picture contains 2 or more related images. Can show progression."
+theme = ExtResource("9_pvv55")
+text = "Multiple scenes"
+
+[node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements"]
 layout_mode = 2
 size_flags_vertical = 4
 theme = ExtResource("9_pvv55")
 text = "Is comic"
 script = SubResource("GDScript_c8128")
 
-[node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+[node name="ComicElements" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements"]
 layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "When a picture contains 2 or more related images. Can show progression."
+
+[node name="Covers" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements"]
+layout_mode = 2
+
+[node name="CoverCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Covers"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "The front cover of a comic."
 theme = ExtResource("9_pvv55")
-text = "Multiple scenes"
+disabled = true
+button_group = ExtResource("14_smty2")
+text = "Front cover"
+
+[node name="BackCoverCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Covers"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "The back cover of a comic."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("14_smty2")
+text = "Back cover"
+
+[node name="Pages" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements"]
+layout_mode = 2
+
+[node name="FirstCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Pages"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "The starting page of any multi-page comic.
+Not the cover."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("14_smty2")
+text = "First page"
+
+[node name="EndCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Pages"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "The final page of a comic with more than one page.
+Not the back cover."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("14_smty2")
+text = "End Page"
+
+[node name="Extras" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements"]
+layout_mode = 2
+
+[node name="PageNumCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Extras"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "A number used to indicate the position of a page in a sequence."
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Page number"
 
 [node name="MediaTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2

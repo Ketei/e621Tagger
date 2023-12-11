@@ -1,7 +1,7 @@
 extends Control
 
 
-signal set_as_accepted
+signal set_as_accepted(is_submit: bool)
 
 @onready var tag_label: Label = $CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer/TagLabel
 @onready var categories_menu: OptionButton = $CenterContainer/SetWindow/MarginContainer/VBoxContainer/HBoxContainer/CategoriesMenu
@@ -50,17 +50,17 @@ func on_cat_change(new_category: int) -> void:
 		change_cat_check_box.button_pressed = true
 
 
-func set_target_tag(tag_name: String) -> void:
+func set_target_tag(tag_name: String, tag_category: int = 0, tag_priority: int = 0) -> void:
 	tag_label.text = tag_name
-	categories_menu.select(0)
-	new_priority_spin_box.set_value_no_signal(0)
+	categories_menu.selected = categories_menu.get_item_index(tag_category)
+	new_priority_spin_box.set_value_no_signal(tag_priority)
 	change_prio_check_box.button_pressed = false
 	change_cat_check_box.button_pressed = false
 
 
 func accept_category() -> void:
-	set_as_accepted.emit()
+	set_as_accepted.emit(true)
 
 
 func cancel_category() -> void:
-	set_as_accepted.emit()
+	set_as_accepted.emit(false)

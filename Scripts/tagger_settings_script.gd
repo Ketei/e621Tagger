@@ -18,6 +18,7 @@ extends Control
 @onready var select_db_path_button: Button = $SettingsContainer/SettingsSets/DatabaseLocation/SelectDBPathButton
 
 @onready var database_location_file_dialog: FileDialog = $DatabaseLocationFileDialog
+@onready var hydrus_api = $HydrusAPI
 
 
 func _ready():
@@ -40,6 +41,8 @@ func _ready():
 func settings_menu_press(button_id: int) -> void:
 	if button_id == 0:
 		api_loader.show()
+	elif button_id == 1:
+		hydrus_api.show()
 
 
 func open_api_screen() -> void:

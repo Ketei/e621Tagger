@@ -1,7 +1,10 @@
-class_name LewdTextureRect
+class_name HydrusTextureRect
 extends TextureRect
 
-signal lewd_pic_pressed(image_texture)
+
+signal thumbnail_pressed(picture_id)
+
+var picture_id: int = 0
 
 
 func _ready():
@@ -10,7 +13,7 @@ func _ready():
 
 func gui_input_received(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		lewd_pic_pressed.emit(self.texture)
+		thumbnail_pressed.emit(picture_id)
 
 
 func pause_texture(is_paused: bool) -> void:

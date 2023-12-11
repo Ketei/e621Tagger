@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://8hpnhw6qdoyx"
-path="res://.godot/imported/WizardHat-01.svg-3e69391fc9d01c6c61e573594cea2652.ctex"
+uid="uid://d272ywot6v8v3"
+path="res://.godot/imported/CheckMark.svg-17b34c1db255b966c79db2d49509951b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Textures/WizardHat-01.svg"
-dest_files=["res://.godot/imported/WizardHat-01.svg-3e69391fc9d01c6c61e573594cea2652.ctex"]
+source_file="res://Textures/CheckMark.svg"
+dest_files=["res://.godot/imported/CheckMark.svg-17b34c1db255b966c79db2d49509951b.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

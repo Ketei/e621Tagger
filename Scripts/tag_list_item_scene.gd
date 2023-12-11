@@ -1,6 +1,9 @@
 class_name TagListEntry
 extends HBoxContainer
 
+signal entry_removed(entry_name, node_ref)
+
+@export var enable_overwriting: bool = true
 
 @onready var key_line_edit: LineEdit = $KeyLineEdit
 @onready var entries_line_edit: LineEdit = $EntriesLineEdit
@@ -9,7 +12,11 @@ extends HBoxContainer
 
 
 func _ready():
-	save_button.pressed.connect(save_entries)
+	if enable_overwriting:
+		save_button.pressed.connect(save_entries)
+	else:
+		save_button.hide()
+	
 	delete_button.pressed.connect(delete_entry)
 
 
@@ -27,7 +34,7 @@ func save_entries() -> void:
 	
 	for entry in entries_array:
 		final_array.append(entry.strip_edges())
-	
+	final_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	Tagger.settings_lists.tag_types[key_line_edit.text] = final_array
 	
 	save_button.text = "Saved!"
@@ -36,7 +43,10 @@ func save_entries() -> void:
 	save_button.text = "Save"
 	save_button.disabled = false
 
+
 func delete_entry() -> void:
-	Tagger.settings_lists.tag_types.erase(key_line_edit.text)
-	queue_free()
+	if enable_overwriting:
+		Tagger.settings_lists.tag_types.erase(key_line_edit.text)
+	entry_removed.emit(key_line_edit.text, self)
+	queue_free.call_deferred()
 

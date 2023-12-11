@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjbjeeop8rv8x"
-path="res://.godot/imported/WhiteWizard.svg-613d726a755541c7b1aca40b09e2a246.ctex"
+uid="uid://dfjt1p86v6ykl"
+path="res://.godot/imported/Cross.svg-29edc2dbf3aa869aa7d841a050bf6e8d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Textures/WhiteWizard.svg"
-dest_files=["res://.godot/imported/WhiteWizard.svg-613d726a755541c7b1aca40b09e2a246.ctex"]
+source_file="res://Textures/Cross.svg"
+dest_files=["res://.godot/imported/Cross.svg-29edc2dbf3aa869aa7d841a050bf6e8d.ctex"]
 
 [params]
 

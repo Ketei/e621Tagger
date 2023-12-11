@@ -50,6 +50,7 @@ var suggestions_array: Array[String] = []
 @onready var prompt_includer = $AllItemsHBox/PromtIncluder
 @onready var has_prompt_data: CheckBox = $AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer/HasPromptData
 @onready var right_v_box = $AllItemsHBox/RightVBox
+@onready var tag_groups_review = $TagGroupsReview
 
 
 
@@ -139,12 +140,16 @@ func search_for_tag(new_text: String) -> void:
 	alias_itemlist.clear()
 	tag_aliases_array.clear()
 	
+	tag_groups_review.clean_all()
+	
 	prompt_includer.clear_fields()
 	
 	var _tag: Tag = Tagger.tag_manager.get_tag(new_text)
 
 	name_line.text = _tag.tag
-	categories_menu.select(_tag.category)
+	categories_menu.select(
+		categories_menu.get_item_index(_tag.category)
+	)
 
 	for parent_tag in _tag.parents:
 		parents.append(parent_tag)
@@ -162,6 +167,11 @@ func search_for_tag(new_text: String) -> void:
 		alias_itemlist.add_item(alias)
 		tag_aliases_array.append(alias)
 	
+	var tag_groups: Dictionary = _tag.get_tag_groups()
+	
+	for group_entry in tag_groups.keys():
+		tag_groups_review.load_group(group_entry, tag_groups[group_entry])
+	
 	wiki_edit.clear()
 	wiki_edit.text = _tag.wiki_entry
 	tag_prio_box.set_value_no_signal(_tag.tag_priority)
@@ -176,19 +186,20 @@ func search_for_tag(new_text: String) -> void:
 
 	if _tag.has_prompt_data:
 		has_prompt_data.button_pressed = true
-		var prompt_tag: Dictionary =  {
-			"category": _tag.prompt_category,
-			"category_img": _tag.prompt_category_img_tag,
-			"category_desc": _tag.prompt_category_desc,
-			"subcategory": _tag.prompt_subcat,
-			"subcategory_img": _tag.prompt_subcat_img_tag,
-			"subcategory_desc": _tag.prompt_subcat_desc,
-			"item_name": _tag.prompt_title,
-			"item_desc": _tag.prompt_desc
-		}
-		prompt_includer.fill_data(prompt_tag)
 	else:
 		has_prompt_data.button_pressed = false
+	
+	var prompt_tag: Dictionary =  {
+		"category": _tag.prompt_category,
+		"category_img": _tag.prompt_category_img_tag,
+		"category_desc": _tag.prompt_category_desc,
+		"subcategory": _tag.prompt_subcat,
+		"subcategory_img": _tag.prompt_subcat_img_tag,
+		"subcategory_desc": _tag.prompt_subcat_desc,
+		"item_name": _tag.prompt_title,
+		"item_desc": _tag.prompt_desc
+	}
+	prompt_includer.fill_data(prompt_tag)
 	
 	has_prompt_data.disabled = false
 	add_conflict_line_edit.editable = true
@@ -207,6 +218,7 @@ func search_for_tag(new_text: String) -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(1), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), false)
 	review_menu.set_item_disabled(review_menu.get_item_index(4), false)
+	review_menu.set_item_disabled(review_menu.get_item_index(7), false)
 	tag_searcher.clear()
 
 
@@ -225,7 +237,7 @@ func update_tag() -> void:
 	var _tag: Tag = Tagger.tag_manager.get_tag(name_line.text.to_lower())
 	var prompt_data: Dictionary = prompt_includer.get_data()
 
-	_tag.category = categories_menu.selected as Tagger.Categories
+	_tag.category = categories_menu.get_item_id(categories_menu.selected) as Tagger.Categories
 	_tag.parents = parents.duplicate()
 	_tag.wiki_entry = wiki_edit.text
 	_tag.tag_priority = int(tag_prio_box.value)
@@ -234,6 +246,7 @@ func update_tag() -> void:
 	_tag.conflicts = conflicts_array.duplicate()
 	_tag.tooltip = tag_tooltip_line_edit.text.strip_edges()
 	_tag.aliases = PackedStringArray(tag_aliases_array)
+	_tag.has_prompt_data = has_prompt_data.button_pressed
 	_tag.prompt_category = prompt_data["category"]
 	_tag.prompt_category_img_tag = prompt_data["category_img"]
 	_tag.prompt_category_desc = prompt_data["category_desc"]
@@ -242,6 +255,7 @@ func update_tag() -> void:
 	_tag.prompt_subcat_desc = prompt_data["subcategory_desc"]
 	_tag.prompt_title = prompt_data["item_name"]
 	_tag.prompt_desc = prompt_data["item_desc"]
+	_tag.tag_groups = tag_groups_review.get_tag_types_entries().duplicate()
 	_tag.save()
 	
 	tag_updated.emit(_tag.tag)
@@ -346,6 +360,8 @@ func activate_menu_bar(id_button: int) -> void:
 	elif id_button == 4:
 		if not aliases_window.visible:
 			aliases_window.show()
+	elif id_button == 7:
+		tag_groups_review.show()
 
 
 func clear_and_disable() -> void:
@@ -380,6 +396,7 @@ func clear_and_disable() -> void:
 	review_menu.set_item_disabled(review_menu.get_item_index(1), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(2), true)
 	review_menu.set_item_disabled(review_menu.get_item_index(4), true)
+	review_menu.set_item_disabled(review_menu.get_item_index(7), true)
 	tag_update_button.disabled = true
 	open_auto_complete_parents_btn.disabled = true
 	open_auto_complete_suggestions_btn.disabled = true
