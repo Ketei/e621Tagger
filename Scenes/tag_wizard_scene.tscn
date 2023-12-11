@@ -400,7 +400,6 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Margin" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
-scroll_vertical = 359
 horizontal_scroll_mode = 0
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Margin"]
