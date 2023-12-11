@@ -59,7 +59,7 @@ func get_tag(tag_name: String) -> Tag:
 		return null
 
 
-func recreate_imfplications() -> void:
+func recreate_implications() -> void:
 	var sorted_files = {}
 	
 	for tag in DirAccess.get_files_at(Tagger.tags_path):
