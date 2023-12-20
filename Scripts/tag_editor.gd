@@ -170,7 +170,7 @@ func search_for_tag(new_text: String) -> void:
 	var tag_groups: Dictionary = _tag.get_tag_groups()
 	
 	for group_entry in tag_groups.keys():
-		tag_groups_review.load_group(group_entry, tag_groups[group_entry])
+		tag_groups_review.load_group(group_entry, tag_groups[group_entry]["tags"], tag_groups[group_entry]["sort"])
 	
 	wiki_edit.clear()
 	wiki_edit.text = _tag.wiki_entry

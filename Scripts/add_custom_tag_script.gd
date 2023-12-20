@@ -74,7 +74,7 @@ func open_with_tag(suggested_custom: String, prefix_key: String = "", suffix_key
 		using_prefix = true
 		
 		if Tagger.settings_lists.tag_types.has(prefix_key):
-			for prefix in Tagger.settings_lists.tag_types[prefix_key]:
+			for prefix in Tagger.settings_lists.tag_types[prefix_key]["tags"]:
 				prefix_option_button.add_item(prefix.trim_suffix(suggested_custom).strip_edges())
 		
 		prefix_option_button.add_item("- custom -")
@@ -87,7 +87,7 @@ func open_with_tag(suggested_custom: String, prefix_key: String = "", suffix_key
 		using_suffix = true
 		
 		if Tagger.settings_lists.tag_types.has(suffix_key):
-			for suffix in Tagger.settings_lists.tag_types[suffix_key]:
+			for suffix in Tagger.settings_lists.tag_types[suffix_key]["tags"]:
 				suffix_option_button.add_item(suffix.trim_prefix(suggested_custom).strip_edges())
 		
 		suffix_option_button.add_item("- custom -")

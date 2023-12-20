@@ -116,18 +116,19 @@ func recreate_implications() -> void:
 				
 				for tag_group in valid_tag_groups.keys():
 					if not Tagger.settings_lists.tag_types.has(tag_group):
-						Tagger.settings_lists.tag_types[tag_group] = []
+						Tagger.settings_lists.tag_types[tag_group] = {"sort": valid_tag_groups[tag_group]["sort"], "tags": []}
 					
-					for group_entry in valid_tag_groups[tag_group]:
-						if not Tagger.settings_lists.tag_types[tag_group].has(group_entry):
-							Tagger.settings_lists.tag_types[tag_group].append(group_entry)
+					for group_entry in valid_tag_groups[tag_group]["tags"]:
+						if not Tagger.settings_lists.tag_types[tag_group]["tags"].has(group_entry):
+							Tagger.settings_lists.tag_types[tag_group]["tags"].append(group_entry)
 
 		relation_paths[chara] = Tagger.implications_path + _implication.file_name
 		Tagger.settings_lists.save()
 		_implication.save()
 	
 	for tag_group in Tagger.settings_lists.tag_types.keys():
-		Tagger.settings_lists.tag_types[tag_group].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+		if Tagger.settings_lists.tag_types[tag_group]["sort"]:
+			Tagger.settings_lists.tag_types[tag_group].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	Tagger.reload_tag_groups.emit()
 	Tagger.implication_reload()
 

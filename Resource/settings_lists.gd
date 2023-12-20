@@ -548,10 +548,20 @@ extends Resource
 }
 
 @export var tag_types: Dictionary = {}
+@export var list_version: int = 1
+
+static var current_version: int = 2
 
 static func load_database(lists_path: String) -> SettingLists:
 	if ResourceLoader.exists(lists_path, "SettingLists"):
-		return ResourceLoader.load(lists_path)
+		var list_load: SettingLists = ResourceLoader.load(lists_path)
+		if list_load.list_version < current_version:
+			list_load.list_version = current_version
+			var fixed_dict: Dictionary = {}
+			for key in list_load.tag_types.keys():
+				fixed_dict[key] = {"sort": true, "tags": list_load.tag_types[key]}
+			list_load.tag_types = fixed_dict.duplicate(true)
+		return list_load
 	else:
 		return SettingLists.new()
 

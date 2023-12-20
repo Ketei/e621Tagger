@@ -269,12 +269,18 @@ func create_tag() -> void:
 		)
 	
 	for entry in tag_groups_dict.keys():
+		var sort_required := false
 		if not Tagger.settings_lists.tag_types.has(entry):
-			Tagger.settings_lists.tag_types[entry] = []
-		for types in tag_groups_dict[entry]:
-			Tagger.settings_lists.tag_types[entry].append(types)
+			Tagger.settings_lists.tag_types[entry] = {"sort": tag_groups_dict[entry]["sort"], "tags": []}
 		
-		Tagger.settings_lists.tag_types[entry].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+		for types in tag_groups_dict[entry]["tags"]:
+			if not Tagger.settings_lists.tag_types[entry]["tags"].has(types):
+				if not sort_required:
+					sort_required = true
+				Tagger.settings_lists.tag_types[entry]["tags"].append(types)
+		
+		if sort_required and Tagger.settings_lists.tag_types[entry]["sort"]:
+			Tagger.settings_lists.tag_types[entry]["tags"].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	
 	Tagger.reload_tag_groups.emit()
 	
