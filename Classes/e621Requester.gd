@@ -336,3 +336,4 @@ func cancel_all_requests() -> void:
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		cancel_all_requests()
+		get_finished.emit([])

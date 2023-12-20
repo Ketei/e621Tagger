@@ -14,6 +14,8 @@ var tag_search_queue: Array[Dictionary] = []
 var prio_search_queue: Array[Dictionary] = []
 var is_api_active: bool = false
 
+var exit_signal: bool = false
+
 
 func add_to_queue(tags_to_search: Array, limit: int, search_type:SEARCH_TYPES, node_reference: Node, download_path: String = "", is_priority := false) -> void:
 	if is_priority:
@@ -94,6 +96,8 @@ func next_in_queue() -> void:
 	print_debug("\nAwaiting on tags: " + str(queued_call["tags"]))
 	print_debug("Full data: " + str(queued_call))
 	var response: Array = await tag_requester.get_finished
+	if exit_signal:
+		return
 	print("\n- Successful response -")
 	
 	if is_instance_valid(queued_call["reference"]):
@@ -112,20 +116,24 @@ func next_in_queue() -> void:
 	await api_cooldown.timeout
 	print_debug("\n- e621 API cooldown finished -")
 	
-	next_in_queue()
+	if not exit_signal:
+		next_in_queue()
 
 
 func remove_from_queue(dict_to_remove: Dictionary, is_prio := false) -> void:
 	var target_index: int = 0
-	
 	if is_prio:
 		target_index = prio_search_queue.find(dict_to_remove)
-		print_debug("Trying to remove priority queue element: " + str(target_index))
+		print_debug("Trying to remove priority queue element: {0} on index {1}".format([str(dict_to_remove), str(target_index)]))
 		if target_index != -1:
 			prio_search_queue.remove_at(target_index)
 	else:
 		target_index = tag_search_queue.find(dict_to_remove)
-		print_debug("Trying to remove queue element: " + str(target_index))
+		print_debug("Trying to remove queue element: {0} on index {1}".format([str(dict_to_remove), str(target_index)]))
 		if target_index != -1:
 			tag_search_queue.remove_at(target_index)
 
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		exit_signal = true
