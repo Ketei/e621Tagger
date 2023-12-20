@@ -29,6 +29,8 @@ func _ready():
 	clear_tags_btn.pressed.connect(clear_tags)
 	save_template_button.pressed.connect(save_template)
 	open_folder_button.pressed.connect(open_template_folder)
+	tag_list.item_activated.connect(remove_tag)
+	suggestion_list.item_activated.connect(remove_suggestion)
 
 
 func search_for_templates() -> void:
@@ -46,6 +48,7 @@ func tag_submitted(tag_text: String) -> void:
 	
 	if index_search != -1:
 		tag_list.select(index_search)
+		return
 	
 	template_tags.append(tag_text)
 	tag_list.add_item(tag_text)
@@ -61,6 +64,7 @@ func suggestion_submitted(tag_text: String) -> void:
 	
 	if index_search != -1:
 		suggestion_list.select(index_search)
+		return
 	
 	template_suggestions.append(tag_text)
 	suggestion_list.add_item(tag_text)
@@ -99,6 +103,7 @@ func save_template() -> void:
 	save_template_button.text = "Save"
 	save_template_button.disabled = false
 
+
 func clear_tags() -> void:
 	template_tags.clear()
 	tag_list.clear()
@@ -111,4 +116,15 @@ func clear_suggestions() -> void:
 
 func open_template_folder() -> void:
 	OS.shell_open(ProjectSettings.globalize_path(Tagger.templates_path))
+
+
+func remove_tag(index_selected: int) -> void:
+	template_tags.remove_at(index_selected)
+	tag_list.remove_item(index_selected)
+
+
+func remove_suggestion(index_selected: int) -> void:
+	template_suggestions.remove_at(index_selected)
+	suggestion_list.remove_item(index_selected)
+
 
