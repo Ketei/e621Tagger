@@ -236,7 +236,9 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add:
 			character_count_added += 1
 	
 		if Tagger.settings.search_suggested:
-			tag_holder.add_to_search_queue({tag_name: self})
+			#tag_holder.add_to_search_queue({tag_name: self})
+			tag_queue.append(tag_name)
+			tag_holder.add_to_api_queue(tag_name, 1, self)
 		
 		if select_on_add:
 			item_list.select(add_index)
