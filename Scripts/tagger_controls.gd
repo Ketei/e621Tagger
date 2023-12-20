@@ -182,7 +182,17 @@ func append_empty_tag(tag_to_append: String) -> void:
 func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add: bool = true, search_suggestions: bool = true) -> void:
 	if tag_name.is_empty() or tag_dict.is_empty():
 		return
-
+	
+	if implied_tags_array.has(tag_name):
+		var _remove_id: int = implied_tags_array.find(tag_name)
+		implied_list.remove_item(_remove_id)
+		implied_tags_array.remove_at(_remove_id)
+	
+	if suggestion_tags_array.has(tag_name):
+		var _sug_remove: int = suggestion_tags_array.find(tag_name)
+		suggested_list.remove_item(_sug_remove)
+		suggestion_tags_array.remove_at(_sug_remove)
+	
 	if Tagger.settings_lists.invalid_tags.has(tag_name):
 		var index: int = item_list.add_item(tag_name, load("res://Textures/bad.png"))
 		item_list.select(index)
@@ -323,6 +333,11 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 	
 	tag_name = Tagger.alias_database.get_alias(tag_name)
 	
+	if suggestion_tags_array.has(tag_name): # Remove if it exists in suggestions
+		var _remove_sug: int = suggestion_tags_array.find(tag_name)
+		suggested_list.remove_item(_remove_sug)
+		suggestion_tags_array.remove_at(_remove_sug)
+	
 	if tags_inputed.has(tag_name): # Then check if it exists already
 		if ensure_visible:
 			item_list.select(full_tag_list.find(tag_name))
@@ -372,6 +387,7 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 			add_to_category(tag_category)
 		add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
 		item_list.set_item_custom_fg_color(add_index, Color.html("cccccc"))
+	
 	if implied_tags_array.has(tag_name):
 		implied_list.remove_item(implied_tags_array.find(tag_name))
 		implied_tags_array.erase(tag_name)
@@ -813,7 +829,10 @@ func sort_tags_by_category() -> void:
 	
 	for item in final_array:
 		append_prefilled_tag(item, backup_tags[item], false, false)
-	implied_list.sort_items_by_text()
+	implied_tags_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	implied_list.clear()
+	for item in implied_tags_array:
+		implied_list.add_item(item)
 
 
 func tagger_menu_pressed(option_id: int) -> void:
@@ -916,7 +935,7 @@ func open_export_dialog() -> void:
 	tag_file_dialog.tag_string = final_tag_list.text
 	
 	if tag_file_dialog.default_filename.is_empty():
-		tag_file_dialog.default_filename = instance_name
+		tag_file_dialog.default_filename = instance_name.validate_filename()
 	
 	if tag_file_dialog.default_path.is_empty():
 		tag_file_dialog.default_path = Tagger.settings.default_save_path
