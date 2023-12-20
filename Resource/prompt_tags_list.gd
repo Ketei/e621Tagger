@@ -242,7 +242,7 @@ extends Resource
 
 
 func verify_prompt_list_structure() -> void:
-	print("--- Starting PROMPT LIST structure verification ---")
+	print("\n--- Starting PROMPT LIST structure verification ---")
 	for main_category in prompt_list.keys():
 		if not prompt_list[main_category].has("desc"):
 			print("Category \"{0}\" is missing entry \"{1}\" ".format([main_category, "desc"]))
@@ -289,7 +289,7 @@ func verify_prompt_list_structure() -> void:
 								else:
 									if typeof(prompt_list[main_category]["types"][sub_cat]["types"][specific_type]["desc"]) != 4:
 										print("Category \"{0}\", subcategory \"{1}\", item \"{2}\" is not of type String".format([main_category, sub_cat, specific_type]))
-	print("--- Finished PROMPT LIST structure verification ---")
+	print("--- Finished PROMPT LIST structure verification ---\n")
 
 
 func register_category(category_name: String, desc := "", image_tag := "") -> void:

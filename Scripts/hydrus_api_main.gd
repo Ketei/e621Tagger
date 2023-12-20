@@ -60,7 +60,7 @@ func verify_access_key() -> bool:
 	var headers = headers_parse(response[2])
 
 	if response[0] != OK:
-		print_debug("API responded with: " + str(response[0]))
+		print_debug("\nHydrus API responded with: " + str(response[0]))
 		valid_api = false
 		return false
 	else:
@@ -75,12 +75,11 @@ func verify_access_key() -> bool:
 					valid_api = true
 					return true
 				else:
-					print_debug("Key doesn't have Search/Fetch permission(3)")
+					print_debug("\nKey doesn't have Search/Fetch permission(3)")
 					valid_api = false
 					return false
 			else:
-				print_debug(parsed["error"])
-				print_debug(parsed["exception_type"])
+				print_debug("\n{0}\n{1}".format([parsed["error"], parsed["exception_type"]]))
 				valid_api = false
 				return false
 		else:
@@ -164,7 +163,7 @@ func search_for_tags(tags_array: Array, tag_count: int) -> Array:
 	var response = await request_api.request_completed
 	
 	if response[0] != OK or response[1] != 200:
-		print_debug("API response was not 0/200")
+		print_debug("\nAPI response was not 0/200\nResponse: {0}/{1}".format([response[0], response[1]]))
 		return[]
 	
 	var json = JSON.new()
@@ -201,7 +200,7 @@ func _on_picture_found(result: int, response_code: int, headers: PackedStringArr
 		return
 	
 	if result != OK:
-		print_debug("File got {0} as result".format([str(result)]))
+		print_debug("\nFile got {0} as result".format([str(result)]))
 		thread_finished.emit()
 		return
 
@@ -209,16 +208,15 @@ func _on_picture_found(result: int, response_code: int, headers: PackedStringArr
 		var json = JSON.new()
 		json.parse(body.get_string_from_utf8())
 		var parsed = json.data
-		print_debug("File got {0} as response".format([str(response_code)]))
-		print_debug("Error: " + parsed["error"])
-		print_debug("Exception type: " + parsed["exception_type"])
+		print_debug("\nFile got {0} as response".format([str(response_code)]))
+		print_debug("\nError: {0}\nException type: {1}".format([parsed["error"], parsed["exception_type"]]))
 		thread_finished.emit()
 		return
 	
 	var header_data = headers_parse(headers)
 	
 	if not is_valid_headers(header_data):
-		print_debug("Headers don't match with Hydrus API")
+		print_debug("\nHeaders don't match with Hydrus API")
 		thread_finished.emit()
 		return
 

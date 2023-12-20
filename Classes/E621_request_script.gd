@@ -2,28 +2,27 @@ class_name e621Request
 extends HTTPRequest
 
 
-signal job_finished(reference) # Unused signal
 signal parsed_result(e621_result)
 signal job_failed
 
 enum RequestType {POST, TAG}
 
-enum RequestResult {
-	SUCCESS,
-	CHUNKED_BODY_SIZE_MISMATCH,
-	CANT_CONNECT,
-	CANT_RESOLVE,
-	CONNECTION_ERROR,
-	TLS_HANDSHAKE_ERROR,
-	NO_RESPONSE,
-	BODY_SIZE_LIMIT_EXCEEDED,
-	BODY_DECOMPRESS_FAILED,
-	REQUEST_FAILED,
-	DOWNLOAD_FILE_CANT_OPEN,
-	DOWNLOAD_FILE_WRITE_ERROR,
-	REDIRECT_LIMIT_REACHED,
-	TIMEOUT,
-}
+const RequestResult: Array[String] = [
+	"SUCCESS",
+	"CHUNKED_BODY_SIZE_MISMATCH",
+	"CANT_CONNECT",
+	"CANT_RESOLVE",
+	"CONNECTION_ERROR",
+	"TLS_HANDSHAKE_ERROR",
+	"NO_RESPONSE",
+	"BODY_SIZE_LIMIT_EXCEEDED",
+	"BODY_DECOMPRESS_FAILED",
+	"REQUEST_FAILED",
+	"DOWNLOAD_FILE_CANT_OPEN",
+	"DOWNLOAD_FILE_WRITE_ERROR",
+	"REDIRECT_LIMIT_REACHED",
+	"TIMEOUT",
+]
 
 var request_mode: RequestType = RequestType.POST
 
@@ -39,9 +38,9 @@ func _ready():
 
 
 func _on_response(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-	if result != 0:
-		print_debug("Job finished with error: " + RequestResult.keys()[result])
-		job_failed.emit()
+	if result != OK or _response_code != 200:
+		print_debug("\nJob failed with result: {0}\nJob failed with response: {1}".format([RequestResult[result], str(_response_code)]))
+		parsed_result.emit([])
 		return
 
 	if request_mode == RequestType.POST:
@@ -108,13 +107,12 @@ func _on_response(result: int, _response_code: int, _headers: PackedStringArray,
 			response_post_array.append(_e6_post)
 			
 		parsed_result.emit(response_post_array)
-		
-		
+	
 	elif request_mode == RequestType.TAG:
 		var response_array = JSON.parse_string(body.get_string_from_utf8())
 		
-		if typeof(response_array) == TYPE_DICTIONARY:
-			parsed_result.emit([]) # This is the correct signal
+		if typeof(response_array) != TYPE_ARRAY:
+			parsed_result.emit([])
 			return
 		
 		var tags_array: Array[e621Tag] = []
