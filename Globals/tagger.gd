@@ -71,7 +71,7 @@ enum Notifications {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/1.2.0 (by Ketei)",
+	"User-Agent": "TaglistMaker/1.3.0 (by Ketei)",
 }
 
 const valid_textures: Array[String] = ["jpg", "png", "gif"]

@@ -462,6 +462,7 @@ func _ready():
 func create_tree_item(_item_text: String, _parent_item):
 	var item = create_item(_parent_item)
 	item.set_text(0, _item_text)
+	scroll_to_item(item)
 
 
 func create_item_and_subitem(item_text: String, _parent_item, subitem_string: String) -> void:
@@ -470,6 +471,7 @@ func create_item_and_subitem(item_text: String, _parent_item, subitem_string: St
 	
 	var sub_item = create_item(parent_item)
 	sub_item.set_text(0, subitem_string)
+	scroll_to_item(sub_item)
 
 "
 
@@ -841,12 +843,11 @@ color = Color(0.25098, 0.282353, 0.341176, 1)
 [node name="MenuBar" type="MenuBar" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_right = 0.056
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 321.32
-offset_bottom = 48.0
-mouse_filter = 1
+anchor_left = 0.00625
+anchor_top = 0.0111111
+anchor_right = 0.307031
+anchor_bottom = 0.0666667
+metadata/_edit_use_anchors_ = true
 
 [node name="Menu" type="PopupMenu" parent="MenuBar"]
 unique_name_in_owner = true
@@ -2866,6 +2867,7 @@ text = "Add"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagGroupsReview" type="Control" parent="TagReviewer"]
+visible = false
 layout_mode = 1
 anchor_top = -0.0712164
 anchor_right = 1.0
@@ -3564,6 +3566,7 @@ script = ExtResource("16_ojscj")
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("8_rcl5d")
+hide_root = true
 script = SubResource("GDScript_hr4cx")
 
 [node name="AliasesLineEdits" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
@@ -3750,7 +3753,7 @@ alignment = 1
 modulate = Color(0, 0, 0, 0.392157)
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "v 1.2.0"
+text = "v 1.3.0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
