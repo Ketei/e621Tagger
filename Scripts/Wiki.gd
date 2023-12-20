@@ -47,6 +47,8 @@ var hydrus_thumbnail_amount: int = 0
 # To-Do: Create an Hydrus implementation. Make it send HTTP requests and once
 # it answers make a threaded function load the picture and then call
 # display_image.
+var somefix_memory: String = ""
+
 
 func _ready():
 	wiki_edit.search_in_wiki.connect(search_for_tag)
@@ -220,10 +222,10 @@ func build_wiki_entry(target_tag: Tag) -> String:
 	
 	var bbc_text: String = "[font_size=30][color={1}]{0}[/color][/font_size]\n".format([target_tag.tag.capitalize(), html_text])
 
-	bbc_text += "[color=29b8e7][b]Category: [/b] {0}[/color]\n\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
+	bbc_text += "[color=29b8e7][b]Category: [/b][/color][color=d1f0fa]{0}[/color]\n\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
 	
 	if not target_tag.parents.is_empty():
-		bbc_text += "[color=8eef97][b]Parents: [/b]"
+		bbc_text += "[color=8eef97][b]Parents: [/b][/color][color=d2f9d6]"
 		for parent_tag in target_tag.parents:
 			if Tagger.tag_manager.has_tag(parent_tag):
 				bbc_text += "[url]{0}[/url], ".format([parent_tag])
@@ -232,8 +234,9 @@ func build_wiki_entry(target_tag: Tag) -> String:
 		bbc_text = bbc_text.left(-2)
 		bbc_text += "[/color]"
 		bbc_text += "\n"
+	
 	if not target_tag.conflicts.is_empty():
-		bbc_text += "[color=8eef97][b]Conflicts: [/b]"
+		bbc_text += "[color=8eef97][b]Conflicts: [/b][/color][color=d2f9d6]"
 		for suggested_tag in target_tag.conflicts:
 			if Tagger.tag_manager.has_tag(suggested_tag):
 				bbc_text += "[url]{0}[/url], ".format([suggested_tag])
@@ -243,11 +246,50 @@ func build_wiki_entry(target_tag: Tag) -> String:
 		bbc_text += "[/color]"
 		bbc_text += "\n"
 	
-	bbc_text += "\n"
-	bbc_text += target_tag.wiki_entry
+	if not target_tag.aliases.is_empty():
+		bbc_text += "[color=8eef97][b]Aliases: [/b][/color][color=d2f9d6]"
+		for alias in target_tag.aliases:
+			bbc_text += "{0}, ".format([alias])
+		bbc_text = bbc_text.left(-2)
+		bbc_text += "[/color]\n"
 	
+	if not target_tag.suggestions.is_empty():
+		bbc_text += "[color=8eef97][b]Related tags: [/b][/color][color=d2f9d6]"
+		for suggestion:String in target_tag.suggestions:
+			if suggestion.begins_with("|") and suggestion.ends_with("|"):
+				var suggestion_formating: String = suggestion.trim_prefix("|").trim_suffix("|")
+				var suggestion_array: Array = suggestion_formating.split(",", false)
+				for sug in suggestion_array:
+					if Tagger.tag_manager.has_tag(sug):
+						bbc_text += "[url]{0}[/url], ".format([sug])
+					else:
+						bbc_text += "{0}, ".format([sug])
+			elif suggestion.begins_with("#"):
+				continue
+			elif has_valid_fix(suggestion):
+				var full_fix: String = "*" + somefix_memory + "*"
+				if Tagger.settings_lists.tag_types.has(somefix_memory):
+					for tag_type in Tagger.settings_lists.tag_types[somefix_memory]["tags"]:
+						var full_tag: String = suggestion.replace(full_fix, tag_type)
+						if Tagger.tag_manager.has_tag(full_tag):
+							bbc_text += "[url]{0}[/url], ".format([full_tag])
+						else:
+							bbc_text += "{0}, ".format([full_tag])
+				else:
+					bbc_text += "{0}, ".format(suggestion)
+			else:
+				if Tagger.tag_manager.has_tag(suggestion):
+					bbc_text += "[url]{0}[/url], ".format([suggestion])
+				else:
+					bbc_text += "{0}, ".format([suggestion])
+		
+		bbc_text = bbc_text.left(-2)
+		bbc_text += "[/color]\n"
+		
+	bbc_text += "\n" + target_tag.wiki_entry + "\n"
+
 	return bbc_text
-	
+
 
 func load_local_images(final_file_names: Array, folder_name) -> void:
 	for file_name in final_file_names:
@@ -417,3 +459,21 @@ func hydrus_progress_fallback() -> void:
 			await wiki_search_cooldown.timeout
 		tag_search_line_edit.editable = true
 
+
+func has_valid_fix(tag_with_fix: String) -> bool:
+	somefix_memory = ""
+	var return_valid: bool = false
+	
+	if tag_with_fix.begins_with("*"):
+		tag_with_fix = tag_with_fix.right(-1)
+		if tag_with_fix.contains("*"):
+			somefix_memory = tag_with_fix.split("*", false)[0]
+			return_valid = true
+	elif tag_with_fix.ends_with("*"):
+		tag_with_fix = tag_with_fix.left(-1)
+		if tag_with_fix.contains("*"):
+			somefix_memory = tag_with_fix.split("*")[-1]
+			return_valid = true
+	
+	return return_valid
+	
