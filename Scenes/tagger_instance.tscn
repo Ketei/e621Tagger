@@ -354,7 +354,7 @@ caret_blink = true
 script = SubResource("GDScript_ogbc5")
 
 [node name="Timer" type="Timer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
-wait_time = 0.8
+wait_time = 0.35
 one_shot = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
@@ -772,6 +772,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="AddCustomTag" parent="AddSuggestedSpecial/CenterContainer" instance=ExtResource("9_h2x7i")]
+visible = true
 layout_mode = 2
 
 [node name="OrAdder" type="Control" parent="."]
