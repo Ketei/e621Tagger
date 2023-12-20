@@ -127,7 +127,8 @@ func search_for_tag_v2(tag_to_search: String) -> void:
 			if not list_order_array.has(tag):
 				auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
 				list_order_array.append(tag)
-
+	
+	print_debug("Requesting for e621 API response for tag \"{0}\"".format([tag_for_url]))
 	tagger.tag_holder.add_to_api_prio_queue(tag_for_url, 50, self)
 
 
