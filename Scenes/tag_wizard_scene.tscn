@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=35 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -9,6 +9,7 @@
 [ext_resource type="ButtonGroup" uid="uid://b2q8omqdlcld0" path="res://ButtonGroups/focus_bodytype_bgroup.tres" id="6_k7yj6"]
 [ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
 [ext_resource type="Script" path="res://Scripts/bg_details_wizard.gd" id="8_emj81"]
+[ext_resource type="ButtonGroup" uid="uid://yydqhcmcgwab" path="res://ButtonGroups/wizard_gb_buttongroup.tres" id="8_gcxbq"]
 [ext_resource type="Script" path="res://Scripts/wiz_smart_checkbox.gd" id="9_cooxf"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
 [ext_resource type="PackedScene" uid="uid://hodd44bull1r" path="res://Scenes/wizard_smart_checkbox.tscn" id="9_vbkwx"]
@@ -256,6 +257,23 @@ func get_suggestions() -> Array:
 	suggestions.append_array(suggestions) 
 	return suggestions
 
+
+"
+
+[sub_resource type="GDScript" id="GDScript_0e41a"]
+resource_name = "Kneeling"
+script/source = "extends OptionButton
+
+
+func get_tags() -> Array[String]:
+	if selected != 1:
+		return [get_item_text(selected).to_lower()]
+	else:
+		return []
+
+
+func get_suggestions() -> Array[String]:
+	return []
 
 "
 
@@ -522,6 +540,7 @@ text = "Properly worn
 clothing"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
+custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 size_flags_horizontal = 3
 vertical_scroll_mode = 0
@@ -880,6 +899,71 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_constants/separation = 8
 
+[node name="InteractionAmount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Base" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base"]
+layout_mode = 2
+text = "Sexual Interactions"
+
+[node name="SinContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base"]
+layout_mode = 2
+
+[node name="ThreesomeCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Three characters, of any combination of genders, engaging in mutual sexual activity. "
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Threesome"
+
+[node name="GangbangType" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+
+[node name="GangbangCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/GangbangType"]
+layout_mode = 2
+tooltip_text = "When three or more individuals are having sex or penetrating a single character either sequentially or at once.
+1 receiving, 3+ giving."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("8_gcxbq")
+text = "Gangbang"
+
+[node name="ReverseGBCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/GangbangType"]
+layout_mode = 2
+tooltip_text = "A single character having sex or penetrating three or more partners either sequentially or at once.
+1 giving, 3+ receiving."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("8_gcxbq")
+text = "Reverse
+Gangbang"
+
+[node name="FoursomeCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Four characters engaged in sexual activity simultaneously as one group."
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Foursome"
+
+[node name="FivesomeCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Five characters engaged in sexual activity simultaneously as one group."
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Fivesome"
+
+[node name="OrgyCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Five or more characters having sex freely among each other"
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Orgy"
+
 [node name="BodyTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
@@ -1225,34 +1309,61 @@ layout_mode = 2
 layout_mode = 2
 text = "Stances:"
 
-[node name="SmartCheckboxes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="SmartCheckboxes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer"]
 layout_mode = 2
 
-[node name="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Floating"
 tags_to_include = "floating"
 suggestions_to_include = "levitation"
 
-[node name="CheckBox7" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox7" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Flying"
 tags_to_include = "flying"
 suggestions_to_include = "wings, midair"
 
-[node name="CheckBox2" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox2" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Jumping"
 tags_to_include = "jumping"
 
-[node name="CheckBox3" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+[node name="KneelingCheck" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Kneeling"
+tags_to_include = "kneeling"
+suggestions_to_include = "on ground"
+node_to_display = NodePath("../KneelingOption")
+
+[node name="KneelingOption" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
+layout_mode = 2
+item_count = 4
+selected = 0
+popup/item_0/text = "On one knee"
+popup/item_0/id = 0
+popup/item_1/text = "Both Knees"
+popup/item_1/id = 1
+popup/item_2/text = "All fours"
+popup/item_2/id = 2
+popup/item_3/text = "Ass up"
+popup/item_3/id = 3
+script = SubResource("GDScript_0e41a")
+
+[node name="CheckBox3" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Lying"
 tags_to_include = "lying"
 suggestions_to_include = "lying on *surface*"
 node_to_display = NodePath("../LyingOptionButton")
 
-[node name="LyingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+[node name="LyingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
 layout_mode = 2
 item_count = 3
 selected = 0
@@ -1264,14 +1375,14 @@ popup/item_2/text = "On side"
 popup/item_2/id = 2
 script = SubResource("GDScript_2kyf3")
 
-[node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+[node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Sitting"
 tags_to_include = "sitting"
 suggestions_to_include = "sitting on *surface*, reclining"
 node_to_display = NodePath("../SittingOptionButton")
 
-[node name="SittingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+[node name="SittingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
 layout_mode = 2
 item_count = 7
 selected = 0
@@ -1291,13 +1402,13 @@ popup/item_6/text = "Sitting on tail"
 popup/item_6/id = 6
 script = SubResource("GDScript_axjs3")
 
-[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Standing"
 tags_to_include = "standing"
 suggestions_to_include = "leaning back"
 
-[node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Swimming"
 tags_to_include = "swimming"

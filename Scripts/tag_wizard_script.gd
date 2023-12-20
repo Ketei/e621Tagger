@@ -92,11 +92,8 @@ signal wizard_tags_created(tags_array)
 @onready var is_comic: CheckButton = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/IsComicCheckBox
 @onready var has_multiple_scenes: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ShowsMultipleCheckBox
 @onready var perspect_elements: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox
-@onready var smart_checkboxes: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes
-@onready var lying_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/LyingOptionButton
-@onready var sitting_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes/SittingOptionButton
+@onready var smart_checkboxes: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes
 @onready var suggestions_flow_container: HFlowContainer = $MarginContainer/Margin/MarginContainer/All/IncludeSuggestions/FlowContainer
-#@onready var body_colors: SpinBox = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/HBoxContainer/BodyColors
 @onready var magic_container_2: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox
 
 @onready var dim_lights = $DimLights
@@ -108,6 +105,13 @@ signal wizard_tags_created(tags_array)
 @onready var first_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Pages/FirstCheck
 @onready var end_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Pages/EndCheck
 @onready var page_num_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ComicElements/Extras/PageNumCheck
+
+@onready var threesome_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/ThreesomeCheck
+@onready var gangbang_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/GangbangType/GangbangCheck
+@onready var reverse_gb_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/GangbangType/ReverseGBCheck
+@onready var foursome_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/FoursomeCheck
+@onready var fivesome_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/FivesomeCheck
+@onready var orgy_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/OrgyCheck
 
 
 var background_types = ["simple background", "detailed background"]
@@ -202,20 +206,25 @@ func magic_clean() -> void:
 	for child in smart_checkboxes.get_children():
 		if not child is WizzardCheckbox:
 			continue
-		child.button_pressed = false
+		child.reset_selections()
 	
 	for child in suggestions_flow_container.get_children():
 		if not child is SuggetionTagCheckbox:
 			continue
 		child.button_pressed = false
 	
-	lying_option_button.select(0)
-	sitting_option_button.select(0)
 	cover_check.set_pressed_no_signal(false)
 	back_cover_check.set_pressed_no_signal(false)
 	first_check.set_pressed_no_signal(false)
 	end_check.set_pressed_no_signal(false)
 	page_num_check.set_pressed_no_signal(false)
+	
+	threesome_check.set_pressed_no_signal(false)
+	gangbang_check.set_pressed_no_signal(false)
+	reverse_gb_check.set_pressed_no_signal(false)
+	foursome_check.set_pressed_no_signal(false)
+	fivesome_check.set_pressed_no_signal(false)
+	orgy_check.set_pressed_no_signal(false)
 
 
 func create_basic_tags() -> void:
@@ -318,9 +327,27 @@ func create_basic_tags() -> void:
 		if not child.final_selection.is_empty():
 			return_array.append(child.final_selection)
 	
+	if not threesome_check.disabled and threesome_check.button_pressed:
+		return_array.append("threesome")
+	if not foursome_check.disabled and foursome_check.button_pressed:
+		return_array.append("foursome")
+	if not fivesome_check.disabled and fivesome_check.button_pressed:
+		return_array.append("fivesome")
+	
+	if not gangbang_check.disabled and gangbang_check.button_pressed:
+		return_array.append("gangbang")
+	elif not reverse_gb_check.disabled and reverse_gb_check.button_pressed:
+		return_array.append("gangbang")
+		return_array.append("reverse gangbang")
+	
 	return_array.append(background_types[background_option_button.selected])
-	return_array.append(background_dets_option_button.get_item_text(
-			background_dets_option_button.selected).to_lower())
+	if background_dets_option_button.selected == 0:
+		if background_dets_option_button.selected != 0:
+			return_array.append(background_dets_option_button.get_item_text(
+					background_dets_option_button.selected).to_lower())
+	else:
+		return_array.append(background_dets_option_button.get_item_text(
+					background_dets_option_button.selected).to_lower())
 			
 	if daytime_option_button.selected != 0:
 		return_array.append(daytime_option_button.get_item_text(
@@ -436,16 +463,9 @@ func create_basic_tags() -> void:
 			continue
 		if child.button_pressed:
 			return_array.append_array(Array(child.get_tags()))
-			suggestions_types.append_array(Array(child.get_tags()))
+			suggestions_types.append_array(Array(child.get_suggestions()))
 
-	if lying_option_button.visible:
-		return_array.append(
-			lying_option_button.get_item_text(lying_option_button.selected).to_lower())
-	
-	if sitting_option_button.visible and sitting_option_button.selected != 0:
-		return_array.append(
-				sitting_option_button.get_item_text(sitting_option_button.selected).to_lower())
-	
+
 	for child in suggestions_flow_container.get_children():
 		if not child is SuggetionTagCheckbox:
 			continue
