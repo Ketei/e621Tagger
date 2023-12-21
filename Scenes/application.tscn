@@ -3339,7 +3339,6 @@ visible = false
 layout_mode = 2
 
 [node name="Settings" type="Control" parent="." node_paths=PackedStringArray("aliases_vbox")]
-visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0
@@ -3358,7 +3357,7 @@ alignment = 1
 [node name="SettingsSets" type="VBoxContainer" parent="Settings/SettingsContainer"]
 custom_minimum_size = Vector2(504, 0)
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="DefaultSiteHBox" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
@@ -3377,24 +3376,19 @@ layout_mode = 2
 set_on_load = true
 save_on_set = true
 
-[node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+[node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 script = ExtResource("15_qm1be")
 
-[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength"]
 layout_mode = 2
 text = "Suggestion Strength:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-
-[node name="PercentageSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+[node name="PercentageSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength"]
 layout_mode = 2
 alignment = 1
 suffix = "%"
@@ -3503,6 +3497,15 @@ layout_mode = 2
 size_flags_horizontal = 6
 disabled = true
 text = "Load GIFs"
+
+[node name="UsePrompts" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+
+[node name="RemovePromptUseBtn" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/UsePrompts"]
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+text = "Remove special suggestions on use "
 
 [node name="DatabaseLocation" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
@@ -4196,6 +4199,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

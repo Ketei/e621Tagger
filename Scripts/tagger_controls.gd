@@ -598,21 +598,27 @@ func add_from_suggested(item_activated: int, list_reference: ItemList) -> void: 
 			add_suggested_special.show()
 			_tag_text = await add_custom_tag.tag_confirmed
 			add_suggested_special.hide()
+			if Tagger.settings.remove_prompt_sugg_on_use:
+				list_reference.remove_item_from_list(item_activated)
 	elif _tag_text.begins_with("|") and _tag_text.ends_with("|"):
 		suggestion_or_adder.populate_menu(_tag_text)
 		or_adder.show()
 		_tag_text = await suggestion_or_adder.option_selected
 		or_adder.hide()
+		if Tagger.settings.remove_prompt_sugg_on_use:
+			list_reference.remove_item_from_list(item_activated)
 	elif _tag_text.begins_with("#"):
 		number_tag_tool.set_tool(_tag_text.trim_prefix("#"))
 		spinbox_adder.show()
 		_tag_text = await number_tag_tool.number_chosen
 		spinbox_adder.hide()
+		if Tagger.settings.remove_prompt_sugg_on_use:
+			list_reference.remove_item_from_list(item_activated)
+	else:
+		list_reference.remove_item_from_list(item_activated)
 		
 	if _tag_text.is_empty():
 		return
-	
-	list_reference.remove_item_from_list(item_activated)
 
 	if not full_tag_list.has(_tag_text):
 		add_new_tag(_tag_text, false)

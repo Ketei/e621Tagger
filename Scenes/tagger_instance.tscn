@@ -426,16 +426,22 @@ layout_mode = 2
 
 [node name="SpecialShowHideButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
 text = "Hide"
 script = SubResource("GDScript_82xvn")
 
 [node name="SPecialSuggestions" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
-text = "Prompt Suggestions:"
+size_flags_horizontal = 3
+text = "Prompt Suggestions"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ClearSpecialButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
-size_flags_horizontal = 10
+size_flags_horizontal = 8
+size_flags_vertical = 8
 text = "Clear"
 
 [node name="SpecialSuggestionsItemList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
