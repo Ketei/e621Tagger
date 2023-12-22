@@ -1548,7 +1548,7 @@ popup/item_3/text = "Regular"
 popup/item_3/id = 0
 popup/item_4/text = "High-angle view"
 popup/item_4/id = 3
-popup/item_5/text = "Bird's eye view"
+popup/item_5/text = "Bird's-eye view"
 popup/item_5/id = 4
 
 [node name="AngleViewOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]

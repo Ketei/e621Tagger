@@ -393,6 +393,10 @@ func create_basic_tags() -> void:
 		if heigth_view.get_selected_id() != 0:
 			return_array.append(
 				heigth_view.get_item_text(heigth_view.selected).to_lower())
+			if heigth_view.get_item_id(heigth_view.selected) == 4:
+				return_array.append("high-angle view")
+			elif heigth_view.get_item_id(heigth_view.selected) == 1:
+				return_array.append("low-angle view")
 		
 		if not heigth_view.get_selected_id() == 1 and not heigth_view.get_selected_id() == 4:
 			if angle_option_button.get_selected_id() == 1:
@@ -517,8 +521,8 @@ func calculate_clothing_level() -> Array:
 	if eyewear_check_box.button_pressed: # Non-clothing
 #		clothing_score += 1
 		clothing_array.append("eyewear")
-	
-	if 0 < clothing_score and clothing_score < 100:
+
+	if 0 < clothing_score and clothing_score < 200:
 		clothing_array.append("mostly nude")
 	elif 200 < clothing_score and clothing_score < 300:
 		clothing_array.append("mostly clothed")
