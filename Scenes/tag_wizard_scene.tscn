@@ -310,8 +310,8 @@ script/source = "extends OptionButton
 
 func get_tags() -> Array[String]:
 	var return_array: Array[String] = []
-	if selected != 0:
-		return_array.append(get_item_text(selected))
+	if selected == 1:
+		return_array.append(\"on one leg\")
 	return return_array
 
 
@@ -1402,11 +1402,22 @@ popup/item_6/text = "Sitting on tail"
 popup/item_6/id = 6
 script = SubResource("GDScript_axjs3")
 
-[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Standing"
 tags_to_include = "standing"
 suggestions_to_include = "leaning back"
+node_to_display = NodePath("../StandingOptionButton")
+
+[node name="StandingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
+layout_mode = 2
+item_count = 2
+selected = 0
+popup/item_0/text = "On both legs"
+popup/item_0/id = 0
+popup/item_1/text = "On one leg"
+popup/item_1/id = 1
+script = SubResource("GDScript_axjs3")
 
 [node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
