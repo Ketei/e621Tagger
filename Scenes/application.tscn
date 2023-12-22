@@ -2994,16 +2994,6 @@ show_percentage = false
 script = SubResource("GDScript_5wvn0")
 metadata/_edit_use_anchors_ = true
 
-[node name="ColorRect" type="ColorRect" parent="Wiki/VBoxContainer/HBoxContainer/Imeges"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.321569, 0.356863, 0.427451, 1)
-
 [node name="ScrollContainer" type="ScrollContainer" parent="Wiki/VBoxContainer/HBoxContainer/Imeges"]
 layout_mode = 1
 anchors_preset = 15

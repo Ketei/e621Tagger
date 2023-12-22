@@ -33,8 +33,7 @@ var thread_interrupt: bool = false
 var thread_working: bool = false
 var mutex := Mutex.new()
 
-var is_local_loading_done: bool = false
-var is_web_loading_done: bool = false
+var loading_wiki: bool = false
 
 var amount_vs_resolution: Dictionary = {
 	"1": 630,
@@ -44,13 +43,11 @@ var amount_vs_resolution: Dictionary = {
 
 var current_search: String = ""
 var hydrus_thumbnail_amount: int = 0
-# To-Do: Create an Hydrus implementation. Make it send HTTP requests and once
-# it answers make a threaded function load the picture and then call
-# display_image.
 var somefix_memory: String = ""
 
 
 func _ready():
+	preview_progress_load.value_changed.connect(on_progress_bar_change)
 	wiki_edit.search_in_wiki.connect(search_for_tag)
 	full_screen_display.display_hidden.connect(play_all_gifs)
 	tag_search_line_edit.text_submitted.connect(search_for_tag)
@@ -121,6 +118,9 @@ func clear_wiki() -> void:
 
 
 func search_for_tag(new_text: String) -> void:
+	if loading_wiki:
+		return
+	
 	if tag_search_line_edit.text != new_text:
 		tag_search_line_edit.text = new_text
 	tag_search_line_edit.release_focus()
@@ -144,7 +144,8 @@ func search_for_tag(new_text: String) -> void:
 		return
 	
 	tag_search_line_edit.editable = false
-	
+	loading_wiki = true
+
 	wiki_popup_menu.set_item_disabled(
 			wiki_popup_menu.get_item_index(1),
 			false
@@ -181,13 +182,21 @@ func search_for_tag(new_text: String) -> void:
 	
 	if preview_progress_load.max_value == 0:
 		tag_search_line_edit.editable = true
+		loading_wiki = false
 
 
 func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var file_names: Array = []
 	var final_file_names: Array = []
 	
-	var return_dictionary: Dictionary = {}
+	var return_dictionary: Dictionary = {
+		"count": 0,
+		"files": [],
+		"folder": ""
+		}
+	
+	if not target_tag.has_pictures or not Tagger.settings.can_load_from_local():
+		return return_dictionary
 	
 	if DirAccess.dir_exists_absolute(Tagger.tag_images_path + target_tag.file_name.get_basename()):
 		for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
@@ -200,14 +209,13 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 			else:
 				file_names.append(file_name)
 
-	if target_tag.has_pictures and Tagger.settings.can_load_from_local():
-		if Tagger.settings.local_review_amount < file_names.size():
-			for ignored in range(Tagger.settings.local_review_amount):
-				var tag_to_transfer = file_names.pick_random()
-				final_file_names.append(tag_to_transfer)
-				file_names.erase(tag_to_transfer)
-		else:
-			final_file_names = file_names
+	if Tagger.settings.local_review_amount < file_names.size():
+		for ignored in range(Tagger.settings.local_review_amount):
+			var tag_to_transfer = file_names.pick_random()
+			final_file_names.append(tag_to_transfer)
+			file_names.erase(tag_to_transfer)
+	else:
+		final_file_names = file_names
 
 	return_dictionary["folder"] = target_tag.file_name.get_basename()
 	return_dictionary["files"] = final_file_names
@@ -336,9 +344,6 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 	if preview_progress_load.value == preview_progress_load.max_value:
 		finished_loading_local.emit()
-		if not wiki_search_cooldown.is_stopped():
-			await wiki_search_cooldown.timeout
-		tag_search_line_edit.editable = true
 
 
 func display_image(image_texture: Texture2D):
@@ -377,6 +382,8 @@ func display_hydrus_thumbnail(texture: Texture2D, thumbnail_id: int) -> void:
 	
 
 func display_hydrus_file(file_id: int) -> void:
+	if loading_wiki:
+		return
 	pause_all_gifs()
 	hydrus_api_request.get_file(file_id)
 	preview_stopper.show()
@@ -404,10 +411,6 @@ func merge_thread():
 
 func web_progress_set(amount: int) -> void:
 	preview_progress_load.max_value += amount - 1
-	
-	if preview_progress_load.max_value == 0:
-		#is_web_loading_done = true
-		tag_search_line_edit.editable = true
 
 
 func search_web_images(tag_names: String) -> void:
@@ -456,10 +459,6 @@ func play_all_gifs() -> void:
 
 func hydrus_progress_fallback() -> void:
 	preview_progress_load.value += hydrus_thumbnail_amount
-	if preview_progress_load.value == preview_progress_load.max_value:
-		if wiki_search_cooldown.is_stopped():
-			await wiki_search_cooldown.timeout
-		tag_search_line_edit.editable = true
 
 
 func has_valid_fix(tag_with_fix: String) -> bool:
@@ -478,4 +477,12 @@ func has_valid_fix(tag_with_fix: String) -> bool:
 			return_valid = true
 	
 	return return_valid
-	
+
+
+func on_progress_bar_change(value: float) -> void:
+	if value == preview_progress_load.max_value:
+		loading_wiki = false
+		if not wiki_search_cooldown.is_stopped():
+			await wiki_search_cooldown.timeout
+		tag_search_line_edit.editable = true
+
