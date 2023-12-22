@@ -236,7 +236,6 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add:
 			character_count_added += 1
 	
 		if Tagger.settings.search_suggested:
-			#tag_holder.add_to_search_queue({tag_name: self})
 			tag_queue.append(tag_name)
 			tag_holder.add_to_api_queue(tag_name, 1, self)
 		
@@ -624,6 +623,7 @@ func add_from_suggested(item_activated: int, list_reference: ItemList) -> void: 
 		add_new_tag(_tag_text, false)
 	
 		if Tagger.settings.search_suggested:
+			tag_queue.append(_tag_text)
 			tag_holder.add_to_api_queue(_tag_text, 1, self)
 
 
@@ -780,7 +780,10 @@ func open_context_menu(tag_name: String, itembox_position: Vector2, item_positio
 
 func left_click_context_menu_clicked(id_pressed: int) -> void:
 	if id_pressed == 0:
-		main_application.go_to_create_tag(context_tag, tags_inputed[context_tag]["parents"], tags_inputed[context_tag]["suggested_tags"] + tags_inputed[context_tag]["related_tags"], tags_inputed[context_tag]["category"], tags_inputed[context_tag]["priority"])
+		if tags_inputed.has(context_tag):
+			main_application.go_to_create_tag(context_tag, tags_inputed[context_tag]["parents"], tags_inputed[context_tag]["suggested_tags"] + tags_inputed[context_tag]["related_tags"], tags_inputed[context_tag]["category"], tags_inputed[context_tag]["priority"])
+		else:
+			main_application.go_to_create_tag(context_tag)
 	elif id_pressed == 1:
 		main_application.go_to_edit_tag(context_tag)
 	elif id_pressed == 2:
