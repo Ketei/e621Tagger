@@ -121,6 +121,8 @@ func clear_wiki() -> void:
 
 
 func search_for_tag(new_text: String) -> void:
+	if tag_search_line_edit.text != new_text:
+		tag_search_line_edit.text = new_text
 	tag_search_line_edit.release_focus()
 	
 	if not tag_search_line_edit.editable:
