@@ -18,6 +18,9 @@ signal tag_updated
 
 @onready var hydrus_api_request: HydrusRequestAPI = $"../HydrusAPIRequest"
 @onready var preview_stopper: ColorRect = $PreviewStopper
+@onready var custom_tag_container: CenterContainer = $CustomTagContainer
+@onready var add_custom_tag: AutofillOptionTag = $CustomTagContainer/AddCustomTag
+@onready var numer_tag: NumberTagTool = $CustomTagContainer/NumerTag
 
 
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
@@ -43,12 +46,14 @@ var amount_vs_resolution: Dictionary = {
 
 var current_search: String = ""
 var hydrus_thumbnail_amount: int = 0
-var somefix_memory: String = ""
+var prefix_memory: String = ""
+var suffix_memory: String = ""
 
 
 func _ready():
 	preview_progress_load.value_changed.connect(on_progress_bar_change)
 	wiki_edit.search_in_wiki.connect(search_for_tag)
+	wiki_edit.search_for_special.connect(on_search_for_special)
 	full_screen_display.display_hidden.connect(play_all_gifs)
 	tag_search_line_edit.text_submitted.connect(search_for_tag)
 	wiki_popup_menu.id_pressed.connect(activate_menu_option)
@@ -266,7 +271,11 @@ func build_wiki_entry(target_tag: Tag) -> String:
 	if not target_tag.suggestions.is_empty():
 		bbc_text += "[color=8eef97][b]Related tags: [/b][/color][color=d2f9d6]"
 		for suggestion:String in target_tag.suggestions:
-			if suggestion.begins_with("|") and suggestion.ends_with("|"):
+			if suggestion.begins_with("#"):
+				bbc_text += "[url]{0}[/url], ".format([suggestion])
+			elif has_valid_fix(suggestion):
+				bbc_text += "[url]{0}[/url], ".format([suggestion])
+			elif suggestion.begins_with("|") and suggestion.ends_with("|"):
 				var suggestion_formating: String = suggestion.trim_prefix("|").trim_suffix("|")
 				var suggestion_array: Array = suggestion_formating.split(",", false)
 				for sug in suggestion_array:
@@ -274,19 +283,6 @@ func build_wiki_entry(target_tag: Tag) -> String:
 						bbc_text += "[url]{0}[/url], ".format([sug])
 					else:
 						bbc_text += "{0}, ".format([sug])
-			elif suggestion.begins_with("#"):
-				continue
-			elif has_valid_fix(suggestion):
-				var full_fix: String = "*" + somefix_memory + "*"
-				if Tagger.settings_lists.tag_types.has(somefix_memory):
-					for tag_type in Tagger.settings_lists.tag_types[somefix_memory]["tags"]:
-						var full_tag: String = suggestion.replace(full_fix, tag_type)
-						if Tagger.tag_manager.has_tag(full_tag):
-							bbc_text += "[url]{0}[/url], ".format([full_tag])
-						else:
-							bbc_text += "{0}, ".format([full_tag])
-				else:
-					bbc_text += "{0}, ".format(suggestion)
 			else:
 				if Tagger.tag_manager.has_tag(suggestion):
 					bbc_text += "[url]{0}[/url], ".format([suggestion])
@@ -461,22 +457,49 @@ func hydrus_progress_fallback() -> void:
 	preview_progress_load.value += hydrus_thumbnail_amount
 
 
-func has_valid_fix(tag_with_fix: String) -> bool:
-	somefix_memory = ""
-	var return_valid: bool = false
+func open_special_tag(tag_with_fix: String) -> void:
+	var prefix: String = ""
+	var suffix: String = ""
+	var tag: String = ""
+	var split_array: Array = tag_with_fix.split("*", false)
 	
 	if tag_with_fix.begins_with("*"):
-		tag_with_fix = tag_with_fix.right(-1)
-		if tag_with_fix.contains("*"):
-			somefix_memory = tag_with_fix.split("*", false)[0]
-			return_valid = true
-	elif tag_with_fix.ends_with("*"):
-		tag_with_fix = tag_with_fix.left(-1)
-		if tag_with_fix.contains("*"):
-			somefix_memory = tag_with_fix.split("*")[-1]
-			return_valid = true
+		prefix = split_array[0]
+		tag = split_array[1]
+		if 2 < split_array.size():
+			suffix = split_array[2]
+	else:
+		tag = split_array[0]
+		if 1 < split_array.size():
+			suffix = split_array[1]
 	
-	return return_valid
+	add_custom_tag.open_with_tag(tag, prefix, suffix)
+	custom_tag_container.show()
+	add_custom_tag.show()
+	var wiki_search: String = await add_custom_tag.tag_confirmed
+	add_custom_tag.hide()
+	custom_tag_container.hide()
+	if not wiki_search.is_empty():
+		search_for_tag(wiki_search)
+
+
+func open_number_tag(tag_with_number: String) -> void:
+	if wiki_edit.has_focus():
+		wiki_edit.release_focus()
+	numer_tag.set_tool(tag_with_number.trim_prefix("#"))
+	custom_tag_container.show()
+	numer_tag.show()
+	numer_tag.steal_focus()
+	var string_to_search: String = await numer_tag.number_chosen
+	numer_tag.hide()
+	custom_tag_container.hide()
+	numer_tag.drop_focus()
+	if not string_to_search.is_empty():
+		search_for_tag(string_to_search)
+
+
+func has_valid_fix(tag_with_fix: String) -> bool:
+	return 1 < tag_with_fix.split("*", false).size()
 
 
 func on_progress_bar_change(value: float) -> void:
@@ -485,4 +508,11 @@ func on_progress_bar_change(value: float) -> void:
 		if not wiki_search_cooldown.is_stopped():
 			await wiki_search_cooldown.timeout
 		tag_search_line_edit.editable = true
+
+
+func on_search_for_special(string_to_search: String) -> void:
+	if string_to_search.begins_with("#"):
+		open_number_tag(string_to_search)
+	else:
+		open_special_tag(string_to_search)
 

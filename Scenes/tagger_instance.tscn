@@ -778,7 +778,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="AddCustomTag" parent="AddSuggestedSpecial/CenterContainer" instance=ExtResource("9_h2x7i")]
-visible = true
 layout_mode = 2
 
 [node name="OrAdder" type="Control" parent="."]

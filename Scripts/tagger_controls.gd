@@ -526,7 +526,8 @@ func remove_tag(item_index: int) -> void: # Connect to itemlist activate
 	regenerate_parents()
 	check_minimum_requirements()
 	
-	tag_holder.remove_from_api_queue(tag_name, self, 1)
+	if tag_name in tag_queue:
+		tag_holder.remove_from_api_queue(tag_name, self, 1)
 
 
 func add_to_category(category_added: Tagger.Categories) -> void:
@@ -590,15 +591,22 @@ func check_minimum_requirements() -> void: #Add one call on ready
 func add_from_suggested(item_activated: int, list_reference: ItemList) -> void: # Connect to item activated
 	var _tag_text = list_reference.get_item_text(item_activated)
 	
+	if _tag_text.is_empty():
+		return
+	
 	if _tag_text.begins_with("*") or _tag_text.ends_with("*"):
-		var tag_sh_key: Dictionary = add_custom_tag.get_valid_somefix(_tag_text)
-		if not _tag_text.is_empty():
+		if 1 < _tag_text.split("*", false).size():
+			var tag_sh_key: Dictionary = add_custom_tag.get_valid_somefix(_tag_text)
+			
 			add_custom_tag.open_with_tag(_tag_text, tag_sh_key["prefix"], tag_sh_key["suffix"])
 			add_suggested_special.show()
 			_tag_text = await add_custom_tag.tag_confirmed
 			add_suggested_special.hide()
 			if Tagger.settings.remove_prompt_sugg_on_use:
 				list_reference.remove_item_from_list(item_activated)
+		else:
+			return # Search has just "*"
+	
 	elif _tag_text.begins_with("|") and _tag_text.ends_with("|"):
 		suggestion_or_adder.populate_menu(_tag_text)
 		or_adder.show()
@@ -606,19 +614,19 @@ func add_from_suggested(item_activated: int, list_reference: ItemList) -> void: 
 		or_adder.hide()
 		if Tagger.settings.remove_prompt_sugg_on_use:
 			list_reference.remove_item_from_list(item_activated)
+	
 	elif _tag_text.begins_with("#"):
 		number_tag_tool.set_tool(_tag_text.trim_prefix("#"))
 		spinbox_adder.show()
+		number_tag_tool.steal_focus()
 		_tag_text = await number_tag_tool.number_chosen
+		number_tag_tool.drop_focus()
 		spinbox_adder.hide()
 		if Tagger.settings.remove_prompt_sugg_on_use:
 			list_reference.remove_item_from_list(item_activated)
 	else:
 		list_reference.remove_item_from_list(item_activated)
 		
-	if _tag_text.is_empty():
-		return
-
 	if not full_tag_list.has(_tag_text):
 		add_new_tag(_tag_text, false)
 	
@@ -649,7 +657,7 @@ func regenerate_parents() -> void:
 	
 	for imp_tag in tag_list_generator._kid_return:
 		if full_tag_list.has(imp_tag) or implied_tags_array.has(imp_tag):
-			continue		
+			continue
 		implied_tags_array.append(imp_tag)
 		implied_list.add_item(imp_tag)
 

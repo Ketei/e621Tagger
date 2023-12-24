@@ -1,4 +1,4 @@
-[gd_scene load_steps=67 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=70 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -41,6 +41,8 @@
 [ext_resource type="PackedScene" uid="uid://nbgmvc2e0hkg" path="res://Scenes/tag_template_creator.tscn" id="22_a38qu"]
 [ext_resource type="Script" path="res://Scripts/tagger_settings_script.gd" id="24_kxx7k"]
 [ext_resource type="PackedScene" uid="uid://cds4jrd1h62jv" path="res://Scenes/tool_categories.tscn" id="24_pw75l"]
+[ext_resource type="PackedScene" uid="uid://dtplrc3b5b4i3" path="res://Scenes/add_custom_tag.tscn" id="24_uotq2"]
+[ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="25_frre5"]
 [ext_resource type="Script" path="res://Scripts/default_folder_file_dialog.gd" id="28_rjvdb"]
 [ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
 [ext_resource type="Script" path="res://Scripts/change_db_confirm.gd" id="31_g7kp8"]
@@ -435,6 +437,24 @@ func _unhandled_key_input(event):
 		else:
 			paused = true
 
+"
+
+[sub_resource type="GDScript" id="GDScript_r0nvr"]
+resource_name = "start_hidden"
+script/source = "extends CenterContainer
+
+@onready var add_custom_tag = $AddCustomTag
+@onready var numer_tag = $NumerTag
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	if self.visible:
+		hide()
+	if add_custom_tag.visible:
+		add_custom_tag.hide()
+	if numer_tag.visible:
+		numer_tag.hide()
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6dv02"]
@@ -2934,7 +2954,6 @@ layout_mode = 2
 text = "Close"
 
 [node name="Wiki" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_left = 0.001
 anchor_top = 0.056
@@ -2977,6 +2996,7 @@ metadata/_edit_use_anchors_ = true
 [node name="WikiDisplayRTLabel" parent="Wiki/VBoxContainer/HBoxContainer/VBoxContainer" instance=ExtResource("12_rknam")]
 layout_mode = 2
 size_flags_vertical = 3
+is_on_wiki = true
 
 [node name="Imeges" type="Control" parent="Wiki/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -3049,6 +3069,21 @@ expand = true
 loop = true
 buffering_msec = 1000
 script = SubResource("GDScript_exbap")
+
+[node name="CustomTagContainer" type="CenterContainer" parent="Wiki"]
+visible = false
+layout_mode = 0
+offset_right = 1279.0
+offset_bottom = 680.0
+mouse_filter = 0
+script = SubResource("GDScript_r0nvr")
+
+[node name="AddCustomTag" parent="Wiki/CustomTagContainer" instance=ExtResource("24_uotq2")]
+layout_mode = 2
+custom_add_text = "Search"
+
+[node name="NumerTag" parent="Wiki/CustomTagContainer" instance=ExtResource("25_frre5")]
+layout_mode = 2
 
 [node name="Tools" type="Control" parent="."]
 visible = false
@@ -4190,6 +4225,7 @@ access = 2
 script = ExtResource("32_3ueat")
 
 [node name="SplashScreenTexture" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
