@@ -53,3 +53,16 @@ func accept_tag_number() -> void:
 func cancel_tag_number() -> void:
 	number_chosen.emit("")
 
+
+func steal_focus() -> void:
+	number_spinbox.get_line_edit().grab_focus()
+
+
+func drop_focus() -> void:
+	if number_spinbox.has_focus():
+		number_spinbox.release_focus()
+	elif accept_button.has_focus():
+		accept_button.release_focus()
+	elif cancel_button.has_focus():
+		cancel_button.release_focus()
+

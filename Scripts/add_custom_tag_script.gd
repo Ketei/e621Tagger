@@ -12,6 +12,8 @@ var using_suffix: bool = false
 
 var typed_tag: String = ""
 
+@export var custom_add_text: String = ""
+
 @onready var prefix_option_button: OptionButton = $VBoxContainer/FieldsHBox/PrefixVBox/PrefixOptionButton
 @onready var custom_prefix_line_edit: LineEdit = $VBoxContainer/FieldsHBox/PrefixVBox/CustomPrefixLineEdit
 @onready var tag_name_line_edit: Label = $VBoxContainer/FieldsHBox/TagNameVbox/TagNameLineEdit
@@ -31,6 +33,8 @@ func _ready():
 	prefix_option_button.item_selected.connect(prefix_item_select)
 	custom_prefix_line_edit.text_submitted.connect(line_submit_accept_tag)
 	custom_suffix_line_edit.text_submitted.connect(line_submit_accept_tag)
+	if not custom_add_text.is_empty():
+		add_button.text = custom_add_text
 
 
 func line_submit_accept_tag(_text_submitted: String) -> void:
@@ -125,41 +129,19 @@ func cancel_tag() -> void:
 
 
 func get_valid_somefix(string_tag: String) -> Dictionary:
-	var is_valid_fix: bool = false
-	
 	var prefix_found: String = ""
 	var suffix_found: String = ""
 	
-	if string_tag.begins_with("*"):
-		for character in string_tag.erase(0, 1):
-			if character == "*":
-				is_valid_fix = true
-				break
-			else:
-				prefix_found += character
+	var split_string: Array = string_tag.split("*", false)
 	
-	if is_valid_fix:
-		is_valid_fix = false
-	else:
-		prefix_found = ""
-	
-	if string_tag.ends_with("*"):
-		var reversed_string_array: Array = string_tag.left(-1).split()
-		var string_construct: PackedStringArray = []
-		reversed_string_array.reverse()
-	
-		for character in reversed_string_array:
-			if character == "*":
-				is_valid_fix = true
-				break
-			else:
-				string_construct.insert(0, character)
-		
-		if is_valid_fix:
-			suffix_found = "".join(string_construct)
+	if 1 < split_string.size():
+		if string_tag.begins_with("*"):
+			prefix_found = split_string[0].strip_edges()
+			if split_string.size() == 3:
+				suffix_found = split_string[2].strip_edges()
 		else:
-			suffix_found = ""
-		
+			suffix_found = split_string[1].strip_edges()
+	
 	return {"prefix": prefix_found, "suffix": suffix_found}
 
 
