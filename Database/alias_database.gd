@@ -46,8 +46,11 @@ func get_alias_dictionary() -> Dictionary:
 	for correct in aliases.values():
 		if not _return_dict.has(correct):
 			_return_dict[correct] = []
+	var sorted_aliases: Array = aliases.keys()
 	
-	for old_name in aliases.keys():
+	sorted_aliases.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	for old_name in sorted_aliases:
 		_return_dict[aliases[old_name]].append(old_name)
 	
 	return _return_dict

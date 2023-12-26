@@ -113,6 +113,8 @@ func remove_alias(_old_string: String) -> void:
 			
 			for ignore in range(_level.get_child_count()):
 				if _aliases_list.get_text(0) == _old_string:
+					if _level.collapsed:
+						_level.collapsed = false
 					aliases_tree.scroll_to_item(_aliases_list)
 					_aliases_list.free()
 					if _level.get_child_count() == 0:

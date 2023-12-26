@@ -466,20 +466,25 @@ script/source = "extends Tree
 
 func _ready():
 	var _alias_dict: Dictionary = Tagger.alias_database.get_alias_dictionary()
-	
+	var _alias_keys = _alias_dict.keys()
+	_alias_keys.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	var _root_level = create_item()
 	_root_level.set_text(0, \"Aliases\")
 	
-	for correct_alias in _alias_dict.keys():
+	for correct_alias in _alias_keys:
 		var _item_model = create_item(_root_level)
 		_item_model.set_text(0, correct_alias)
-		_item_model.collapsed = true
 
 		for aliased_item in _alias_dict[correct_alias]:
-			create_tree_item(aliased_item, _item_model)
+			create_tree_item(aliased_item, _item_model, true)
 	
 
-func create_tree_item(_item_text: String, _parent_item):
+func create_tree_item(_item_text: String, _parent_item: TreeItem, create_collapsed: bool = false):
+	if create_collapsed and not _parent_item.collapsed:
+		_parent_item.collapsed = true
+	elif not create_collapsed and _parent_item.collapsed:
+		_parent_item.collapsed = false
+	
 	var item = create_item(_parent_item)
 	item.set_text(0, _item_text)
 	scroll_to_item(item)
