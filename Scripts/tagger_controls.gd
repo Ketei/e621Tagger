@@ -215,19 +215,17 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add:
 		
 		var add_index: int = 0
 		
-		if Tagger.tag_manager.has_tag(tag_name):
+		if tag_dict["is_registered"]:
 			add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
+			var tar_resource: Tag = Tagger.tag_manager.get_tag(tag_name)
+			update_parents(tar_resource, search_suggestions)
 		else:
 			add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
 
 		item_list.set_item_custom_fg_color(
 					add_index,
 					Color.html(Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_dict["category"]]]))
-		# --
-		if Tagger.tag_manager.has_tag(tag_name):
-			var tar_resource: Tag = Tagger.tag_manager.get_tag(tag_name)
-			update_parents(tar_resource, search_suggestions)
-		# ----
+		
 		if character_bodytypes.has(tag_name):
 			body_types_added += 1
 		elif character_genders.has(tag_name):
@@ -382,12 +380,15 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 			item_list.set_item_tooltip(add_index, tag_load.tooltip)
 	else:
 		append_empty_tag(tag_name)
-		
 		if tag_category != Tagger.Categories.GENERAL:
 			tags_inputed[tag_name]["category"] = tag_category
 			add_to_category(tag_category)
+		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_category]]
+		if not Color.html_is_valid(html_code):
+			html_code = "cccccc"
+		
 		add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
-		item_list.set_item_custom_fg_color(add_index, Color.html("cccccc"))
+		item_list.set_item_custom_fg_color(add_index, html_code)
 	
 	if implied_tags_array.has(tag_name):
 		implied_list.remove_item(implied_tags_array.find(tag_name))
@@ -739,7 +740,59 @@ func load_tag_list(tags_to_load: Array, replace_tags: bool) -> void:
 	for tag in tags_to_load:
 		add_new_tag(Tagger.alias_database.get_alias(tag), false, true, [], Tagger.Categories.GENERAL, false)
 
+
+func load_tag_dict(dict_to_load: Dictionary, replace_tags: bool) -> void:
+	if replace_tags:
+		item_list.clear()
+		suggested_list.clear()
+		implied_list.clear()
+		full_tag_list.clear()
+		suggestion_tags_array.clear()
+		implied_tags_array.clear()
+		tags_inputed.clear()
+	if dict_to_load.has("artist"):
+		for artist in dict_to_load["artist"]:
+			add_new_tag(Tagger.alias_database.get_alias(artist), false, true, [], Tagger.Categories.ARTIST, false)
+	if dict_to_load.has("meta"):
+		for meta_tag in dict_to_load["meta"]:
+			add_new_tag(Tagger.alias_database.get_alias(meta_tag), false, true, [], Tagger.Categories.META, false)
+	if dict_to_load.has("characters"):
+		for chara_tag in dict_to_load["characters"]:
+			add_new_tag(Tagger.alias_database.get_alias(chara_tag), false, true, [], Tagger.Categories.CHARACTER, false)
+	if dict_to_load.has("species"):
+		for spec_tag in dict_to_load["species"]:
+			add_new_tag(Tagger.alias_database.get_alias(spec_tag), false, true, [], Tagger.Categories.SPECIES, false)
+	if dict_to_load.has("genders"):
+		for gender_tag in dict_to_load["genders"]:
+			add_new_tag(Tagger.alias_database.get_alias(gender_tag), false, true, [], Tagger.Categories.GENDER, false)
+	
+	if dict_to_load.has("actions_and_interactions"):
+		for aai_tag in dict_to_load["actions_and_interactions"]:
+			add_new_tag(Tagger.alias_database.get_alias(aai_tag), false, true, [], Tagger.Categories.ACTIONS_AND_INTERACTIONS, false)
+	if dict_to_load.has("body_types"):
+		for bod_type_tag in dict_to_load["body_types"]:
+			add_new_tag(Tagger.alias_database.get_alias(bod_type_tag), false, true, [], Tagger.Categories.BODY_TYPES, false)
+	if dict_to_load.has("poses_and_stances"):
+		for pos_tag in dict_to_load["poses_and_stances"]:
+			add_new_tag(Tagger.alias_database.get_alias(pos_tag), false, true, [], Tagger.Categories.POSES_AND_STANCES, false)
+	if dict_to_load.has("sex_and_positions"):
+		for sex_tag in dict_to_load["sex_and_positions"]:
+			add_new_tag(Tagger.alias_database.get_alias(sex_tag), false, true, [], Tagger.Categories.SEX_AND_POSITIONS, false)
+	if dict_to_load.has("general"):
+		for gen_tag in dict_to_load["general"]:
+			add_new_tag(Tagger.alias_database.get_alias(gen_tag), false, true, [], Tagger.Categories.GENERAL, false)
+	if dict_to_load.has("clothing"):
+		for cloth_tag in dict_to_load["clothing"]:
+			add_new_tag(Tagger.alias_database.get_alias(cloth_tag), false, true, [], Tagger.Categories.CLOTHING, false)
+	if dict_to_load.has("location"):
+		for loc_tag in dict_to_load["location"]:
+			add_new_tag(Tagger.alias_database.get_alias(loc_tag), false, true, [], Tagger.Categories.LOCATION, false)
+	
+	if dict_to_load.has("suggestions"):
+		for sugg_tag in dict_to_load["suggestions"]:
+			add_suggested_tag(sugg_tag)
 # ------------------------------------------------------
+
 
 func disconnect_and_free() -> void:
 	close_instance()
@@ -825,10 +878,11 @@ func sort_tags_by_category() -> void:
 	var order_array: Array = [
 		Tagger.Categories.ARTIST,
 		Tagger.Categories.COPYRIGHT,
+		Tagger.Categories.META,
 		Tagger.Categories.CHARACTER,
 		Tagger.Categories.SPECIES,
 		Tagger.Categories.GENDER,
-		Tagger.Categories.META,
+		Tagger.Categories.LORE,
 	]
 	
 	for category_lookup in order_array:
@@ -901,11 +955,11 @@ func open_wizard() -> void:
 	
 	tag_wizard.magic_clean()
 	weezard.show()
-	var tags_array: Array = await tag_wizard.wizard_tags_created
+	var tags_dict: Dictionary = await tag_wizard.wizard_tags_created
 	weezard.hide()
-	load_tag_list(tags_array, false)
-	for sug_type in tag_wizard.suggestions_types:
-		add_suggested_tag(sug_type)
+	load_tag_dict(tags_dict, false)
+	#for sug_type in tag_wizard.suggestions_types:
+		#add_suggested_tag(sug_type)
 
 
 func show_conflicting_tags() -> void:

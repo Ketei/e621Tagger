@@ -160,7 +160,7 @@ func api_response(response_dictionary: Dictionary) -> void:
 				"suggested_tags": PackedStringArray(),
 				"category": tagger.translate_category(temp_format.category),
 				"is_locked": temp_format.is_locked,
-				"is_registered": false
+				"is_registered": Tagger.tag_manager.has_tag(tag_name)
 			}
 		
 		if tag_search_dictionary.has(temp_format.tag_name):
