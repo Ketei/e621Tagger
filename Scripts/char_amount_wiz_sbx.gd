@@ -7,6 +7,7 @@ extends SpinBox
 @onready var foursome_check: CheckBox = $"../../../../InteractionAmount/Base/SinContainer/FoursomeCheck"
 @onready var fivesome_check: CheckBox = $"../../../../InteractionAmount/Base/SinContainer/FivesomeCheck"
 @onready var orgy_check: CheckBox = $"../../../../InteractionAmount/Base/SinContainer/OrgyCheck"
+@onready var character_clothes: SpinBox = $"../../../../ClothingHBox/VBoxContainer/HBoxContainer/CharacterClothes"
 
 
 func _ready():
@@ -15,6 +16,7 @@ func _ready():
 
 func current_value_change(current: int) -> void:
 	focus_spin_box.max_value = current
+	character_clothes.max_value = current
 	
 	if 2 < current and threesome_check.disabled:
 		threesome_check.disabled = false
