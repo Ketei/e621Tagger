@@ -156,7 +156,8 @@ func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion
 	for tag in parent_tags:
 		if tag != tag_to_create:
 			tag_creator.add_parent(tag)
-	tag_creator.categories_menu.select(category)
+	#tag_creator.categories_menu.select(category)
+	tag_creator.categories_menu.select(tag_creator.categories_menu.get_item_index(category))
 	tag_creator.tag_prio_box.value = priority
 
 

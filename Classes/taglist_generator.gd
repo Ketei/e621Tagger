@@ -38,15 +38,20 @@ func generate_tag_list_v2(tags_dictionary: Dictionary) -> void:
 	unexplored_tags.clear()
 	priority_dict.clear()
 	
+	var category_keys: Array = Tagger.Categories.keys()
+	
 	for tag_added in tags_dictionary.keys():
+		var formated_tag: String = tag_added
+		if Tagger.settings.include_categories[category_keys[tags_dictionary[tag_added]["category"]].to_lower()]["include"]:
+			formated_tag = Tagger.settings.include_categories[category_keys[tags_dictionary[tag_added]["category"]].to_lower()]["tag_name"] + ":" + formated_tag
 		if unexplored_tags.has(tag_added):
 			unexplored_tags.erase(tag_added)
 		
 		if not priority_dict.has(str(tags_dictionary[tag_added]["priority"])):
 			priority_dict[str(tags_dictionary[tag_added]["priority"])] = []
 		
-		if not priority_dict[str(tags_dictionary[tag_added]["priority"])].has(tag_added):
-			priority_dict[str(tags_dictionary[tag_added]["priority"])].append(tag_added)
+		if not priority_dict[str(tags_dictionary[tag_added]["priority"])].has(formated_tag):
+			priority_dict[str(tags_dictionary[tag_added]["priority"])].append(formated_tag)
 		
 		explored_tags.append(tag_added)
 		
@@ -59,6 +64,7 @@ func generate_tag_list_v2(tags_dictionary: Dictionary) -> void:
 
 func __explore_parents_v2():
 	var _parents_queue: Array = unexplored_tags.duplicate()
+	var _category_keys: Array = Tagger.Categories.keys()
 	
 	for parent_tag in _parents_queue:
 		
@@ -71,8 +77,13 @@ func __explore_parents_v2():
 			if not priority_dict.has(str(tag_load.tag_priority)):
 				priority_dict[str(tag_load.tag_priority)] = []
 			
-			if not priority_dict[str(tag_load.tag_priority)].has(tag_load.get_tag()):
-				priority_dict[str(tag_load.tag_priority)].append(tag_load.get_tag())
+			var formatted_tag: String = tag_load.tag
+			
+			if Tagger.settings.include_categories[_category_keys[tag_load.category].to_lower()]["include"]:
+				formatted_tag = Tagger.settings.include_categories[_category_keys[tag_load.category].to_lower()]["tag_name"] + ":" + tag_load.tag
+			
+			if not priority_dict[str(tag_load.tag_priority)].has(formatted_tag):
+				priority_dict[str(tag_load.tag_priority)].append(formatted_tag)
 				
 			for parent in tag_load.parents:
 				if not explored_tags.has(parent):
@@ -148,8 +159,7 @@ func get_tag_list_v2(clear_on_end: bool = true) -> Array[String]:
 	for prio in priority_dict.keys():
 		priority_array.append(int(prio))
 	
-	priority_array.sort()
-	priority_array.reverse()
+	priority_array.sort_custom(func(a, b): return a > b)
 	
 	var full_tags: Array[String] = []
 	

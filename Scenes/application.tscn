@@ -1,4 +1,4 @@
-[gd_scene load_steps=70 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=72 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -49,6 +49,65 @@
 [ext_resource type="Script" path="res://Scripts/database_file_dialog.gd" id="32_3ueat"]
 [ext_resource type="Script" path="res://Scripts/hydrus_login_script.gd" id="41_uxv55"]
 [ext_resource type="Texture2D" uid="uid://dfjt1p86v6ykl" path="res://Textures/Cross.svg" id="44_wvsh6"]
+
+[sub_resource type="GDScript" id="GDScript_xaxud"]
+script/source = "extends PopupMenu
+
+@onready var inc_tag_cat: PopupMenu = $inc_tag_cat
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	add_submenu_item(\"Include category prefix\", \"inc_tag_cat\", 200)
+	var enum_names: Array = Tagger.Categories.keys()
+	for item in Tagger.CategorySorting:
+		inc_tag_cat.add_check_item(Utils.just_capitalize(enum_names[item]), item)
+		if Tagger.settings.include_categories[enum_names[item].to_lower()][\"include\"]:
+			inc_tag_cat.set_item_checked(
+				inc_tag_cat.get_item_index(item),
+				true)
+	add_item(\"Clear include category\", 999)
+	id_pressed.connect(on_id_pressed)
+	#for category in Tagger.CategorySorting:
+		#if Tagger.settings.include_categories[enum_names[category].to_lower()][\"include\"]:
+			#inc_tag_cat.set_item_checked(
+				#inc_tag_cat.get_item_index(category),
+				#true)
+
+
+func on_id_pressed(id_number: int) -> void:
+	if id_number == 999:
+		var enum_keys: Array = Tagger.Categories.keys()
+		for index in range(inc_tag_cat.item_count):
+			if inc_tag_cat.is_item_checked(index):
+				inc_tag_cat.set_item_checked(index, false)
+				Tagger.settings.include_categories[enum_keys[inc_tag_cat.get_item_id(index)].to_lower()][\"include\"] = false
+
+"
+
+[sub_resource type="GDScript" id="GDScript_hqxxy"]
+resource_name = "check_toggle"
+script/source = "extends PopupMenu
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	hide_on_checkable_item_selection = false
+	#216
+	max_size = Vector2(max_size.x, 216)
+	index_pressed.connect(on_item_index_activated)
+
+
+func on_item_index_activated(item_index: int) -> void:
+	var is_checked: bool = not is_item_checked(item_index)
+	var item_key: String = get_item_text(item_index).to_lower()
+	set_item_checked(
+		item_index,
+		is_checked
+	)
+	
+	Tagger.settings.include_categories[item_key][\"include\"] = is_checked
+
+"
 
 [sub_resource type="GDScript" id="GDScript_t2bdg"]
 resource_name = "open_search_parents"
@@ -944,6 +1003,11 @@ item_12/text = "Enable offline suggestions"
 item_12/checkable = 1
 item_12/checked = true
 item_12/id = 3
+script = SubResource("GDScript_xaxud")
+
+[node name="inc_tag_cat" type="PopupMenu" parent="MenuBar/Tagger"]
+title = "inc_tag_cat"
+script = SubResource("GDScript_hqxxy")
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
@@ -3416,7 +3480,7 @@ script = ExtResource("15_qm1be")
 
 [node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength"]
 layout_mode = 2
-text = "Suggestion Strength:"
+text = "Suggestion confidence:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
