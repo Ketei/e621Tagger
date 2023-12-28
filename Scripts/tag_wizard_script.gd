@@ -421,10 +421,9 @@ func create_basic_tags() -> void:
 			return_dict["meta"].append("line art")
 	
 	if completion_option_button.selected == 1: # Sketch
+		return_dict["meta"].append("sketch")
 		if color_types_option_button.selected == 1:
 			return_dict["meta"].append("colored sketch")
-		else:
-			return_dict["meta"].append("sketch")
 	
 	if color_types_option_button.selected == 0: # Monochrome
 		return_dict["meta"].append("monochrome")
