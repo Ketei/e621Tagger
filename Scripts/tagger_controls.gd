@@ -368,9 +368,6 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		append_registered_tag(tag_load, search_online)
 		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]
 		add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
-		
-		if not Color.html_is_valid(html_code):
-			html_code = "cccccc"
 			
 		item_list.set_item_custom_fg_color(
 				add_index,
@@ -384,8 +381,6 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 			tags_inputed[tag_name]["category"] = tag_category
 			add_to_category(tag_category)
 		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_category]]
-		if not Color.html_is_valid(html_code):
-			html_code = "cccccc"
 		
 		add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
 		item_list.set_item_custom_fg_color(add_index, html_code)
@@ -980,7 +975,7 @@ func clean_suggestions() -> void:
 func generate_tag_list() -> void:
 	var site_key: String = Tagger.available_sites[available_sites.selected]
 	tag_list_generator.generate_tag_list_v2(tags_inputed)
-	tag_list_generator.__explore_parents_v2()
+	#tag_list_generator.__explore_parents_v2()
 	final_tag_list_array = tag_list_generator.get_tag_list_v2()
 	final_tag_list.text = tag_list_generator.create_list_from_array(
 			final_tag_list_array,
