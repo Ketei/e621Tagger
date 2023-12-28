@@ -52,7 +52,7 @@ signal wizard_tags_created(tags_array)
 
 @onready var heigth_view: OptionButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/HeigthView
 @onready var angle_option_button: OptionButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/AngleViewOptionButton
-@onready var rear_view_check_button: CheckButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/RearViewCheckButton
+@onready var rear_view_check_button: CheckButton = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/VBoxContainer/RearViewCheckButton
 
 
 @onready var media_type_option_button: OptionButton =$MarginContainer/Margin/MarginContainer/All/MediaTypes/ElementsHBox/MediaTypeButton
@@ -90,7 +90,9 @@ signal wizard_tags_created(tags_array)
 @onready var eyewear_check_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/EyewearCheckBox
 
 @onready var is_comic: CheckButton = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/IsComicCheckBox
-@onready var has_multiple_scenes: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ShowsMultipleCheckBox
+@onready var has_multiple_scenes: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ScenesImages/ShowsMultipleCheckBox
+@onready var has_multiple_images: CheckBox = $MarginContainer/Margin/MarginContainer/All/Comics/Elements/ScenesImages/MultipleImages
+
 @onready var perspect_elements: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox
 @onready var smart_checkboxes: HBoxContainer = $MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes
 @onready var suggestions_flow_container: HFlowContainer = $MarginContainer/Margin/MarginContainer/All/IncludeSuggestions/FlowContainer
@@ -113,6 +115,26 @@ signal wizard_tags_created(tags_array)
 @onready var fivesome_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/FivesomeCheck
 @onready var orgy_check: CheckBox = $MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/OrgyCheck
 
+@onready var worm_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles/WormBox
+@onready var low_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles/LowBox
+@onready var high_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles/HighBox
+@onready var bird_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles/BirdBox
+@onready var front_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes/FrontBox
+@onready var side_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes/SideBox
+@onready var three_fourths_box: CheckBox = $"MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes/34Box"
+@onready var rear_box: CheckBox = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes/RearBox
+@onready var help_angle_button: Button = $MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/HelpAngleButton
+@onready var what_my_angle = $WhatMyAngle
+
+@onready var male_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox/MaleLore
+@onready var female_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox/FemaleLore
+@onready var andro_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox/AndroLore
+@onready var gyno_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox/GynoLore
+@onready var herm_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/HermVBox/HermLore
+@onready var male_herm_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermLore
+
+@onready var character_clothes: SpinBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/VBoxContainer/HBoxContainer/CharacterClothes
+
 
 const background_types = ["simple background", "detailed background"]
 const angle_types: Array = ["front view", "three-quarter view", "side view", "rear view", "high-angle view", "low-angle view"]
@@ -126,6 +148,7 @@ func _ready():
 	cancel_button.pressed.connect(cancel_button_pressed)
 	items_scroll_container.set_deferred("scroll_vertical", 0)
 	guess_my_g_button.pressed.connect(guess_my_gender)
+	help_angle_button.pressed.connect(what_my_angle.show)
 
 
 func magic_clean() -> void:
@@ -133,6 +156,7 @@ func magic_clean() -> void:
 	daytime_option_button.select(0)
 	is_comic.button_pressed = false
 	has_multiple_scenes.set_pressed_no_signal(false)
+	has_multiple_images.set_pressed_no_signal(false)
 	artist_line_edit.clear()
 	known_artist_chkbtn.button_pressed = true
 	work_year.set_art_year()
@@ -225,6 +249,16 @@ func magic_clean() -> void:
 	foursome_check.set_pressed_no_signal(false)
 	fivesome_check.set_pressed_no_signal(false)
 	orgy_check.set_pressed_no_signal(false)
+	male_lore.set_pressed_no_signal(false)
+	female_lore.set_pressed_no_signal(false)
+	andro_lore.set_pressed_no_signal(false)
+	gyno_lore.set_pressed_no_signal(false)
+	herm_lore.set_pressed_no_signal(false)
+	male_herm_lore.set_pressed_no_signal(false)
+	character_clothes.clothing_opt_dict.clear()
+	character_clothes.value = 0
+	character_clothes.max_value = 0
+	character_clothes.max_memory = 0
 
 
 func create_basic_tags() -> void:
@@ -242,6 +276,7 @@ func create_basic_tags() -> void:
 		"sex_and_positions": [],
 		"species": [],
 		"suggestions": [],
+		"lore": [],
 	}
 	
 	if known_artist_chkbtn.button_pressed:
@@ -250,7 +285,8 @@ func create_basic_tags() -> void:
 	else:
 		return_dict["artist"].append("unknown artist")
 	
-	return_dict["meta"].append(str(work_year.value))
+	if work_year.editable:
+		return_dict["meta"].append(str(work_year.value))
 	
 	if char_amount.value == 0:
 		return_dict["general"].append("zero pictured")
@@ -393,7 +429,6 @@ func create_basic_tags() -> void:
 	if color_types_option_button.selected == 0: # Monochrome
 		return_dict["meta"].append("monochrome")
 		
-	
 	elif color_types_option_button.selected == 2: # Colored
 		if completion_option_button.selected == 1:
 			return_dict["meta"].append("colored sketch")
@@ -401,17 +436,37 @@ func create_basic_tags() -> void:
 			if not is_shaded_checkbox.button_pressed:
 				return_dict["meta"].append("flat colors")
 	
-	
-	if heigth_view.get_selected_id() != 5 and not is_comic.button_pressed:
-		if heigth_view.get_selected_id() != 0:
+	var selected_height: int = heigth_view.get_selected_id()
+	if selected_height == 6:
+		return_dict["general"].append("multiple angles")
+		if worm_box.button_pressed:
+			return_dict["general"].append("worm's-eye view")
+			if not low_box.button_pressed:
+				return_dict["general"].append("low-angle view")
+		if low_box.button_pressed:
+			return_dict["general"].append("low-angle view")
+		if high_box.button_pressed:
+			return_dict["general"].append("high-angle view")
+		if bird_box.button_pressed:
+			return_dict["general"].append("bird's-eye view")
+		if front_box.button_pressed:
+			return_dict["general"].append("front view")
+		if side_box.button_pressed:
+			return_dict["general"].append("side view")
+		if three_fourths_box.button_pressed:
+			return_dict["general"].append("three-quarter view")
+		if rear_box.button_pressed:
+			return_dict["general"].append("rear view")
+	else:
+		if selected_height != 5 and selected_height != 0:
 			return_dict["general"].append(
 				heigth_view.get_item_text(heigth_view.selected).to_lower())
-			if heigth_view.get_item_id(heigth_view.selected) == 4:
+			if selected_height == 4:
 				return_dict["general"].append("high-angle view")
-			elif heigth_view.get_item_id(heigth_view.selected) == 1:
+			elif selected_height == 1:
 				return_dict["general"].append("low-angle view")
 		
-		if not heigth_view.get_selected_id() == 1 and not heigth_view.get_selected_id() == 4:
+		if not selected_height == 1 and not selected_height == 4:
 			if angle_option_button.get_selected_id() == 1:
 				if rear_view_check_button.button_pressed:
 					return_dict["general"].append("rear view")
@@ -476,6 +531,9 @@ func create_basic_tags() -> void:
 	if has_multiple_scenes.button_pressed:
 		return_dict["meta"].append("multiple scenes")
 	
+	if has_multiple_images.button_pressed:
+		return_dict["meta"].append("multiple images")
+	
 	for child in smart_checkboxes.get_children():  # Stances
 		if not child is WizzardCheckbox:
 			continue
@@ -489,6 +547,19 @@ func create_basic_tags() -> void:
 		if child.button_pressed:
 			return_dict["suggestions"].append_array(child.checkbox_tags)
 	
+	if male_lore.button_pressed:
+		return_dict["lore"].append("male (lore)")
+	if female_lore.button_pressed:
+		return_dict["lore"].append("female (lore)")
+	if andro_lore.button_pressed:
+		return_dict["lore"].append("andromorph (lore)")
+	if gyno_lore.button_pressed:
+		return_dict["lore"].append("gynomorph (lore)")
+	if herm_lore.button_pressed:
+		return_dict["lore"].append("herm (lore)")
+	if male_herm_lore.button_pressed:
+		return_dict["lore"].append("maleherm (lore)")
+	
 	wizard_tags_created.emit(return_dict)
 
 
@@ -501,99 +572,183 @@ func calculate_clothing_level() -> Dictionary:
 		"suggestions": []
 	}
 	
-	if topwear_checkbox.button_pressed:
-		clothing_score += 100
-		clothing_dictionary["clothing"].append("topwear")
+	var tags_added: Dictionary = {
+		"topwear": false,
+		"bottomwear": false,
+		"underwear": false,
+		"legwear": false,
+		"armwear": false,
+		"handwear": false,
+		"footwear": false,
+		"headwear": false,
+		"collar": false,
+		"eyewear": false,
+		"mostly nude": false,
+		"mostly clothed": false,
+		"nude": false,
+		"fully clothed": false,
+		"topless": false,
+		"no underwear": false,
+		"bottomless": false,
+		"pantsless": false,
+		"collar only": false,
+		"eyewear only": false,
+		"footwear only": false,
+		"handwear only": false,
+		"headwear only": false,
+		"underwear only": false,
+		"topwear only": false,		
+	}
 	
-	if bottomwear_checkbox.button_pressed:
-		clothing_score += 100
-		clothing_dictionary["clothing"].append("bottomwear")
-	
-	if underwear_checkbox.button_pressed:
-		clothing_score += 100
-		if visible_underwear.button_pressed or clothing_score == 100:
-			clothing_dictionary["clothing"].append("underwear")
-			clothing_dictionary["suggestions"].append("*color* underwear")
-	
-	if leg_wear_checkbox.button_pressed:
-		clothing_score += 1
-		clothing_dictionary["clothing"].append("legwear")
-	if arm_wear_checkbox.button_pressed:
-		clothing_score += 1
-		clothing_dictionary["clothing"].append("armwear")
-	if hand_wear_checkbox.button_pressed:
-		clothing_score += 1
-		clothing_dictionary["clothing"].append("gloves")
-	if foot_wear_checkbox.button_pressed:
-		clothing_score += 1
-		clothing_dictionary["clothing"].append("footwear")
-	if head_wear_checkbox.button_pressed:
-		clothing_score += 1
-		clothing_dictionary["clothing"].append("headwear")
-		clothing_dictionary["clothing"].append("headgear")
-	if collar_checkbox.button_pressed: # Non-clothing
-#		clothing_score += 1
-		clothing_dictionary["clothing"].append("collar")
-		clothing_dictionary["suggestions"].append("*color* collar")
-	if eyewear_check_box.button_pressed: # Non-clothing
-#		clothing_score += 1
-		clothing_dictionary["clothing"].append("eyewear")
+	for entry in character_clothes.clothing_opt_dict.keys():
+		clothing_score = 0
+		if character_clothes.clothing_opt_dict[entry]["topwear"]:
+			clothing_score += 100
+			if not tags_added["topwear"]:
+				clothing_dictionary["clothing"].append("topwear")
+				tags_added["topwear"] = true
+		
+		if character_clothes.clothing_opt_dict[entry]["bottomwear"]:
+			clothing_score += 100
+			if not tags_added["bottomwear"]:
+				clothing_dictionary["clothing"].append("bottomwear")
+				tags_added["bottomwear"] = true
+		
+		if character_clothes.clothing_opt_dict[entry]["underwear"]:
+			clothing_score += 100
+			if character_clothes.clothing_opt_dict[entry]["visible_underwear"]\
+					or clothing_score == 100:
+				if not tags_added["underwear"]:
+					clothing_dictionary["clothing"].append("underwear")
+					clothing_dictionary["suggestions"].append("*color* underwear")
+					tags_added.underwear = true
+		
+		if character_clothes.clothing_opt_dict[entry]["legwear"]:
+			clothing_score += 1
+			if not tags_added["legwear"]:
+				clothing_dictionary["clothing"].append("legwear")
+				tags_added.legwear = true
+		if character_clothes.clothing_opt_dict[entry]["armwear"]:
+			clothing_score += 1
+			if not tags_added["armwear"]:
+				clothing_dictionary["clothing"].append("armwear")
+				tags_added.armwear = true
+		if character_clothes.clothing_opt_dict[entry]["handwear"]:
+			clothing_score += 1
+			if not tags_added["handwear"]:
+				clothing_dictionary["clothing"].append("handwear")
+				tags_added.handwear = true
+		if character_clothes.clothing_opt_dict[entry]["footwear"]:
+			clothing_score += 1
+			if not tags_added["footwear"]:
+				clothing_dictionary["clothing"].append("footwear")
+				tags_added.footwear = true
+		if character_clothes.clothing_opt_dict[entry]["headwear"]:
+			clothing_score += 1
+			if not tags_added["headwear"]:
+				clothing_dictionary["clothing"].append("headwear")
+				clothing_dictionary["clothing"].append("headgear")
+				tags_added.headwear = true
+		if character_clothes.clothing_opt_dict[entry]["collar"]: # Non-clothing
+	#		clothing_score += 1
+			if not tags_added["collar"]:
+				clothing_dictionary["clothing"].append("collar")
+				clothing_dictionary["suggestions"].append("*color* collar")
+				tags_added.collar = true
+		if character_clothes.clothing_opt_dict[entry]["eyewear"]: # Non-clothing
+	#		clothing_score += 1
+			if not tags_added["eyewear"]:
+				clothing_dictionary["clothing"].append("eyewear")
+				tags_added.eyewear = true
 
-	if 0 < clothing_score and clothing_score < 200:
-		clothing_dictionary["general"].append("mostly nude")
-	elif 200 < clothing_score and clothing_score < 300:
-		clothing_dictionary["general"].append("mostly clothed")
-	
-	if clothing_score == 0:
-		clothing_dictionary["general"].append("nude")
-	elif 300 <= clothing_score:
-		clothing_dictionary["general"].append("fully clothed")
-	
-	if bottomwear_checkbox.button_pressed\
-	and not underwear_checkbox.button_pressed\
-	and not topwear_checkbox.button_pressed:
-		clothing_dictionary["general"].append("topless")
-		clothing_dictionary["general"].append("no underwear")
+		if 0 < clothing_score and clothing_score < 100:
+			if not tags_added["mostly nude"]:
+				clothing_dictionary["general"].append("mostly nude")
+				tags_added["mostly nude"] = true
+		elif 200 < clothing_score and clothing_score < 300:
+			if not tags_added["mostly clothed"]:
+				clothing_dictionary["general"].append("mostly clothed")
+				tags_added["mostly clothed"] = true
+		
+		if clothing_score == 0:
+			if not tags_added["nude"]:
+				clothing_dictionary["general"].append("nude")
+				tags_added["nude"] = true
+		elif 300 <= clothing_score:
+			if not tags_added["fully clothed"]:
+				clothing_dictionary["general"].append("fully clothed")
+				tags_added["fully clothed"] = true
+		
+		if character_clothes.clothing_opt_dict[entry]["bottomwear"]\
+		and not character_clothes.clothing_opt_dict[entry]["underwear"]\
+		and not character_clothes.clothing_opt_dict[entry]["topwear"]:
+			if not tags_added["topless"]:
+				clothing_dictionary["general"].append("topless")
+				tags_added["topless"] = true
+			if not tags_added["no underwear"]:
+				clothing_dictionary["general"].append("no underwear")
+				tags_added["no underwear"] = true
 
-	
-	if not topwear_checkbox.button_pressed\
-	and underwear_checkbox.button_pressed\
-	and bottomwear_checkbox.button_pressed:
-		clothing_dictionary["general"].append("topless")
-	
-	if topwear_checkbox.button_pressed\
-	and not underwear_checkbox.button_pressed\
-	and not bottomwear_checkbox.button_pressed:
-		clothing_dictionary["general"].append("bottomless")
-	
-	if not underwear_checkbox.button_pressed\
-	and topwear_checkbox.button_pressed\
-	and bottomwear_checkbox.button_pressed:
-		clothing_dictionary["general"].append("no underwear")
-	
-	if not bottomwear_checkbox.button_pressed\
-	and underwear_checkbox.button_pressed\
-	and topwear_checkbox.button_pressed:
-		clothing_dictionary["general"].append("pantsless")
-	
-	if clothing_score == 0: # Only Accessories
-		if collar_checkbox.button_pressed:
-			clothing_dictionary["general"].append("collar only")
-		elif eyewear_check_box.button_pressed:
-			clothing_dictionary["general"].append("eyewear only")
-	elif clothing_score == 1: # Only small dress
-		if foot_wear_checkbox.button_pressed:
-			clothing_dictionary["general"].append("footwear only")
-		elif hand_wear_checkbox.button_pressed:
-			clothing_dictionary["general"].append("handwear only")
-		elif head_wear_checkbox.button_pressed:
-			clothing_dictionary["general"].append("headwear only")
-	elif clothing_score == 100:
-		if underwear_checkbox.button_pressed:
-			clothing_dictionary["general"].append("underwear only")
-			clothing_dictionary["general"].append("clothed")
-		elif topwear_checkbox.button_pressed:
-			clothing_dictionary["general"].append("topwear only")
+		
+		if not character_clothes.clothing_opt_dict[entry]["topwear"]\
+		and character_clothes.clothing_opt_dict[entry]["underwear"]\
+		and character_clothes.clothing_opt_dict[entry]["bottomwear"]:
+			if not tags_added["topless"]:
+				clothing_dictionary["general"].append("topless")
+				tags_added["topless"] = true
+		
+		if character_clothes.clothing_opt_dict[entry]["topwear"]\
+		and not character_clothes.clothing_opt_dict[entry]["underwear"]\
+		and not character_clothes.clothing_opt_dict[entry]["bottomwear"]:
+			if not tags_added["bottomless"]:
+				clothing_dictionary["general"].append("bottomless")
+				tags_added["bottomless"] = true
+		
+		if not character_clothes.clothing_opt_dict[entry]["underwear"]\
+		and character_clothes.clothing_opt_dict[entry]["topwear"]\
+		and character_clothes.clothing_opt_dict[entry]["bottomwear"]:
+			if not tags_added["no underwear"]:
+				clothing_dictionary["general"].append("no underwear")
+				tags_added["no underwear"] = true
+		
+		if not character_clothes.clothing_opt_dict[entry]["bottomwear"]\
+		and character_clothes.clothing_opt_dict[entry]["underwear"]\
+		and character_clothes.clothing_opt_dict[entry]["topwear"]:
+			if not tags_added["pantsless"]:
+				clothing_dictionary["general"].append("pantsless")
+				tags_added["pantsless"] = true
+		
+		if clothing_score == 0: # Only Accessories
+			if collar_checkbox.button_pressed:
+				if not tags_added["collar only"]:
+					clothing_dictionary["general"].append("collar only")
+					tags_added["collar only"] = true
+			elif eyewear_check_box.button_pressed:
+				if not tags_added["eyewear only"]:
+					clothing_dictionary["general"].append("eyewear only")
+					tags_added["eyewear only"] = true
+		elif clothing_score == 1: # Only small dress
+			if foot_wear_checkbox.button_pressed:
+				if not tags_added["footwear only"]:
+					clothing_dictionary["general"].append("footwear only")
+					tags_added["footwear only"] = true
+			elif hand_wear_checkbox.button_pressed:
+				if not tags_added["handwear only"]:
+					clothing_dictionary["general"].append("handwear only")
+					tags_added["handwear only"] = true
+			elif head_wear_checkbox.button_pressed:
+				if not tags_added["headwear only"]:
+					clothing_dictionary["general"].append("headwear only")
+					tags_added["headwear only"] = true
+		elif clothing_score == 100:
+			if underwear_checkbox.button_pressed:
+				if not tags_added["underwear only"]:
+					clothing_dictionary["general"].append("underwear only")
+					tags_added["underwear only"] = true
+			elif topwear_checkbox.button_pressed:
+				if not tags_added["topwear only"]:
+					clothing_dictionary["general"].append("topwear only")
+					tags_added["topwear only"] = true
 
 	return clothing_dictionary
 

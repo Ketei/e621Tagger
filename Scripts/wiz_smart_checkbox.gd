@@ -61,4 +61,6 @@ func reset_selections() -> void:
 		node_to_display.visible = display_inverted
 		if node_to_display is OptionButton:
 			node_to_display.select(0)
+		else:
+			node_to_display.reset_selection()
 

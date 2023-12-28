@@ -649,6 +649,7 @@ text = "Add"
 metadata/_edit_use_anchors_ = true
 
 [node name="ConflictingTags" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
