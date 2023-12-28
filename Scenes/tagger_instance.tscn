@@ -917,6 +917,8 @@ text = "Set priority:"
 [node name="NewPrioritySpinBox" type="SpinBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+allow_greater = true
+allow_lesser = true
 
 [node name="ChangePrioCheckBox" type="CheckBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
 layout_mode = 2
