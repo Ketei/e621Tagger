@@ -760,6 +760,9 @@ func load_tag_dict(dict_to_load: Dictionary, replace_tags: bool) -> void:
 	if dict_to_load.has("genders"):
 		for gender_tag in dict_to_load["genders"]:
 			add_new_tag(Tagger.alias_database.get_alias(gender_tag), false, true, [], Tagger.Categories.GENDER, false)
+	if dict_to_load.has("lore"):
+		for lore_tag in dict_to_load["lore"]:
+			add_new_tag(Tagger.alias_database.get_alias(lore_tag), false, true, [], Tagger.Categories.LORE, false)
 	
 	if dict_to_load.has("actions_and_interactions"):
 		for aai_tag in dict_to_load["actions_and_interactions"]:
