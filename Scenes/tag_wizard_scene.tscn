@@ -759,6 +759,20 @@ layout_mode = 2
 theme = ExtResource("9_pvv55")
 max_value = 0.0
 
+[node name="CharacterNames" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterNames"]
+layout_mode = 2
+text = "Character Names"
+
+[node name="CharacterNames" type="LineEdit" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterNames"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Write down character names. Separate with comma."
+placeholder_text = "character name 1, character name 2, ..."
+
 [node name="ClothingHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16

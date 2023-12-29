@@ -134,6 +134,7 @@ signal wizard_tags_created(tags_array)
 @onready var male_herm_lore: CheckBox = $MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox/MaleHermLore
 
 @onready var character_clothes: SpinBox = $MarginContainer/Margin/MarginContainer/All/ClothingHBox/VBoxContainer/HBoxContainer/CharacterClothes
+@onready var character_names: LineEdit = $MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterNames/CharacterNames
 
 
 const background_types = ["simple background", "detailed background"]
@@ -307,6 +308,11 @@ func create_basic_tags() -> void:
 			return_dict["general"].append("duo focus")
 		elif focus_amount.value == 3:
 			return_dict["general"].append("trio focus")
+	
+	if not character_names.text.is_empty():
+		var split_char_array: Array = character_names.text.split(",", false)
+		for character:String in split_char_array:
+			return_dict["characters"].append(character.strip_edges())
 	
 	if male_check_box.button_pressed:
 		return_dict["genders"].append("male")
