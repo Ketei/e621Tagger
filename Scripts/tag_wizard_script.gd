@@ -396,7 +396,7 @@ func create_basic_tags() -> void:
 		return_dict["sex_and_positions"].append("reverse gangbang")
 	
 	return_dict["general"].append(background_types[background_option_button.selected])
-	if background_dets_option_button.selected == 0:
+	if background_option_button.selected == 0:
 		if background_dets_option_button.selected != 0:
 			return_dict["general"].append(background_dets_option_button.get_item_text(
 					background_dets_option_button.selected).to_lower())
