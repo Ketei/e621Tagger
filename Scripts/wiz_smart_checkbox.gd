@@ -48,7 +48,7 @@ func get_tags() -> Array[String]:
 
 func get_suggestions() -> Array:
 	var suggestions: Array[String] = []
-	suggestions.append_array(suggestions) 
+	suggestions.append_array(suggestions_array)
 	if node_to_display:
 		suggestions.append_array(node_to_display.get_suggestions())
 	return suggestions
