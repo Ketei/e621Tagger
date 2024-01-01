@@ -433,48 +433,243 @@ func reset_selection() -> void:
 [sub_resource type="GDScript" id="GDScript_axjs3"]
 script/source = "extends MenuButton
 
+var sitting_on_bodypart: PopupMenu = null
+var sitting_on_furniture: PopupMenu = null
+var sitting_on_object: PopupMenu = null
 
 func _ready():
-	get_popup().hide_on_checkable_item_selection = false
-	get_popup().index_pressed.connect(on_index_pressed)
+	var self_popup_menu: PopupMenu = get_popup()
+	sitting_on_bodypart = PopupMenu.new()
+	sitting_on_bodypart.name = \"sitting_on_bodypart\"
+	sitting_on_bodypart.hide_on_checkable_item_selection = false
+	sitting_on_bodypart.max_size.y = get_popup().max_size.y * 2
+	sitting_on_furniture = PopupMenu.new()
+	sitting_on_furniture.name = \"sitting_on_furniture\"
+	sitting_on_furniture.hide_on_checkable_item_selection = false
+	sitting_on_furniture.max_size.y = get_popup().max_size.y * 2
+	sitting_on_object = PopupMenu.new()
+	sitting_on_object.name = \"sitting_on_object\"
+	sitting_on_object.hide_on_checkable_item_selection = false
+	sitting_on_object.max_size.y = get_popup().max_size.y * 2
 	
+	self_popup_menu.hide_on_checkable_item_selection = false
+	self_popup_menu.index_pressed.connect(on_index_pressed)
+	
+	sitting_on_bodypart.add_check_item(\"Back (another)\")
+	sitting_on_bodypart.add_check_item(\"Butt (another)\")
+	sitting_on_bodypart.add_check_item(\"Belly (another)\")
+	sitting_on_bodypart.add_check_item(\"Breasts (another)\")
+	sitting_on_bodypart.add_check_item(\"Chest (another)\")
+	sitting_on_bodypart.add_check_item(\"Head (another)\")
+	sitting_on_bodypart.add_check_item(\"Lap (another)\")
+	sitting_on_bodypart.add_check_item(\"Shoulders (another)\")
+	sitting_on_bodypart.add_check_item(\"Balls (any)\")
+	sitting_on_bodypart.add_check_item(\"Penis (any)\")
+	sitting_on_bodypart.add_check_item(\"Knot (any)\")
+	sitting_on_bodypart.add_check_item(\"Tail (any)\")
+	
+	sitting_on_furniture.add_check_item(\"Bed\")
+	sitting_on_furniture.add_check_item(\"Bench\")
+	sitting_on_furniture.add_check_item(\"Chair\")
+	sitting_on_furniture.add_check_item(\"Counter\")
+	sitting_on_furniture.add_check_item(\"Desk\")
+	sitting_on_furniture.add_check_item(\"Pillow\")
+	sitting_on_furniture.add_check_item(\"Table\")
+	sitting_on_furniture.add_check_item(\"Throne\")
+	sitting_on_furniture.add_check_item(\"Toilet\")
+	sitting_on_furniture.add_check_item(\"Sofa\")
+	
+	sitting_on_object.add_check_item(\"Ball\")
+	sitting_on_object.add_check_item(\"Balloon\")
+	sitting_on_object.add_check_item(\"Building\")
+	sitting_on_object.add_check_item(\"Planet\")
+	sitting_on_object.add_check_item(\"Pool toy\")
+	sitting_on_object.add_check_item(\"Vehicle\")
+	
+	sitting_on_furniture.index_pressed.connect(on_index_pressed_full.bind(sitting_on_furniture))
+	sitting_on_object.index_pressed.connect(on_index_pressed_full.bind(sitting_on_object))
+	sitting_on_bodypart.index_pressed.connect(on_index_pressed_full.bind(sitting_on_bodypart))
+	
+	self_popup_menu.add_child(sitting_on_furniture)
+	self_popup_menu.add_child(sitting_on_bodypart)
+	self_popup_menu.add_child(sitting_on_object)
+	
+	self_popup_menu.add_submenu_item(\"On body-part\", \"sitting_on_bodypart\", 3)
+	
+	self_popup_menu.add_submenu_item(\"On furniture\", \"sitting_on_furniture\", 4)
+	self_popup_menu.set_item_disabled(4, true)
+	self_popup_menu.add_submenu_item(\"On object\", \"sitting_on_object\", 5)
+	self_popup_menu.set_item_disabled(5, true)
+
 
 func on_index_pressed(index: int) -> void:
-	get_popup().set_item_checked(
+	var self_popup: PopupMenu = get_popup()
+	var is_chkbox_checked: bool = not self_popup.is_item_checked(index)
+	
+	self_popup.set_item_checked(
 			index,
-			not get_popup().is_item_checked(index)
+			is_chkbox_checked
 			)
+	
+	if index == 1: # On furnityure
+		self_popup.set_item_disabled(4, not is_chkbox_checked)
+	elif index == 2: # On object
+		self_popup.set_item_disabled(5, not is_chkbox_checked)
+
+
+func on_index_pressed_full(index: int, popup_menu: PopupMenu) -> void:
+	var _set_pressed: bool = not popup_menu.is_item_checked(index)
+	var _self_popup: PopupMenu = get_popup()
+	popup_menu.set_item_checked(
+			index,
+			_set_pressed)
 
 
 func get_tags() -> Array[String]:
 	var return_array: Array[String] = []
+	var sitting_on_another: bool = false
+	var sitting_on: bool = false
+	var _self_popup: PopupMenu = get_popup()
 	
-	if get_popup().is_item_checked(0):
-		return_array.append(\"sitting on another\")
-	if get_popup().is_item_checked(1):
-		return_array.append(\"sitting on balls\")
-	if get_popup().is_item_checked(2):
-		return_array.append(\"sitting on knot\")
-	if get_popup().is_item_checked(3):
+	if _self_popup.is_item_checked(0):
+		return_array.append(\"sitting on ground\")
+		if not sitting_on:
+			sitting_on = true
+	if _self_popup.is_item_checked(1):
+		return_array.append(\"sitting on furniture\")
+		if not sitting_on:
+			sitting_on = true
+	if _self_popup.is_item_checked(2):
+		return_array.append(\"sitting on object\")
+		if not sitting_on:
+			sitting_on = true
+	
+	if sitting_on_bodypart.is_item_checked(0):
+		return_array.append(\"sitting on back\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(1):
+		return_array.append(\"sitting on butt\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(2):
+		return_array.append(\"sitting on belly\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(3):
+		return_array.append(\"sitting on breasts\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(4):
+		return_array.append(\"sitting on chest\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(5):
+		return_array.append(\"sitting on head\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(6):
 		return_array.append(\"sitting on lap\")
-	if get_popup().is_item_checked(4):
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(7):
+		return_array.append(\"sitting on shoulder\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(8):
+		return_array.append(\"sitting on balls\")
+		return_array.append(\"balls\")
+		if not sitting_on:
+			sitting_on = true
+	if sitting_on_bodypart.is_item_checked(9):
 		return_array.append(\"sitting on penis\")
-	if get_popup().is_item_checked(5):
+		return_array.append(\"penis\")
+		if not sitting_on:
+			sitting_on = true
+	if sitting_on_bodypart.is_item_checked(10):
+		return_array.append(\"sitting on knot\")
+		return_array.append(\"knot\")
+		if not sitting_on:
+			sitting_on = true
+	if sitting_on_bodypart.is_item_checked(1):
 		return_array.append(\"sitting on tail\")
+		return_array.append(\"tail\")
+		if not sitting_on:
+			sitting_on = true
+	
+	if sitting_on_another or sitting_on:
+		return_array.append(\"sitting on\")
+	if sitting_on_another:
+		return_array.append(\"sitting on another\")
+	
+	
+	if not _self_popup.is_item_disabled(4): # Sitting on furniture
+		if sitting_on_furniture.is_item_checked(0):
+			return_array.append(\"sitting on bed\")
+		if sitting_on_furniture.is_item_checked(1):
+			return_array.append(\"sitting on bench\")
+		if sitting_on_furniture.is_item_checked(2):
+			return_array.append(\"sitting on chair\")
+		if sitting_on_furniture.is_item_checked(3):
+			return_array.append(\"sitting on counter\")
+		if sitting_on_furniture.is_item_checked(4):
+			return_array.append(\"sitting on desk\")
+		if sitting_on_furniture.is_item_checked(5):
+			return_array.append(\"sitting on pillow\")
+		if sitting_on_furniture.is_item_checked(6):
+			return_array.append(\"sitting on table\")
+		if sitting_on_furniture.is_item_checked(7):
+			return_array.append(\"sitting on throne\")
+		if sitting_on_furniture.is_item_checked(8):
+			return_array.append(\"sitting on toilet\")
+		if sitting_on_furniture.is_item_checked(9):
+			return_array.append(\"sitting on sofa\")
+		
+	if not _self_popup.is_item_disabled(5): # Sitting on object
+		if sitting_on_object.is_item_checked(0):
+			return_array.append(\"sitting on ball\")
+		if sitting_on_object.is_item_checked(1):
+			return_array.append(\"sitting on balloon\")
+		if sitting_on_object.is_item_checked(2):
+			return_array.append(\"sitting on building\")
+		if sitting_on_object.is_item_checked(3):
+			return_array.append(\"sitting on planet\")
+		if sitting_on_object.is_item_checked(4):
+			return_array.append(\"sitting on pool toy\")
+		if sitting_on_object.is_item_checked(5):
+			return_array.append(\"sitting on vehicle\")
+	
 	return return_array
 
 
 func get_suggestions() -> Array[String]:
-	return []
+	var return_array: Array[String] = []
+	if sitting_on_bodypart.is_item_checked(6):
+		return_array.append(\"facesitting\")
+	if get_popup().is_item_checked(2):
+		if sitting_on_object.is_item_checked(5):
+			return_array.append(\"sitting on car\")
+	
+	return return_array
 
 
 func reset_selection() -> void:
-	get_popup().set_item_checked(0, false)
-	get_popup().set_item_checked(1, false)
-	get_popup().set_item_checked(2, false)
-	get_popup().set_item_checked(3, false)
-	get_popup().set_item_checked(4, false)
-	get_popup().set_item_checked(5, false)
+	var self_popup: PopupMenu = get_popup()
+	for item_index in range(self_popup.item_count):
+		if self_popup.is_item_checkable(item_index) and self_popup.is_item_checked(item_index):
+			self_popup.set_item_checked(item_index, false)
+	
+	for sitting_body in range(sitting_on_bodypart.item_count):
+		if sitting_on_bodypart.is_item_checked(sitting_body):
+			sitting_on_bodypart.set_item_checked(sitting_body, false)
+	
+	for sitting_object in range(sitting_on_object.item_count):
+		if sitting_on_object.is_item_checked(sitting_object):
+			sitting_on_object.set_item_checked(sitting_object, false)
+	
+	for sitting_furniture in range(sitting_on_furniture.item_count):
+		if sitting_on_furniture.is_item_checked(sitting_furniture):
+			sitting_on_furniture.set_item_checked(sitting_furniture, false)
 
 "
 
@@ -500,7 +695,7 @@ func get_tags() -> Array[String]:
 	
 	if get_popup().is_item_checked(0):
 		return_array.append(\"on one leg\")
-	if get_popup().is_item_checked(0):
+	if get_popup().is_item_checked(1):
 		return_array.append(\"leaning forward\")
 	return return_array
 
@@ -1749,32 +1944,22 @@ script = SubResource("GDScript_2kyf3")
 layout_mode = 2
 text = "Sitting"
 tags_to_include = "sitting"
-suggestions_to_include = "sitting on *surface*, reclining"
 node_to_display = NodePath("../SittingOptionButton")
 
 [node name="SittingOptionButton" type="MenuButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
 layout_mode = 2
 text = "Sitting Options"
 flat = false
-item_count = 6
-popup/item_0/text = "Sitting on another"
+item_count = 3
+popup/item_0/text = "On ground"
 popup/item_0/checkable = 1
 popup/item_0/id = 0
-popup/item_1/text = "Sitting on balls"
+popup/item_1/text = "On furniture"
 popup/item_1/checkable = 1
 popup/item_1/id = 1
-popup/item_2/text = "Sitting on knot"
+popup/item_2/text = "On object"
 popup/item_2/checkable = 1
 popup/item_2/id = 2
-popup/item_3/text = "Sitting on lap"
-popup/item_3/checkable = 1
-popup/item_3/id = 3
-popup/item_4/text = "Sitting on penis"
-popup/item_4/checkable = 1
-popup/item_4/id = 4
-popup/item_5/text = "Sitting on tail"
-popup/item_5/checkable = 1
-popup/item_5/id = 5
 script = SubResource("GDScript_axjs3")
 
 [node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
@@ -1793,6 +1978,7 @@ popup/item_0/text = "On one leg"
 popup/item_0/checkable = 1
 popup/item_0/id = 0
 popup/item_1/text = "Leaning forward"
+popup/item_1/checkable = 1
 popup/item_1/id = 1
 script = SubResource("GDScript_nsq2n")
 
