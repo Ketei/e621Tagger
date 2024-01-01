@@ -471,18 +471,19 @@ func create_basic_tags() -> void:
 			elif selected_height == 1:
 				return_dict["general"].append("low-angle view")
 		
-		if not selected_height == 1 and not selected_height == 4:
-			if angle_option_button.get_selected_id() == 1:
-				if rear_view_check_button.button_pressed:
-					return_dict["general"].append("rear view")
-				else:
-					return_dict["general"].append("front view")
-			elif angle_option_button.get_selected_id() == 2:
-				if rear_view_check_button.button_pressed:
-					return_dict["general"].append("rear view")
-				return_dict["general"].append("three-quarter view")
-			elif angle_option_button.get_selected_id() == 3:
-				return_dict["general"].append("side view")
+		if selected_height != 5:
+			if not selected_height == 1 and not selected_height == 4:
+				if angle_option_button.get_selected_id() == 1:
+					if rear_view_check_button.button_pressed:
+						return_dict["general"].append("rear view")
+					else:
+						return_dict["general"].append("front view")
+				elif angle_option_button.get_selected_id() == 2:
+					if rear_view_check_button.button_pressed:
+						return_dict["general"].append("rear view")
+					return_dict["general"].append("three-quarter view")
+				elif angle_option_button.get_selected_id() == 3:
+					return_dict["general"].append("side view")
 		
 	return_dict["meta"].append(media_types[media_type_option_button.selected])
 	
