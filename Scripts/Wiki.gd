@@ -144,6 +144,9 @@ func search_for_tag(new_text: String) -> void:
 	new_text = new_text.to_lower().strip_edges()
 	new_text = Tagger.alias_database.get_alias(new_text)
 	
+	if tag_search_line_edit.text != new_text:
+		tag_search_line_edit.text = new_text
+	
 	if not Tagger.tag_manager.has_tag(new_text):
 		tag_search_line_edit.clear()
 		return
