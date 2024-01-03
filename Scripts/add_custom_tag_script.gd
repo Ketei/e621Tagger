@@ -48,8 +48,12 @@ func clear_fields() -> void:
 	suffix_custom_id = 0
 	prefix_option_button.clear()
 	suffix_option_button.clear()
-	custom_prefix_line_edit.hide()
-	custom_suffix_line_edit.hide()
+	custom_prefix_line_edit.clear()
+	custom_suffix_line_edit.clear()
+	if custom_prefix_line_edit.visible:
+		custom_prefix_line_edit.hide()
+	if custom_suffix_line_edit.visible:
+		custom_suffix_line_edit.hide()
 	
 	prefix_vbox.hide()
 	suffix_vbox.hide()
