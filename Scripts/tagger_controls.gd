@@ -218,6 +218,7 @@ func append_prefilled_tag(tag_name: String, tag_dict: Dictionary, select_on_add:
 		if tag_dict["is_registered"]:
 			add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
 			var tar_resource: Tag = Tagger.tag_manager.get_tag(tag_name)
+			item_list.set_item_tooltip(add_index, tar_resource.tooltip)
 			update_parents(tar_resource, search_suggestions)
 		else:
 			add_index = item_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
