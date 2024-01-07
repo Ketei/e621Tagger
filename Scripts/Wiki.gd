@@ -240,7 +240,8 @@ func build_wiki_entry(target_tag: Tag) -> String:
 	
 	var bbc_text: String = "[font_size=30][color={1}]{0}[/color][/font_size]\n".format([target_tag.tag.capitalize(), html_text])
 
-	bbc_text += "[color=29b8e7][b]Category: [/b][/color][color=d1f0fa]{0}[/color]\n\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
+	bbc_text += "[color=29b8e7][b]Category: [/b][/color][color=d1f0fa]{0}[/color]\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
+	bbc_text += "[color=29b8e7][b]Priority: [/b][/color][color=d1f0fa]{0}[/color]\n\n".format([str(target_tag.tag_priority)])
 	
 	if not target_tag.parents.is_empty():
 		bbc_text += "[color=8eef97][b]Parents: [/b][/color][color=d2f9d6]"
