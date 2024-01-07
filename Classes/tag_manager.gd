@@ -128,7 +128,7 @@ func recreate_implications() -> void:
 	
 	for tag_group in Tagger.settings_lists.tag_types.keys():
 		if Tagger.settings_lists.tag_types[tag_group]["sort"]:
-			Tagger.settings_lists.tag_types[tag_group].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+			Tagger.settings_lists.tag_types[tag_group]["tags"].sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	Tagger.reload_tag_groups.emit()
 	Tagger.implication_reload()
 
