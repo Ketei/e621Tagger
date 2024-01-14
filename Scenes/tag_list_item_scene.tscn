@@ -22,6 +22,11 @@ size_flags_horizontal = 3
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
 
+[node name="SortCheckBox" type="CheckBox" parent="HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Sorts the tags alphabetically on save."
+text = "Sort"
+
 [node name="SaveButton" type="Button" parent="HBoxContainer"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2

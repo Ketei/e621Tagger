@@ -26,10 +26,10 @@ func load_all_entries() -> void:
 		child.queue_free()
 	entry_tracker.clear()
 	for entry_list in Tagger.settings_lists.tag_types.keys():
-		add_entry(entry_list, Tagger.settings_lists.tag_types[entry_list])
+		add_entry(entry_list, Tagger.settings_lists.tag_types[entry_list]["tags"], Tagger.settings_lists.tag_types[entry_list]["sort"])
 
 
-func add_entry(key: String, line_list: Array = []) -> void:
+func add_entry(key: String, line_list: Array = [], is_sortable: bool = true) -> void:
 	if entry_tracker.has(key):
 		return
 	
@@ -42,6 +42,7 @@ func add_entry(key: String, line_list: Array = []) -> void:
 	lists_vbox.add_child(new_item)
 	new_item.set_key(key)
 	new_item.set_entries(line_list)
+	new_item.set_can_sort(is_sortable)
 	
 
 func add_entry_btn_press() -> void:

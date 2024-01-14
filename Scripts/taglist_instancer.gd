@@ -178,3 +178,11 @@ func update_tag(tag_to_update: String) -> void:
 	for instance in instance_dictionary:
 		instance_dictionary[instance].update_tag(tag_to_update)
 
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		for instance in instance_dictionary.keys():
+			instance_dictionary[instance].disconnect_and_free()
+		instance_dictionary.clear()
+		instances_tab_bar.clear_tabs()
+

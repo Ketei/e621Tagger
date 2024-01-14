@@ -62,7 +62,7 @@ var main_active: bool = false
 func _ready():
 	main_e621.parsed_result.connect(_get_finished)
 	main_e621.timeout = timeout_time
-	main_e621.job_failed.connect(failed_timeout)
+	main_e621.job_failed.connect(failed_task)
 	
 	for gen in range(max_parallel_requests):
 		var e6_request := e621Request.new()
@@ -70,18 +70,19 @@ func _ready():
 		e6_request.timeout = 20
 		add_child(e6_request)
 		http_requester_references.append(e6_request)
-		e6_request.job_finished.connect(request_timeout)
+		#e6_request.job_finished.connect(request_timeout)
 
 
-func failed_timeout() -> void:
+func failed_task() -> void:
 	get_finished.emit([])
 
 
-func request_timeout() -> void:
-	image_skipped.emit()
+#func request_timeout() -> void:
+	#image_skipped.emit()
 
 
 func get_posts() -> void:
+	print_debug("\n- Calling API for posts -\nHTTPClient status: {0} (Should be \"0\")".format([main_e621.get_http_client_status()]))
 	main_e621.request_mode = e621Request.RequestType.POST
 	
 	var _url: String = "https://e621.net/posts.json?"
@@ -108,10 +109,14 @@ func get_posts() -> void:
 	
 	main_active = true
 	
-	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
+	var error = main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
+	print_debug("\nTag HTTPRequest error code: {0} (Should be \"0\")\nURL:{1}".format([error, _url]))
+	if error != OK:
+		failed_task()
 
 
 func get_tags() -> void:
+	print_debug("\n- Calling API for tags -\nHTTPClient status: {0} (Should be \"0\")".format([main_e621.get_http_client_status()]))
 	main_e621.request_mode = e621Request.RequestType.TAG
 	
 	var _url: String = "https://e621.net/tags.json?"
@@ -137,7 +142,10 @@ func get_tags() -> void:
 	
 	main_active = true
 	
-	main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
+	var error = main_e621.request(_url, Tagger.get_headers(), HTTPClient.METHOD_GET)
+	print_debug("\nTag HTTPRequest error code: {0} (Should be \"0\")\nURL:{1}".format([error, _url]))
+	if error != OK:
+		failed_task()
 
 
 func save_image(result: int, _response_code: int, _headers: PackedStringArray, body: PackedByteArray, requester: e621Request) -> void:
@@ -153,7 +161,7 @@ func save_image(result: int, _response_code: int, _headers: PackedStringArray, b
 		_new_image.load_png_from_buffer(body)
 		_new_image.save_png(path_to_save_to + str(requester.image_id) + ".png")
 	else:
-		print_debug("Unsupporded format. Skipping")
+		print_debug("\nUnsupporded format. Skipping")
 	
 	await get_tree().create_timer(2.0).timeout
 	next_download_in_queue(requester)
@@ -163,7 +171,7 @@ func next_download_in_queue(requester) -> void:
 	if queue_downloads.is_empty():
 		active_requesters -= 1
 		requester.request_completed.disconnect(save_image)
-#		images_saved.emit()
+		print_debug("\n- API responded with array: [] -")
 		get_finished.emit([])
 		return
 	
@@ -205,10 +213,6 @@ func save_posts_to_path(e621_data_array: Array = []) -> void:
 			active_requesters += 1
 
 
-#func response_received(e621_data_array: Array) -> void:
-#	get_finished.emit(e621_data_array)
-
-
 func _get_finished(e621_data_array: Array) -> void:
 	main_active = false
 	
@@ -220,6 +224,7 @@ func _get_finished(e621_data_array: Array) -> void:
 		save_on_finish = false
 		save_posts_to_path(e621_data_array)
 	else:
+		print_debug("\n- API responded with array: {0} -".format([str(e621_data_array)]))
 		get_finished.emit(e621_data_array)
 		
 
@@ -261,8 +266,7 @@ func download_pictures(data_array: Array = []):
 	for post_object in data_array:
 		if post_object is e621Post:
 			queue_pictures.append(post_object)
-	
-	
+
 	for requester in http_requester_references:
 		if not queue_pictures.is_empty():
 			_next_in_queue(requester)
@@ -278,6 +282,7 @@ func _next_in_queue(requester: e621Request) -> void:
 		active_requesters -= 1
 		requester.request_completed.disconnect(_create_image)
 		if active_requesters == 0:
+			print_debug("\n- API responded with array: [] -")
 			get_finished.emit([])
 		return
 	
@@ -316,7 +321,7 @@ func _create_image(result: int, _response_code: int, _headers: PackedStringArray
 		image_created.emit(new_animated)
 	else:
 		image_skipped.emit()
-		print_debug("Unsupporded format. Skipping")
+		print_debug("\nUnsupporded format. Skipping")
 	
 	if not queue_pictures.is_empty():
 		await get_tree().create_timer(1.0).timeout
@@ -331,3 +336,4 @@ func cancel_all_requests() -> void:
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		cancel_all_requests()
+		get_finished.emit([])

@@ -95,12 +95,12 @@ func just_capitalize(input_string: String) -> String:
 
 func get_tag_groups() -> Dictionary:
 	for group in tag_groups.keys():
-		if typeof(tag_groups[group]) != 28:
+		if typeof(tag_groups[group]) != TYPE_DICTIONARY:
 			tag_groups.erase(group)
 		else:
-			for _tag in tag_groups[group]:
-				if typeof(tag) != 4:
-					tag_groups[group].erase(_tag)
-	
+			for _tag in tag_groups[group]["tags"]:
+				if typeof(tag) != TYPE_STRING:
+					tag_groups[group]["tags"].erase(_tag)
 	return tag_groups
+
 

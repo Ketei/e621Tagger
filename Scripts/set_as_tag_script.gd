@@ -45,7 +45,8 @@ func on_spinbox_value_change(new_value: float) -> void:
 
 
 func on_cat_change(new_category: int) -> void:
-	category_select = new_category as Tagger.Categories
+	#category_select = new_category as Tagger.Categories
+	category_select = categories_menu.get_item_id(new_category) as Tagger.Categories
 	if not change_cat_check_box.button_pressed:
 		change_cat_check_box.button_pressed = true
 

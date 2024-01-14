@@ -150,17 +150,16 @@ script/source = "extends Control
 @onready var check_for_conflicts_button: Button = $CheckForConflictsButton
 @onready var tagger = $\"..\"
 @onready var close_conflict_button: Button = $CloseConflictButton
+@onready var info_label: Label = $InfoLabel
 
 
 func _ready():
 	hide()
 	check_for_conflicts_button.pressed.connect(check_for_conflicts)
-	close_conflict_button.pressed.connect(hide)
+	close_conflict_button.pressed.connect(hide_window)
 
 
 func check_for_conflicts() -> void:	
-	conflicting_tags_tree.clear()
-
 	var root_tree = conflicting_tags_tree.create_item()
 
 	root_tree.set_text(0, \"Conflicts\")
@@ -168,57 +167,36 @@ func check_for_conflicts() -> void:
 	var conflicts_dict: Dictionary = {}
 
 	for tag in tagger.tags_inputed.keys():
-
-#		var tag_data: Tag = tagger.valid_tags[tag]
-
 		for conflict_tag in tagger.tags_inputed[tag][\"conflicts\"]:
 			if tagger.full_tag_list.has(conflict_tag) or tagger.implied_tags_array.has(conflict_tag):
 				if not conflicts_dict.has(tag):
 					conflicts_dict[tag] = []
 
 				conflicts_dict[tag].append(conflict_tag)
-
+	
 	for conflict_tag in conflicts_dict.keys():
 		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
-		_sub_tree_conflict.set_text(0, conflict_tag)
+		_sub_tree_conflict.set_text(0, \"\\\"{0}\\\" conflicts:\".format([conflict_tag]))
 		_sub_tree_conflict.collapsed = true
 
 		for conflicted_tag in conflicts_dict[conflict_tag]:
 			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
 			_conflicted_tag.set_text(0, conflicted_tag)
+	
+	if conflicts_dict.is_empty():
+		info_label.text = \"No conflicts found\"
+	else:
+		info_label.text = \"Conflicts found\"
 
 
+func clear_conflicts() -> void:
+	conflicting_tags_tree.clear()
+	info_label.text = \"\"
 
-#func check_for_conflicts() -> void:	
-#	conflicting_tags_tree.clear()
-#
-#	var root_tree = conflicting_tags_tree.create_item()
-#
-#	root_tree.set_text(0, \"Conflicts\")
-#
-#	var conflicts_dict: Dictionary = {}
-#
-#	for tag in tagger.valid_tags.keys():
-#
-#		var tag_data: Tag = tagger.valid_tags[tag]
-#
-#		for conflict_tag in tag_data.conflicts:
-#			if tagger._full_tag_list.has(conflict_tag) or tagger.implied_tags_array.has(conflict_tag):
-#				if not conflicts_dict.has(tag):
-#					conflicts_dict[tag] = []
-#
-#				conflicts_dict[tag].append(conflict_tag)
-#
-#	for conflict_tag in conflicts_dict.keys():
-#		var _sub_tree_conflict = conflicting_tags_tree.create_item(root_tree)
-#		_sub_tree_conflict.set_text(0, conflict_tag)
-#		_sub_tree_conflict.collapsed = true
-#
-#		for conflicted_tag in conflicts_dict[conflict_tag]:
-#			var _conflicted_tag = conflicting_tags_tree.create_item(_sub_tree_conflict)
-#			_conflicted_tag.set_text(0, conflicted_tag)
-#
-#
+
+func hide_window() -> void:
+	clear_conflicts()
+	hide()
 "
 
 [sub_resource type="GDScript" id="GDScript_yg50v"]
@@ -354,7 +332,7 @@ caret_blink = true
 script = SubResource("GDScript_ogbc5")
 
 [node name="Timer" type="Timer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
-wait_time = 0.8
+wait_time = 0.35
 one_shot = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/InputTags/HBoxContainer/LineEdit"]
@@ -426,16 +404,22 @@ layout_mode = 2
 
 [node name="SpecialShowHideButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
 text = "Hide"
 script = SubResource("GDScript_82xvn")
 
 [node name="SPecialSuggestions" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
-text = "Prompt Suggestions:"
+size_flags_horizontal = 3
+text = "Prompt Suggestions"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ClearSpecialButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags/SpecialLabelContainer"]
 layout_mode = 2
-size_flags_horizontal = 10
+size_flags_horizontal = 8
+size_flags_vertical = 8
 text = "Clear"
 
 [node name="SpecialSuggestionsItemList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/SuggestedTags"]
@@ -694,6 +678,7 @@ offset_bottom = 998.4
 color = Color(0.160784, 0.172549, 0.196078, 0.392157)
 
 [node name="ColorRect" type="ColorRect" parent="ConflictingTags"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -707,10 +692,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25, 0.28125, 0.339844, 1)
@@ -720,23 +701,24 @@ layout_mode = 0
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 184.0
-offset_bottom = 42.0
+offset_bottom = 40.0
 text = "Conflicting tags:"
 vertical_alignment = 1
 
 [node name="ConflictingTagsTree" type="Tree" parent="ConflictingTags"]
 layout_mode = 0
-offset_left = 24.0
+offset_left = 16.0
 offset_top = 48.0
-offset_right = 360.0
-offset_bottom = 456.0
+offset_right = 368.0
+offset_bottom = 464.0
+hide_root = true
 
 [node name="CheckForConflictsButton" type="Button" parent="ConflictingTags"]
 layout_mode = 0
 offset_left = 200.0
-offset_top = 464.0
+offset_top = 472.0
 offset_right = 367.0
-offset_bottom = 495.0
+offset_bottom = 503.0
 text = "Check for conflicts"
 
 [node name="CloseConflictButton" type="Button" parent="ConflictingTags"]
@@ -746,6 +728,14 @@ offset_top = 8.0
 offset_right = 376.0
 offset_bottom = 39.0
 text = "X"
+
+[node name="InfoLabel" type="Label" parent="ConflictingTags"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 472.0
+offset_right = 192.0
+offset_bottom = 504.0
+vertical_alignment = 1
 
 [node name="AddSuggestedSpecial" type="Control" parent="."]
 visible = false
@@ -927,6 +917,8 @@ text = "Set priority:"
 [node name="NewPrioritySpinBox" type="SpinBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+allow_greater = true
+allow_lesser = true
 
 [node name="ChangePrioCheckBox" type="CheckBox" parent="SetAsTag/CenterContainer/SetWindow/MarginContainer/VBoxContainer/PrioHBox"]
 layout_mode = 2

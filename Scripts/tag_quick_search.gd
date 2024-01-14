@@ -127,7 +127,8 @@ func search_for_tag_v2(tag_to_search: String) -> void:
 			if not list_order_array.has(tag):
 				auto_complete_item_list.add_item(tag, load("res://Textures/valid_tag.png"))
 				list_order_array.append(tag)
-
+	
+	print_debug("Requesting for e621 API response for tag \"{0}\"".format([tag_for_url]))
 	tagger.tag_holder.add_to_api_prio_queue(tag_for_url, 50, self)
 
 
@@ -159,7 +160,7 @@ func api_response(response_dictionary: Dictionary) -> void:
 				"suggested_tags": PackedStringArray(),
 				"category": tagger.translate_category(temp_format.category),
 				"is_locked": temp_format.is_locked,
-				"is_registered": false
+				"is_registered": Tagger.tag_manager.has_tag(tag_name)
 			}
 		
 		if tag_search_dictionary.has(temp_format.tag_name):

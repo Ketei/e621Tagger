@@ -8,7 +8,7 @@ var suggestions_dictionary: Dictionary = {
 	"eyes": ["*color* eyes", "*color* sclera"],
 	"looking at": ["looking at *looking-at*"],
 	"looking direction": ["|looking back,looking down,looking up,looking forward,looking aside,looking through|"],
-	"penetration": ["*orifice* penetration", "*body-type* penetrating *body-type*", "*gender* penetrating *gender*", "*gender* penetrating *body-type*"],
+	"penetration": ["*sex-pen* penetration", "*body-type* penetrating *body-type*", "*gender* penetrating *gender*", "*gender* penetrating *body-type*"],
 }
 
 

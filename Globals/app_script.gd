@@ -49,97 +49,97 @@ func trigger_options(id: int) -> void:
 	current_menu = id
 	
 	if id == 0:
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
 		list_loader.visible = false
 		settings.visible = false
 		tag_creator.visible = false
 		tag_reviewer.hide()
 		tools_window.hide()
 		wiki.hide_node()
+		tagger.visible = true
 		menu_bar.set_menu_hidden(1, false) # Tagger
+	elif id == 7:
+		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
 		menu_bar.set_menu_hidden(5, true) # Settings
-		tagger.visible = true
-	elif id == 7:
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
 		list_loader.hide()
 		tag_reviewer.hide()
 		tools_window.hide()
+		wiki.show_node()
+		menu_bar.set_menu_hidden(4, false) # Wiki
+	elif id == 2:
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
 		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, false) # Wiki
+		menu_bar.set_menu_hidden(4, true) # Wiki
 		menu_bar.set_menu_hidden(5, true) # Settings
-		wiki.show_node()
-	elif id == 2:
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
 		tag_reviewer.hide()
 		tools_window.hide()
 		wiki.hide_node()
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
 		list_loader.visible = true
 	elif id == 3:
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(2, true) # Tag Creator
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Wiki
 		tagger.visible = false
 		list_loader.visible = false
 		tag_creator.visible = false
 		tag_reviewer.hide()
 		tools_window.hide()
 		wiki.hide_node()
+		settings.visible = true
+		menu_bar.set_menu_hidden(5, false) # Settings
+	elif id == 5:
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
 		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, false) # Settings
-		settings.visible = true
-	elif id == 5:
+		menu_bar.set_menu_hidden(5, true) # Settings
 		tagger.visible = false
 		list_loader.visible = false
 		tag_creator.visible = false
 		settings.visible = false
 		tools_window.hide()
 		wiki.hide_node()
+		tag_reviewer.show()
+		menu_bar.set_menu_hidden(3, false) # Review
+	elif  id == 6:
 		menu_bar.set_menu_hidden(1, true) # Tagger
 		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, false) # Review
+		menu_bar.set_menu_hidden(3, true) # Review
 		menu_bar.set_menu_hidden(4, true) # Wiki
 		menu_bar.set_menu_hidden(5, true) # Settings
-		tag_reviewer.show()
-	elif  id == 6:
 		tagger.hide()
 		list_loader.hide()
 		tag_creator.hide()
 		settings.hide()
 		tag_reviewer.hide()
 		wiki.hide_node()
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
 		tools_window.show()
 		
 	elif id == 4:
+		menu_bar.set_menu_hidden(1, true) # Tagger
+		menu_bar.set_menu_hidden(3, true) # Review
+		menu_bar.set_menu_hidden(4, true) # Wiki
+		menu_bar.set_menu_hidden(5, true) # Settings
 		tagger.visible = false
 		list_loader.visible = false
 		settings.visible = false
 		tag_reviewer.hide()
 		tools_window.hide()
 		wiki.hide_node()
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, false) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
 		tag_creator.visible = true
+		menu_bar.set_menu_hidden(2, false) # Tag Creator
 		
 	elif id == 1:
 		quit_app()
@@ -156,7 +156,8 @@ func go_to_create_tag(tag_to_create: String, parent_tags: Array = [], suggestion
 	for tag in parent_tags:
 		if tag != tag_to_create:
 			tag_creator.add_parent(tag)
-	tag_creator.categories_menu.select(category)
+	#tag_creator.categories_menu.select(category)
+	tag_creator.categories_menu.select(tag_creator.categories_menu.get_item_index(category))
 	tag_creator.tag_prio_box.value = priority
 
 

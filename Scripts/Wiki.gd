@@ -18,6 +18,9 @@ signal tag_updated
 
 @onready var hydrus_api_request: HydrusRequestAPI = $"../HydrusAPIRequest"
 @onready var preview_stopper: ColorRect = $PreviewStopper
+@onready var custom_tag_container: CenterContainer = $CustomTagContainer
+@onready var add_custom_tag: AutofillOptionTag = $CustomTagContainer/AddCustomTag
+@onready var numer_tag: NumberTagTool = $CustomTagContainer/NumerTag
 
 
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
@@ -33,8 +36,7 @@ var thread_interrupt: bool = false
 var thread_working: bool = false
 var mutex := Mutex.new()
 
-var is_local_loading_done: bool = false
-var is_web_loading_done: bool = false
+var loading_wiki: bool = false
 
 var amount_vs_resolution: Dictionary = {
 	"1": 630,
@@ -44,12 +46,14 @@ var amount_vs_resolution: Dictionary = {
 
 var current_search: String = ""
 var hydrus_thumbnail_amount: int = 0
-# To-Do: Create an Hydrus implementation. Make it send HTTP requests and once
-# it answers make a threaded function load the picture and then call
-# display_image.
+var prefix_memory: String = ""
+var suffix_memory: String = ""
+
 
 func _ready():
+	preview_progress_load.value_changed.connect(on_progress_bar_change)
 	wiki_edit.search_in_wiki.connect(search_for_tag)
+	wiki_edit.search_for_special.connect(on_search_for_special)
 	full_screen_display.display_hidden.connect(play_all_gifs)
 	tag_search_line_edit.text_submitted.connect(search_for_tag)
 	wiki_popup_menu.id_pressed.connect(activate_menu_option)
@@ -119,6 +123,11 @@ func clear_wiki() -> void:
 
 
 func search_for_tag(new_text: String) -> void:
+	if loading_wiki:
+		return
+	
+	if tag_search_line_edit.text != new_text:
+		tag_search_line_edit.text = new_text
 	tag_search_line_edit.release_focus()
 	
 	if not tag_search_line_edit.editable:
@@ -135,12 +144,16 @@ func search_for_tag(new_text: String) -> void:
 	new_text = new_text.to_lower().strip_edges()
 	new_text = Tagger.alias_database.get_alias(new_text)
 	
+	if tag_search_line_edit.text != new_text:
+		tag_search_line_edit.text = new_text
+	
 	if not Tagger.tag_manager.has_tag(new_text):
 		tag_search_line_edit.clear()
 		return
 	
 	tag_search_line_edit.editable = false
-	
+	loading_wiki = true
+
 	wiki_popup_menu.set_item_disabled(
 			wiki_popup_menu.get_item_index(1),
 			false
@@ -177,13 +190,21 @@ func search_for_tag(new_text: String) -> void:
 	
 	if preview_progress_load.max_value == 0:
 		tag_search_line_edit.editable = true
+		loading_wiki = false
 
 
 func get_local_filenames(target_tag: Tag) -> Dictionary:
 	var file_names: Array = []
 	var final_file_names: Array = []
 	
-	var return_dictionary: Dictionary = {}
+	var return_dictionary: Dictionary = {
+		"count": 0,
+		"files": [],
+		"folder": ""
+		}
+	
+	if not target_tag.has_pictures or not Tagger.settings.can_load_from_local():
+		return return_dictionary
 	
 	if DirAccess.dir_exists_absolute(Tagger.tag_images_path + target_tag.file_name.get_basename()):
 		for file_name in DirAccess.get_files_at(Tagger.tag_images_path + target_tag.file_name.get_basename()):
@@ -196,14 +217,13 @@ func get_local_filenames(target_tag: Tag) -> Dictionary:
 			else:
 				file_names.append(file_name)
 
-	if target_tag.has_pictures and Tagger.settings.can_load_from_local():
-		if Tagger.settings.local_review_amount < file_names.size():
-			for ignored in range(Tagger.settings.local_review_amount):
-				var tag_to_transfer = file_names.pick_random()
-				final_file_names.append(tag_to_transfer)
-				file_names.erase(tag_to_transfer)
-		else:
-			final_file_names = file_names
+	if Tagger.settings.local_review_amount < file_names.size():
+		for ignored in range(Tagger.settings.local_review_amount):
+			var tag_to_transfer = file_names.pick_random()
+			final_file_names.append(tag_to_transfer)
+			file_names.erase(tag_to_transfer)
+	else:
+		final_file_names = file_names
 
 	return_dictionary["folder"] = target_tag.file_name.get_basename()
 	return_dictionary["files"] = final_file_names
@@ -220,10 +240,11 @@ func build_wiki_entry(target_tag: Tag) -> String:
 	
 	var bbc_text: String = "[font_size=30][color={1}]{0}[/color][/font_size]\n".format([target_tag.tag.capitalize(), html_text])
 
-	bbc_text += "[color=29b8e7][b]Category: [/b] {0}[/color]\n\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
+	bbc_text += "[color=29b8e7][b]Category: [/b][/color][color=d1f0fa]{0}[/color]\n".format([Tagger.Categories.keys()[target_tag.category].capitalize()])
+	bbc_text += "[color=29b8e7][b]Priority: [/b][/color][color=d1f0fa]{0}[/color]\n\n".format([str(target_tag.tag_priority)])
 	
 	if not target_tag.parents.is_empty():
-		bbc_text += "[color=8eef97][b]Parents: [/b]"
+		bbc_text += "[color=8eef97][b]Parents: [/b][/color][color=d2f9d6]"
 		for parent_tag in target_tag.parents:
 			if Tagger.tag_manager.has_tag(parent_tag):
 				bbc_text += "[url]{0}[/url], ".format([parent_tag])
@@ -232,8 +253,9 @@ func build_wiki_entry(target_tag: Tag) -> String:
 		bbc_text = bbc_text.left(-2)
 		bbc_text += "[/color]"
 		bbc_text += "\n"
+	
 	if not target_tag.conflicts.is_empty():
-		bbc_text += "[color=8eef97][b]Conflicts: [/b]"
+		bbc_text += "[color=8eef97][b]Conflicts: [/b][/color][color=d2f9d6]"
 		for suggested_tag in target_tag.conflicts:
 			if Tagger.tag_manager.has_tag(suggested_tag):
 				bbc_text += "[url]{0}[/url], ".format([suggested_tag])
@@ -243,11 +265,41 @@ func build_wiki_entry(target_tag: Tag) -> String:
 		bbc_text += "[/color]"
 		bbc_text += "\n"
 	
-	bbc_text += "\n"
-	bbc_text += target_tag.wiki_entry
+	if not target_tag.aliases.is_empty():
+		bbc_text += "[color=8eef97][b]Aliases: [/b][/color][color=d2f9d6]"
+		for alias in target_tag.aliases:
+			bbc_text += "{0}, ".format([alias])
+		bbc_text = bbc_text.left(-2)
+		bbc_text += "[/color]\n"
 	
+	if not target_tag.suggestions.is_empty():
+		bbc_text += "[color=8eef97][b]Related tags: [/b][/color][color=d2f9d6]"
+		for suggestion:String in target_tag.suggestions:
+			if suggestion.begins_with("#"):
+				bbc_text += "[url]{0}[/url], ".format([suggestion])
+			elif has_valid_fix(suggestion):
+				bbc_text += "[url]{0}[/url], ".format([suggestion])
+			elif suggestion.begins_with("|") and suggestion.ends_with("|"):
+				var suggestion_formating: String = suggestion.trim_prefix("|").trim_suffix("|")
+				var suggestion_array: Array = suggestion_formating.split(",", false)
+				for sug in suggestion_array:
+					if Tagger.tag_manager.has_tag(sug):
+						bbc_text += "[url]{0}[/url], ".format([sug])
+					else:
+						bbc_text += "{0}, ".format([sug])
+			else:
+				if Tagger.tag_manager.has_tag(suggestion):
+					bbc_text += "[url]{0}[/url], ".format([suggestion])
+				else:
+					bbc_text += "{0}, ".format([suggestion])
+		
+		bbc_text = bbc_text.left(-2)
+		bbc_text += "[/color]\n"
+		
+	bbc_text += "\n" + target_tag.wiki_entry + "\n"
+
 	return bbc_text
-	
+
 
 func load_local_images(final_file_names: Array, folder_name) -> void:
 	for file_name in final_file_names:
@@ -292,9 +344,6 @@ func increase_progress() -> void:
 	preview_progress_load.value += 1
 	if preview_progress_load.value == preview_progress_load.max_value:
 		finished_loading_local.emit()
-		if not wiki_search_cooldown.is_stopped():
-			await wiki_search_cooldown.timeout
-		tag_search_line_edit.editable = true
 
 
 func display_image(image_texture: Texture2D):
@@ -333,6 +382,8 @@ func display_hydrus_thumbnail(texture: Texture2D, thumbnail_id: int) -> void:
 	
 
 func display_hydrus_file(file_id: int) -> void:
+	if loading_wiki:
+		return
 	pause_all_gifs()
 	hydrus_api_request.get_file(file_id)
 	preview_stopper.show()
@@ -360,10 +411,6 @@ func merge_thread():
 
 func web_progress_set(amount: int) -> void:
 	preview_progress_load.max_value += amount - 1
-	
-	if preview_progress_load.max_value == 0:
-		#is_web_loading_done = true
-		tag_search_line_edit.editable = true
 
 
 func search_web_images(tag_names: String) -> void:
@@ -412,8 +459,64 @@ func play_all_gifs() -> void:
 
 func hydrus_progress_fallback() -> void:
 	preview_progress_load.value += hydrus_thumbnail_amount
-	if preview_progress_load.value == preview_progress_load.max_value:
-		if wiki_search_cooldown.is_stopped():
+
+
+func open_special_tag(tag_with_fix: String) -> void:
+	var prefix: String = ""
+	var suffix: String = ""
+	var tag: String = ""
+	var split_array: Array = tag_with_fix.split("*", false)
+	
+	if tag_with_fix.begins_with("*"):
+		prefix = split_array[0]
+		tag = split_array[1]
+		if 2 < split_array.size():
+			suffix = split_array[2]
+	else:
+		tag = split_array[0]
+		if 1 < split_array.size():
+			suffix = split_array[1]
+	
+	add_custom_tag.open_with_tag(tag, prefix, suffix)
+	custom_tag_container.show()
+	add_custom_tag.show()
+	var wiki_search: String = await add_custom_tag.tag_confirmed
+	add_custom_tag.hide()
+	custom_tag_container.hide()
+	if not wiki_search.is_empty():
+		search_for_tag(wiki_search)
+
+
+func open_number_tag(tag_with_number: String) -> void:
+	if wiki_edit.has_focus():
+		wiki_edit.release_focus()
+	numer_tag.set_tool(tag_with_number.trim_prefix("#"))
+	custom_tag_container.show()
+	numer_tag.show()
+	numer_tag.steal_focus()
+	var string_to_search: String = await numer_tag.number_chosen
+	numer_tag.hide()
+	custom_tag_container.hide()
+	numer_tag.drop_focus()
+	if not string_to_search.is_empty():
+		search_for_tag(string_to_search)
+
+
+func has_valid_fix(tag_with_fix: String) -> bool:
+	return 1 < tag_with_fix.split("*", false).size()
+
+
+func on_progress_bar_change(value: float) -> void:
+	if value == preview_progress_load.max_value:
+		loading_wiki = false
+		if not wiki_search_cooldown.is_stopped():
 			await wiki_search_cooldown.timeout
 		tag_search_line_edit.editable = true
+
+
+func on_search_for_special(string_to_search: String) -> void:
+	if string_to_search.begins_with("#"):
+		open_number_tag(string_to_search)
+	else:
+		open_special_tag(string_to_search)
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://4qhx65ld3k1q"]
+[gd_scene load_steps=57 format=3 uid="uid://4qhx65ld3k1q"]
 
 [ext_resource type="Script" path="res://Scripts/tag_wizard_script.gd" id="1_itg1i"]
 [ext_resource type="Script" path="res://Scripts/wizard_gender_checkbox.gd" id="2_o35pq"]
@@ -6,9 +6,11 @@
 [ext_resource type="Script" path="res://Scripts/wizard_gender_focus_script.gd" id="3_7swhf"]
 [ext_resource type="ButtonGroup" uid="uid://bt30a00t1ruw5" path="res://ButtonGroups/focus_gender_bgroup.tres" id="3_i2m3m"]
 [ext_resource type="Script" path="res://Scripts/inter_add_script.gd" id="4_4f1bk"]
+[ext_resource type="Script" path="res://Scripts/clothing_memory.gd" id="4_up6s5"]
 [ext_resource type="ButtonGroup" uid="uid://b2q8omqdlcld0" path="res://ButtonGroups/focus_bodytype_bgroup.tres" id="6_k7yj6"]
 [ext_resource type="Script" path="res://Scenes/media_type_wizard_script.gd" id="7_li4an"]
 [ext_resource type="Script" path="res://Scripts/bg_details_wizard.gd" id="8_emj81"]
+[ext_resource type="ButtonGroup" uid="uid://yydqhcmcgwab" path="res://ButtonGroups/wizard_gb_buttongroup.tres" id="8_gcxbq"]
 [ext_resource type="Script" path="res://Scripts/wiz_smart_checkbox.gd" id="9_cooxf"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="9_pvv55"]
 [ext_resource type="PackedScene" uid="uid://hodd44bull1r" path="res://Scenes/wizard_smart_checkbox.tscn" id="9_vbkwx"]
@@ -18,6 +20,23 @@
 [ext_resource type="ButtonGroup" uid="uid://ckkxv4kqddsta" path="res://ButtonGroups/wizard_comic_buttongroup.tres" id="14_smty2"]
 [ext_resource type="Script" path="res://Scripts/guess_my_gender.gd" id="16_qpii0"]
 [ext_resource type="ButtonGroup" uid="uid://dwwnuxetb64nk" path="res://ButtonGroups/wizard_gmg_bod_type.tres" id="17_8lvxo"]
+[ext_resource type="Script" path="res://Scripts/wizard_what_my_angle.gd" id="20_60004"]
+[ext_resource type="Texture2D" uid="uid://fguvob44t2nq" path="res://Textures/AngleHeads/up-front.png" id="20_kwqmv"]
+[ext_resource type="Texture2D" uid="uid://bn6w26wa61imn" path="res://Textures/AngleHeads/up-34.png" id="21_3wpb7"]
+[ext_resource type="Texture2D" uid="uid://myr1lxlvmebc" path="res://Textures/AngleHeads/up-side.png" id="22_ftf4x"]
+[ext_resource type="Texture2D" uid="uid://ltfl5jiio7vd" path="res://Textures/AngleHeads/up-back-34.png" id="23_nw71h"]
+[ext_resource type="Texture2D" uid="uid://cbhvgityg64vu" path="res://Textures/AngleHeads/up-back.png" id="24_q4yuv"]
+[ext_resource type="Texture2D" uid="uid://pmcxlq1oqnn7" path="res://Textures/AngleHeads/regular-34.png" id="25_u648n"]
+[ext_resource type="Texture2D" uid="uid://c3lh4s3es2bi0" path="res://Textures/AngleHeads/regular-side.png" id="26_ysjge"]
+[ext_resource type="Texture2D" uid="uid://b1dr8h73i17yr" path="res://Textures/AngleHeads/regular-back-34.png" id="27_gscwo"]
+[ext_resource type="Texture2D" uid="uid://cuouoxmyunyvm" path="res://Textures/AngleHeads/regular-back.png" id="28_wqobu"]
+[ext_resource type="Texture2D" uid="uid://cxwfqevwqar5r" path="res://Textures/AngleHeads/low-fromt.png" id="29_mma0x"]
+[ext_resource type="Texture2D" uid="uid://7rjatkp3rt0y" path="res://Textures/AngleHeads/low-34.png" id="30_i4iqx"]
+[ext_resource type="Texture2D" uid="uid://d13mk70wmx6vk" path="res://Textures/AngleHeads/low-side.png" id="31_ddbip"]
+[ext_resource type="Texture2D" uid="uid://bj4et721y4yto" path="res://Textures/AngleHeads/low-back-34.png" id="32_goasr"]
+[ext_resource type="Texture2D" uid="uid://d4l6fsjyxrw2w" path="res://Textures/AngleHeads/low-back.png" id="33_akc36"]
+[ext_resource type="Texture2D" uid="uid://clgslm4tf7ui7" path="res://Textures/AngleHeads/worm.png" id="34_2047v"]
+[ext_resource type="Texture2D" uid="uid://bnn3jk4mtrt68" path="res://Textures/AngleHeads/bird.png" id="35_y064h"]
 
 [sub_resource type="GDScript" id="GDScript_26vi0"]
 resource_name = "hide_show"
@@ -37,6 +56,8 @@ func pressed_changed(is_button_pressed: bool) -> void:
 resource_name = "set_current_year"
 script/source = "extends SpinBox
 
+@onready var check_button: CheckButton = $\"../CheckButton\"
+
 
 func _ready():
 	set_art_year()
@@ -45,6 +66,25 @@ func _ready():
 func set_art_year() -> void:
 	var date: Dictionary = Time.get_datetime_dict_from_system()
 	value = date.year
+	if not editable:
+		editable = true
+		check_button.button_pressed = false
+"
+
+[sub_resource type="GDScript" id="GDScript_7pal8"]
+resource_name = "Toggly"
+script/source = "extends CheckButton
+
+@onready var spin_box: SpinBox = $\"../SpinBox\"
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	toggled.connect(on_button_toggled)
+
+
+func on_button_toggled(is_toggled: bool) -> void:
+	spin_box.editable = not is_toggled
+
 "
 
 [sub_resource type="GDScript" id="GDScript_igg7n"]
@@ -57,12 +97,7 @@ script/source = "extends HBoxContainer
 @onready var wool_check_box: CheckBox = $WoolCheckBox
 @onready var skin_check_box: CheckBox = $SkinCheckBox
 @onready var exo_check_box: CheckBox = $ExoCheckBox
-@onready var fur_body_colors = $ColorsCount/BodyColors
-@onready var scale_body_colors = $ScalesCCount/BodyColors
-@onready var feather_body_colors = $FeatherCCount/BodyColors
-@onready var wool_body_colors = $WoolCCount/BodyColors
-@onready var skin_body_colors = $SkinCCount/BodyColors
-@onready var exo_body_colors = $ExoCCount/BodyColors
+
 
 func magic_cleanup() -> void:
 	fur_check_box.button_pressed = false
@@ -71,69 +106,73 @@ func magic_cleanup() -> void:
 	wool_check_box.button_pressed = false
 	skin_check_box.button_pressed = false
 	exo_check_box.button_pressed = false
-	fur_body_colors.value = 0
-	scale_body_colors.value = 0
-	feather_body_colors.value = 0
-	wool_body_colors.value = 0
-	skin_body_colors.value = 0
-	exo_body_colors.value = 0
-
 
 "
 
 [sub_resource type="GDScript" id="GDScript_k1tds"]
 script/source = "extends HBoxContainer
-@onready var body_colors = $BodyColors
+
+@onready var one_fur_check: CheckBox = $FurColorChecks/OneFurCheck
+@onready var two_fur_check: CheckBox  = $FurColorChecks/TwoFurCheck
+@onready var three_plus_fur_check: CheckBox  = $FurColorChecks/ThreePlusFurCheck
 
 
 func get_tags() -> Array[String]:
 	var tags: Array[String] = []
-	if 0 < body_colors.value:
-		if body_colors.value == 1:
-			tags.append(\"monotone fur\")
-		elif body_colors.value == 2:
+	if one_fur_check.button_pressed:
+		tags.append(\"monotone fur\")
+	if two_fur_check.button_pressed or three_plus_fur_check.button_pressed:
+		tags.append(\"multicolored fur\")
+		if two_fur_check.button_pressed:
 			tags.append(\"two tone fur\")
-			tags.append(\"multicolored fur\")
-		elif 2 < body_colors.value:
+		if three_plus_fur_check.button_pressed:
 			tags.append(\"multi tone fur\")
-			tags.append(\"multicolored fur\")
 	return tags
 
 
-func get_suggestions() -> Array:
+func get_suggestions() -> Array[String]:
 	var suggestions: Array[String] = []
-	suggestions.append_array(suggestions) 
 	return suggestions
 
 
+func reset_selection() -> void:
+	one_fur_check.button_pressed = false
+	two_fur_check.button_pressed = false
+	three_plus_fur_check.button_pressed = false
+	
+	
 "
 
 [sub_resource type="GDScript" id="GDScript_nhkg4"]
 script/source = "extends HBoxContainer
 
-
-@onready var body_colors = $BodyColors
+@onready var one_scale_check: CheckBox = $ScalesColorChecks/OneScaleCheck
+@onready var two_scale_check: CheckBox = $ScalesColorChecks/TwoScaleCheck
+@onready var three_plus_scale_check: CheckBox = $ScalesColorChecks/ThreePlusScaleCheck
 
 
 func get_tags() -> Array[String]:
 	var tags: Array[String] = []
-	if 0 < body_colors.value:
-		if body_colors.value == 1:
-			tags.append(\"monotone scales\")
-		elif body_colors.value == 2:
+	if one_scale_check.button_pressed:
+		tags.append(\"monotone scales\")
+	if two_scale_check.button_pressed or three_plus_scale_check.button_pressed:
+		tags.append(\"multicolored scales\")
+		if two_scale_check.button_pressed:
 			tags.append(\"two tone scales\")
-			tags.append(\"multicolored scales\")
-		elif 2 < body_colors.value:
+		if three_plus_scale_check.button_pressed:
 			tags.append(\"multi tone scales\")
-			tags.append(\"multicolored scales\")
 	return tags
 
 
-func get_suggestions() -> Array:
+func get_suggestions() -> Array[String]:
 	var suggestions: Array[String] = []
-	suggestions.append_array(suggestions) 
 	return suggestions
 
+
+func reset_selection() -> void:
+	one_scale_check.button_pressed = false
+	two_scale_check.button_pressed = false
+	three_plus_scale_check.button_pressed = false
 
 "
 
@@ -141,21 +180,21 @@ func get_suggestions() -> Array:
 resource_name = "feathercc"
 script/source = "extends HBoxContainer
 
-
-@onready var body_colors = $BodyColors
+@onready var one_feather_check: CheckBox = $FeatherColorChecks/OneFeatherCheck
+@onready var two_feather_check: CheckBox = $FeatherColorChecks/TwoFeatherCheck
+@onready var three_plus_feather_check: CheckBox = $FeatherColorChecks/ThreePlusFeatherCheck
 
 
 func get_tags() -> Array[String]:
 	var tags: Array[String] = []
-	if 0 < body_colors.value:
-		if body_colors.value == 1:
-			tags.append(\"monotone feathers\")
-		elif body_colors.value == 2:
+	if one_feather_check.button_pressed:
+		tags.append(\"monotone feathers\")
+	if two_feather_check.button_pressed or three_plus_feather_check.button_pressed:
+		tags.append(\"multicolored feathers\")
+		if two_feather_check.button_pressed:
 			tags.append(\"two tone feathers\")
-			tags.append(\"multicolored feathers\")
-		elif 2 < body_colors.value:
+		if three_plus_feather_check.button_pressed:
 			tags.append(\"multi tone feathers\")
-			tags.append(\"multicolored feathers\")
 	return tags
 
 
@@ -164,6 +203,11 @@ func get_suggestions() -> Array:
 	suggestions.append_array(suggestions) 
 	return suggestions
 
+
+func reset_selection() -> void:
+	one_feather_check.button_pressed = false
+	two_feather_check.button_pressed = false
+	three_plus_feather_check.button_pressed = false
 
 "
 
@@ -172,134 +216,497 @@ resource_name = "woolcc"
 script/source = "extends HBoxContainer
 
 
-@onready var body_colors = $BodyColors
+@onready var one_wool_check: CheckBox = $FeatherColorChecks/OneWoolCheck
+@onready var two_wool_check: CheckBox = $FeatherColorChecks/TwoWoolCheck
+@onready var three_plus_wool_check: CheckBox = $FeatherColorChecks/ThreePlusWoolCheck
 
 
 func get_tags() -> Array[String]:
 	var tags: Array[String] = []
-	if 0 < body_colors.value:
-		if body_colors.value == 1:
-			tags.append(\"monotone wool\")
-		elif body_colors.value == 2:
+	if one_wool_check.button_pressed:
+		tags.append(\"monotone wool\")
+	if two_wool_check.button_pressed or three_plus_wool_check.button_pressed:
+		tags.append(\"multicolored wool\")
+		if two_wool_check.button_pressed:
 			tags.append(\"two tone wool\")
-			tags.append(\"multicolored wool\")
-		elif 2 < body_colors.value:
+		if three_plus_wool_check.button_pressed:
 			tags.append(\"multi tone wool\")
-			tags.append(\"multicolored wool\")
 	return tags
 
 
-func get_suggestions() -> Array:
+func get_suggestions() -> Array[String]:
 	var suggestions: Array[String] = []
-	suggestions.append_array(suggestions) 
 	return suggestions
 
 
+func reset_selection() -> void:
+	one_wool_check.button_pressed = false
+	two_wool_check.button_pressed = false
+	three_plus_wool_check.button_pressed = false
 "
 
 [sub_resource type="GDScript" id="GDScript_avl4o"]
 resource_name = "ccskincount"
-script/source = "
-extends HBoxContainer
+script/source = "extends HBoxContainer
 
-
-@onready var body_colors = $BodyColors
+@onready var one_skin_check = $SkinColorChecks/OneSkinCheck
+@onready var two_skin_check = $SkinColorChecks/TwoSkinCheck
+@onready var three_plus_skin_check = $SkinColorChecks/ThreePlusSkinCheck
 
 
 func get_tags() -> Array[String]:
 	var tags: Array[String] = []
-	if 0 < body_colors.value:
-		if body_colors.value == 1:
-			tags.append(\"monotone skin\")
-		elif body_colors.value == 2:
+	if one_skin_check.button_pressed:
+		tags.append(\"monotone skin\")
+	if two_skin_check.button_pressed or three_plus_skin_check.button_pressed:
+		tags.append(\"multicolored skin\")
+		if two_skin_check.button_pressed:
 			tags.append(\"two tone skin\")
-			tags.append(\"multicolored skin\")
-		elif 2 < body_colors.value:
+		if three_plus_skin_check.button_pressed:
 			tags.append(\"multi tone skin\")
-			tags.append(\"multicolored skin\")
 	return tags
 
 
-func get_suggestions() -> Array:
+func get_suggestions() -> Array[String]:
 	var suggestions: Array[String] = []
-	suggestions.append_array(suggestions) 
 	return suggestions
 
 
+func reset_selection() -> void:
+	one_skin_check.button_pressed = false
+	two_skin_check.button_pressed = false
+	three_plus_skin_check.button_pressed = false
 "
 
 [sub_resource type="GDScript" id="GDScript_mpru2"]
 resource_name = "exoccount"
-script/source = "
-extends HBoxContainer
+script/source = "extends HBoxContainer
 
+@onready var one_exo_check = $ExoColorChecks/OneExoCheck
+@onready var two_exo_check = $ExoColorChecks/TwoExoCheck
+@onready var three_plus_exo_check = $ExoColorChecks/ThreePlusExoCheck
 
-@onready var body_colors = $BodyColors
 
 
 func get_tags() -> Array[String]:
 	var tags: Array[String] = []
-	if 0 < body_colors.value:
-		if body_colors.value == 1:
-			tags.append(\"monotone exoskeleton\")
-		elif body_colors.value == 2:
+	if one_exo_check.button_pressed:
+		tags.append(\"monotone exoskeleton\")
+	if two_exo_check.button_pressed or three_plus_exo_check.button_pressed:
+		tags.append(\"multicolored exoskeleton\")
+		if two_exo_check.button_pressed:
 			tags.append(\"two tone exoskeleton\")
-			tags.append(\"multicolored exoskeleton\")
-		elif 2 < body_colors.value:
+		if three_plus_exo_check.button_pressed:
 			tags.append(\"multi tone exoskeleton\")
-			tags.append(\"multicolored exoskeleton\")
 	return tags
 
 
-func get_suggestions() -> Array:
+func get_suggestions() -> Array[String]:
 	var suggestions: Array[String] = []
-	suggestions.append_array(suggestions) 
 	return suggestions
 
+
+func reset_selection() -> void:
+	one_exo_check.button_pressed = false
+	two_exo_check.button_pressed = false
+	three_plus_exo_check.button_pressed = false
+
+"
+
+[sub_resource type="GDScript" id="GDScript_5fj47"]
+resource_name = "body_col"
+script/source = "extends HBoxContainer
+
+
+@onready var one_body_check: CheckBox = $BodyColorChecks/OneBodyCheck
+@onready var two_body_check: CheckBox = $BodyColorChecks/TwoBodyCheck
+@onready var three_plus_body_check: CheckBox = $BodyColorChecks/ThreePlusBodyCheck
+
+
+func get_tags() -> Array[String]:
+	var tags: Array[String] = []
+	if one_body_check.button_pressed:
+		tags.append(\"monotone body\")
+	if two_body_check.button_pressed or three_plus_body_check.button_pressed:
+		tags.append(\"multicolored body\")
+		if two_body_check.button_pressed:
+			tags.append(\"two tone body\")
+		if three_plus_body_check.button_pressed:
+			tags.append(\"multi tone body\")
+	return tags
+
+
+func get_suggestions() -> Array[String]:
+	var suggestions: Array[String] = []
+	return suggestions
+
+
+func reset_selection() -> void:
+	one_body_check.button_pressed = false
+	two_body_check.button_pressed = false
+	three_plus_body_check.button_pressed = false
+
+"
+
+[sub_resource type="GDScript" id="GDScript_0e41a"]
+resource_name = "Kneeling"
+script/source = "extends MenuButton
+
+
+func _ready():
+	get_popup().hide_on_checkable_item_selection = false
+	get_popup().index_pressed.connect(on_index_pressed)
+
+
+func on_index_pressed(index: int) -> void:
+	get_popup().set_item_checked(
+			index,
+			not get_popup().is_item_checked(index)
+			)
+
+
+func get_tags() -> Array[String]:
+	var return_array: Array[String] = []
+	
+	if get_popup().is_item_checked(0):
+		return_array.append(\"on one knee\")
+	if get_popup().is_item_checked(1):
+		return_array.append(\"all fours\")
+	if get_popup().is_item_checked(2):
+		return_array.append(\"ass up\")
+	
+	return return_array
+
+
+func get_suggestions() -> Array[String]:
+	return []
+
+
+func reset_selection() -> void:
+	get_popup().set_item_checked(0, false)
+	get_popup().set_item_checked(1, false)
+	get_popup().set_item_checked(2, false)
 
 "
 
 [sub_resource type="GDScript" id="GDScript_2kyf3"]
 resource_name = "Buf"
-script/source = "extends OptionButton
+script/source = "extends MenuButton
+
+
+func _ready():
+	get_popup().hide_on_checkable_item_selection = false
+	get_popup().index_pressed.connect(on_index_pressed)
+
+
+func on_index_pressed(index: int) -> void:
+	get_popup().set_item_checked(
+			index,
+			not get_popup().is_item_checked(index)
+			)
 
 
 func get_tags() -> Array[String]:
-	var return_array: Array[String] = [get_item_text(selected)]
+	var return_array: Array[String] = []
+	
+	if get_popup().is_item_checked(0):
+		return_array.append(\"on back\")
+	if get_popup().is_item_checked(1):
+		return_array.append(\"on front\")
+	if get_popup().is_item_checked(2):
+		return_array.append(\"on side\")
+	
 	return return_array
 
+
 func get_suggestions() -> Array[String]:
-	var return_array: Array[String] = []
-	return return_array 
+	return []
 
 
+func reset_selection() -> void:
+	get_popup().set_item_checked(0, false)
+	get_popup().set_item_checked(1, false)
+	get_popup().set_item_checked(2, false)
 
-
-
-
-
-#func get_tags() -> Array[String]:
-#	pass
-#
-#
-#func get_suggestions() -> Array[String]:
-#	pass
 "
 
 [sub_resource type="GDScript" id="GDScript_axjs3"]
-script/source = "extends OptionButton
+script/source = "extends MenuButton
+
+var sitting_on_bodypart: PopupMenu = null
+var sitting_on_furniture: PopupMenu = null
+var sitting_on_object: PopupMenu = null
+
+func _ready():
+	var self_popup_menu: PopupMenu = get_popup()
+	sitting_on_bodypart = PopupMenu.new()
+	sitting_on_bodypart.name = \"sitting_on_bodypart\"
+	sitting_on_bodypart.hide_on_checkable_item_selection = false
+	sitting_on_bodypart.max_size.y = get_popup().max_size.y * 2
+	sitting_on_furniture = PopupMenu.new()
+	sitting_on_furniture.name = \"sitting_on_furniture\"
+	sitting_on_furniture.hide_on_checkable_item_selection = false
+	sitting_on_furniture.max_size.y = get_popup().max_size.y * 2
+	sitting_on_object = PopupMenu.new()
+	sitting_on_object.name = \"sitting_on_object\"
+	sitting_on_object.hide_on_checkable_item_selection = false
+	sitting_on_object.max_size.y = get_popup().max_size.y * 2
+	
+	self_popup_menu.hide_on_checkable_item_selection = false
+	self_popup_menu.index_pressed.connect(on_index_pressed)
+	
+	sitting_on_bodypart.add_check_item(\"Back (another)\")
+	sitting_on_bodypart.add_check_item(\"Butt (another)\")
+	sitting_on_bodypart.add_check_item(\"Belly (another)\")
+	sitting_on_bodypart.add_check_item(\"Breasts (another)\")
+	sitting_on_bodypart.add_check_item(\"Chest (another)\")
+	sitting_on_bodypart.add_check_item(\"Head (another)\")
+	sitting_on_bodypart.add_check_item(\"Lap (another)\")
+	sitting_on_bodypart.add_check_item(\"Shoulders (another)\")
+	sitting_on_bodypart.add_check_item(\"Balls (any)\")
+	sitting_on_bodypart.add_check_item(\"Penis (any)\")
+	sitting_on_bodypart.add_check_item(\"Knot (any)\")
+	sitting_on_bodypart.add_check_item(\"Tail (any)\")
+	
+	sitting_on_furniture.add_check_item(\"Bed\")
+	sitting_on_furniture.add_check_item(\"Bench\")
+	sitting_on_furniture.add_check_item(\"Chair\")
+	sitting_on_furniture.add_check_item(\"Counter\")
+	sitting_on_furniture.add_check_item(\"Desk\")
+	sitting_on_furniture.add_check_item(\"Pillow\")
+	sitting_on_furniture.add_check_item(\"Table\")
+	sitting_on_furniture.add_check_item(\"Throne\")
+	sitting_on_furniture.add_check_item(\"Toilet\")
+	sitting_on_furniture.add_check_item(\"Sofa\")
+	
+	sitting_on_object.add_check_item(\"Ball\")
+	sitting_on_object.add_check_item(\"Balloon\")
+	sitting_on_object.add_check_item(\"Building\")
+	sitting_on_object.add_check_item(\"Planet\")
+	sitting_on_object.add_check_item(\"Pool toy\")
+	sitting_on_object.add_check_item(\"Vehicle\")
+	
+	sitting_on_furniture.index_pressed.connect(on_index_pressed_full.bind(sitting_on_furniture))
+	sitting_on_object.index_pressed.connect(on_index_pressed_full.bind(sitting_on_object))
+	sitting_on_bodypart.index_pressed.connect(on_index_pressed_full.bind(sitting_on_bodypart))
+	
+	self_popup_menu.add_child(sitting_on_furniture)
+	self_popup_menu.add_child(sitting_on_bodypart)
+	self_popup_menu.add_child(sitting_on_object)
+	
+	self_popup_menu.add_submenu_item(\"On body-part\", \"sitting_on_bodypart\", 3)
+	
+	self_popup_menu.add_submenu_item(\"On furniture\", \"sitting_on_furniture\", 4)
+	self_popup_menu.set_item_disabled(4, true)
+	self_popup_menu.add_submenu_item(\"On object\", \"sitting_on_object\", 5)
+	self_popup_menu.set_item_disabled(5, true)
+
+
+func on_index_pressed(index: int) -> void:
+	var self_popup: PopupMenu = get_popup()
+	var is_chkbox_checked: bool = not self_popup.is_item_checked(index)
+	
+	self_popup.set_item_checked(
+			index,
+			is_chkbox_checked
+			)
+	
+	if index == 1: # On furnityure
+		self_popup.set_item_disabled(4, not is_chkbox_checked)
+	elif index == 2: # On object
+		self_popup.set_item_disabled(5, not is_chkbox_checked)
+
+
+func on_index_pressed_full(index: int, popup_menu: PopupMenu) -> void:
+	var _set_pressed: bool = not popup_menu.is_item_checked(index)
+	var _self_popup: PopupMenu = get_popup()
+	popup_menu.set_item_checked(
+			index,
+			_set_pressed)
 
 
 func get_tags() -> Array[String]:
 	var return_array: Array[String] = []
-	if selected != 0:
-		return_array.append(get_item_text(selected))
+	var sitting_on_another: bool = false
+	var sitting_on: bool = false
+	var _self_popup: PopupMenu = get_popup()
+	
+	if _self_popup.is_item_checked(0):
+		return_array.append(\"sitting on ground\")
+		if not sitting_on:
+			sitting_on = true
+	if _self_popup.is_item_checked(1):
+		return_array.append(\"sitting on furniture\")
+		if not sitting_on:
+			sitting_on = true
+	if _self_popup.is_item_checked(2):
+		return_array.append(\"sitting on object\")
+		if not sitting_on:
+			sitting_on = true
+	
+	if sitting_on_bodypart.is_item_checked(0):
+		return_array.append(\"sitting on back\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(1):
+		return_array.append(\"sitting on butt\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(2):
+		return_array.append(\"sitting on belly\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(3):
+		return_array.append(\"sitting on breasts\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(4):
+		return_array.append(\"sitting on chest\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(5):
+		return_array.append(\"sitting on head\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(6):
+		return_array.append(\"sitting on lap\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(7):
+		return_array.append(\"sitting on shoulder\")
+		if not sitting_on_another:
+			sitting_on_another = true
+	if sitting_on_bodypart.is_item_checked(8):
+		return_array.append(\"sitting on balls\")
+		return_array.append(\"balls\")
+		if not sitting_on:
+			sitting_on = true
+	if sitting_on_bodypart.is_item_checked(9):
+		return_array.append(\"sitting on penis\")
+		return_array.append(\"penis\")
+		if not sitting_on:
+			sitting_on = true
+	if sitting_on_bodypart.is_item_checked(10):
+		return_array.append(\"sitting on knot\")
+		return_array.append(\"knot\")
+		if not sitting_on:
+			sitting_on = true
+	if sitting_on_bodypart.is_item_checked(1):
+		return_array.append(\"sitting on tail\")
+		return_array.append(\"tail\")
+		if not sitting_on:
+			sitting_on = true
+	
+	if sitting_on_another or sitting_on:
+		return_array.append(\"sitting on\")
+	if sitting_on_another:
+		return_array.append(\"sitting on another\")
+	
+	
+	if not _self_popup.is_item_disabled(4): # Sitting on furniture
+		if sitting_on_furniture.is_item_checked(0):
+			return_array.append(\"sitting on bed\")
+		if sitting_on_furniture.is_item_checked(1):
+			return_array.append(\"sitting on bench\")
+		if sitting_on_furniture.is_item_checked(2):
+			return_array.append(\"sitting on chair\")
+		if sitting_on_furniture.is_item_checked(3):
+			return_array.append(\"sitting on counter\")
+		if sitting_on_furniture.is_item_checked(4):
+			return_array.append(\"sitting on desk\")
+		if sitting_on_furniture.is_item_checked(5):
+			return_array.append(\"sitting on pillow\")
+		if sitting_on_furniture.is_item_checked(6):
+			return_array.append(\"sitting on table\")
+		if sitting_on_furniture.is_item_checked(7):
+			return_array.append(\"sitting on throne\")
+		if sitting_on_furniture.is_item_checked(8):
+			return_array.append(\"sitting on toilet\")
+		if sitting_on_furniture.is_item_checked(9):
+			return_array.append(\"sitting on sofa\")
+		
+	if not _self_popup.is_item_disabled(5): # Sitting on object
+		if sitting_on_object.is_item_checked(0):
+			return_array.append(\"sitting on ball\")
+		if sitting_on_object.is_item_checked(1):
+			return_array.append(\"sitting on balloon\")
+		if sitting_on_object.is_item_checked(2):
+			return_array.append(\"sitting on building\")
+		if sitting_on_object.is_item_checked(3):
+			return_array.append(\"sitting on planet\")
+		if sitting_on_object.is_item_checked(4):
+			return_array.append(\"sitting on pool toy\")
+		if sitting_on_object.is_item_checked(5):
+			return_array.append(\"sitting on vehicle\")
+	
 	return return_array
 
 
 func get_suggestions() -> Array[String]:
-	var empty_return: Array[String] = []
-	return empty_return
+	var return_array: Array[String] = []
+	if sitting_on_bodypart.is_item_checked(6):
+		return_array.append(\"facesitting\")
+	if get_popup().is_item_checked(2):
+		if sitting_on_object.is_item_checked(5):
+			return_array.append(\"sitting on car\")
+	
+	return return_array
+
+
+func reset_selection() -> void:
+	var self_popup: PopupMenu = get_popup()
+	for item_index in range(self_popup.item_count):
+		if self_popup.is_item_checkable(item_index) and self_popup.is_item_checked(item_index):
+			self_popup.set_item_checked(item_index, false)
+	
+	for sitting_body in range(sitting_on_bodypart.item_count):
+		if sitting_on_bodypart.is_item_checked(sitting_body):
+			sitting_on_bodypart.set_item_checked(sitting_body, false)
+	
+	for sitting_object in range(sitting_on_object.item_count):
+		if sitting_on_object.is_item_checked(sitting_object):
+			sitting_on_object.set_item_checked(sitting_object, false)
+	
+	for sitting_furniture in range(sitting_on_furniture.item_count):
+		if sitting_on_furniture.is_item_checked(sitting_furniture):
+			sitting_on_furniture.set_item_checked(sitting_furniture, false)
+
+"
+
+[sub_resource type="GDScript" id="GDScript_nsq2n"]
+resource_name = "standing_options"
+script/source = "extends MenuButton
+
+
+func _ready():
+	get_popup().hide_on_checkable_item_selection = false
+	get_popup().index_pressed.connect(on_index_pressed)
+
+
+func on_index_pressed(index: int) -> void:
+	get_popup().set_item_checked(
+			index,
+			not get_popup().is_item_checked(index)
+			)
+
+
+func get_tags() -> Array[String]:
+	var return_array: Array[String] = []
+	
+	if get_popup().is_item_checked(0):
+		return_array.append(\"on one leg\")
+	if get_popup().is_item_checked(1):
+		return_array.append(\"leaning forward\")
+	return return_array
+
+
+func get_suggestions() -> Array[String]:
+	return []
+
+
+func reset_selection() -> void:
+	get_popup().set_item_checked(0, false)
+
 "
 
 [sub_resource type="GDScript" id="GDScript_mmvd5"]
@@ -326,17 +733,48 @@ func _ready():
 	hide()
 "
 
+[sub_resource type="GDScript" id="GDScript_egkod"]
+resource_name = "start_hidden"
+script/source = "extends VBoxContainer
+
+@onready var worm_box: CheckBox = $AbgleTyles/WormBox
+@onready var low_box: CheckBox = $AbgleTyles/LowBox
+@onready var high_box: CheckBox = $AbgleTyles/HighBox
+@onready var bird_box: CheckBox = $AbgleTyles/BirdBox
+@onready var front_box: CheckBox = $ViewTypes/FrontBox
+@onready var side_box: CheckBox = $ViewTypes/SideBox
+@onready var three_fourths_box: CheckBox = $\"ViewTypes/34Box\"
+@onready var rear_box: CheckBox = $ViewTypes/RearBox
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	hide()
+
+
+func deselect_all() -> void:
+	worm_box.set_pressed_no_signal(false)
+	low_box.set_pressed_no_signal(false)
+	high_box.set_pressed_no_signal(false)
+	bird_box.set_pressed_no_signal(false)
+	front_box.set_pressed_no_signal(false)
+	side_box.set_pressed_no_signal(false)
+	three_fourths_box.set_pressed_no_signal(false)
+	rear_box.set_pressed_no_signal(false)
+
+"
+
 [sub_resource type="GDScript" id="GDScript_c8128"]
 resource_name = "force_mult_scenes"
 script/source = "extends CheckButton
 
-@onready var shows_multiple_checkbox: CheckBox = $\"../ShowsMultipleCheckBox\"
 
 @onready var cover_check: CheckBox = $\"../ComicElements/Covers/CoverCheck\"
 @onready var back_cover_check: CheckBox = $\"../ComicElements/Covers/BackCoverCheck\"
 @onready var first_check: CheckBox = $\"../ComicElements/Pages/FirstCheck\"
 @onready var end_check: CheckBox = $\"../ComicElements/Pages/EndCheck\"
 @onready var page_num_check: CheckBox = $\"../ComicElements/Extras/PageNumCheck\"
+
 
 func _ready():
 	toggled.connect(is_comic_checked)
@@ -354,9 +792,8 @@ func is_comic_checked(is_comic: bool) -> void:
 [node name="TagWizard" type="Control"]
 custom_minimum_size = Vector2(1200, 600)
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_right = 0.9375
+anchor_bottom = 1.78889
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_itg1i")
@@ -470,6 +907,11 @@ value = 1900.0
 alignment = 1
 script = SubResource("GDScript_4kylm")
 
+[node name="CheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/BasicsHBox/DateHBox"]
+layout_mode = 2
+text = "Unknown year"
+script = SubResource("GDScript_7pal8")
+
 [node name="CharacterHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
@@ -512,16 +954,46 @@ layout_mode = 2
 theme = ExtResource("9_pvv55")
 max_value = 0.0
 
+[node name="CharacterNames" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterNames"]
+layout_mode = 2
+text = "Character Names"
+
+[node name="CharacterNames" type="LineEdit" parent="MarginContainer/Margin/MarginContainer/All/CharacterHBox/HBoxContainer/CharacterNames"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Write down character names. Separate with comma."
+placeholder_text = "character name 1, character name 2, ..."
+
 [node name="ClothingHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
 layout_mode = 2
-text = "Properly worn
-clothing"
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/VBoxContainer"]
+layout_mode = 2
+text = "Properly worn clothing"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Character #"
+
+[node name="CharacterClothes" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+max_value = 0.0
+script = ExtResource("4_up6s5")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox"]
+custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 size_flags_horizontal = 3
 vertical_scroll_mode = 0
@@ -534,6 +1006,7 @@ alignment = 1
 layout_mode = 2
 tooltip_text = "Clothing worn on the upper body. (Hips up)"
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Topwear"
 
 [node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -548,11 +1021,13 @@ layout_mode = 2
 layout_mode = 2
 tooltip_text = "Clothing intended to be worn under other clothing."
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Underwear"
 
 [node name="VisibleUnderwear" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer/UnderVBox"]
 layout_mode = 2
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Visible"
 
 [node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -564,6 +1039,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Clothing worn on the lower body. (Hips down)"
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Bottomwear"
 
 [node name="ColorRect3" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -575,6 +1051,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Clothing worn on the legs."
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Legwear"
 
 [node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -586,6 +1063,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Clothing worn on the arms."
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Armwear"
 
 [node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -597,6 +1075,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Clothing worn on the hands."
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Handwear"
 
 [node name="ColorRect6" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -608,6 +1087,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Clothing worn on the feet."
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Footwear"
 
 [node name="ColorRect7" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -619,6 +1099,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Clothing worn on the head"
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Headwear"
 
 [node name="ColorRect8" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -630,6 +1111,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 layout_mode = 2
 tooltip_text = "Accessory worn on the neck."
 theme = ExtResource("9_pvv55")
+disabled = true
 text = "Collar"
 
 [node name="ColorRect9" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
@@ -640,6 +1122,7 @@ color = Color(0.129412, 0.14902, 0.180392, 1)
 [node name="EyewearCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/ClothingHBox/ScrollContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "Items designed to be worn over the eyes."
+disabled = true
 text = "Eyewear"
 
 [node name="GenderHBox" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
@@ -694,6 +1177,12 @@ main_checkbox = true
 parent_checkbox = NodePath("../MaleCheckBox")
 focused_array = [NodePath("."), NodePath("../../FemaleVBox/FemaleFocusCheckBox"), NodePath("../../AmbiguousVBox/AmbigFocusCheckBox"), NodePath("../../AndromorphVBox/AndroFocusCheckBox"), NodePath("../../GynomorphVBox/GynoFocusCheckBox"), NodePath("../../HermVBox/HermFocusCheckBox"), NodePath("../../MaleHermVBox/MaleHermFocusCheckBox")]
 
+[node name="MaleLore" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleVBox"]
+layout_mode = 2
+tooltip_text = "Character is canonically male even if not apparent.
+Only use if the apparent gender doesn't match with the character's gender identity."
+text = "Lore"
+
 [node name="ColorRect" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
@@ -719,6 +1208,12 @@ button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../FemaleCheckBox")
+
+[node name="FemaleLore" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/FemaleVBox"]
+layout_mode = 2
+tooltip_text = "Character is canonically female even if not apparent.
+Only use if the apparent gender doesn't match with the character's gender identity."
+text = "Lore"
 
 [node name="ColorRect2" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
@@ -772,6 +1267,12 @@ text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../AndroCheckBox")
 
+[node name="AndroLore" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/AndromorphVBox"]
+layout_mode = 2
+tooltip_text = "Character is canonically andromorph even if not apparent.
+Only use if the apparent gender doesn't match with the character's gender identity."
+text = "Lore"
+
 [node name="ColorRect4" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
@@ -799,6 +1300,12 @@ text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../GynoCheckBox")
 
+[node name="GynoLore" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/GynomorphVBox"]
+layout_mode = 2
+tooltip_text = "Character is canonically gynomorph even if not apparent.
+Only use if the apparent gender doesn't match with the character's gender identity."
+text = "Lore"
+
 [node name="ColorRect5" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
@@ -825,6 +1332,12 @@ text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../HermCheckBox")
 
+[node name="HermLore" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/HermVBox"]
+layout_mode = 2
+tooltip_text = "Character is canonically a hermaphrodite even if not apparent.
+Only use if the apparent gender doesn't match with the character's gender identity."
+text = "Lore"
+
 [node name="ColorRect6" type="ColorRect" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
@@ -850,6 +1363,12 @@ button_group = ExtResource("3_i2m3m")
 text = "Focus"
 script = ExtResource("3_7swhf")
 parent_checkbox = NodePath("../MaleHermCheckBox")
+
+[node name="MaleHermLore" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/GenderHBox/VBoxContainer/HBoxContainer/MaleHermVBox"]
+layout_mode = 2
+tooltip_text = "Character is canonically a male hermaphrodite even if not apparent.
+Only use if the apparent gender doesn't match with the character's gender identity."
+text = "Lore"
 
 [node name="Interactions" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
@@ -879,6 +1398,71 @@ add_interact_button = NodePath("../Base/AddInteractButton")
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="InteractionAmount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Base" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base"]
+layout_mode = 2
+text = "Sexual Interactions"
+
+[node name="SinContainer" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base"]
+layout_mode = 2
+
+[node name="ThreesomeCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Three characters, of any combination of genders, engaging in mutual sexual activity. "
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Threesome"
+
+[node name="GangbangType" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+
+[node name="GangbangCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/GangbangType"]
+layout_mode = 2
+tooltip_text = "When three or more individuals are having sex or penetrating a single character either sequentially or at once.
+1 receiving, 3+ giving."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("8_gcxbq")
+text = "Gangbang"
+
+[node name="ReverseGBCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer/GangbangType"]
+layout_mode = 2
+tooltip_text = "A single character having sex or penetrating three or more partners either sequentially or at once.
+1 giving, 3+ receiving."
+theme = ExtResource("9_pvv55")
+disabled = true
+button_group = ExtResource("8_gcxbq")
+text = "Reverse
+Gangbang"
+
+[node name="FoursomeCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Four characters engaged in sexual activity simultaneously as one group."
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Foursome"
+
+[node name="FivesomeCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Five characters engaged in sexual activity simultaneously as one group."
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Fivesome"
+
+[node name="OrgyCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/InteractionAmount/Base/SinContainer"]
+layout_mode = 2
+tooltip_text = "Five or more characters having sex freely among each other"
+theme = ExtResource("9_pvv55")
+disabled = true
+text = "Orgy"
 
 [node name="BodyTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
@@ -1052,7 +1636,6 @@ layout_mode = 2
 text = "Body Properties"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox"]
-custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 vertical_scroll_mode = 0
@@ -1083,10 +1666,20 @@ text = "Colors:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount"]
+[node name="FurColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount"]
 layout_mode = 2
-alignment = 1
-select_all_on_focus = true
+
+[node name="OneFurCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount/FurColorChecks"]
+layout_mode = 2
+text = "1 fur color"
+
+[node name="TwoFurCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount/FurColorChecks"]
+layout_mode = 2
+text = "2 fur colors"
+
+[node name="ThreePlusFurCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ColorsCount/FurColorChecks"]
+layout_mode = 2
+text = "3+ fur colors"
 
 [node name="ScalesCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
@@ -1103,16 +1696,20 @@ theme_override_constants/separation = 8
 alignment = 1
 script = SubResource("GDScript_nhkg4")
 
-[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
+[node name="ScalesColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
 layout_mode = 2
-text = "Colors:"
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount"]
+[node name="OneScaleCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount/ScalesColorChecks"]
 layout_mode = 2
-alignment = 1
-select_all_on_focus = true
+text = "1 scale color"
+
+[node name="TwoScaleCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount/ScalesColorChecks"]
+layout_mode = 2
+text = "2 scales colors"
+
+[node name="ThreePlusScaleCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ScalesCCount/ScalesColorChecks"]
+layout_mode = 2
+text = "3+ scales colors"
 
 [node name="FeathersCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
@@ -1129,16 +1726,20 @@ theme_override_constants/separation = 8
 alignment = 1
 script = SubResource("GDScript_ghjkl")
 
-[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
+[node name="FeatherColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
 layout_mode = 2
-text = "Colors:"
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount"]
+[node name="OneFeatherCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount/FeatherColorChecks"]
 layout_mode = 2
-alignment = 1
-select_all_on_focus = true
+text = "1 feather color"
+
+[node name="TwoFeatherCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount/FeatherColorChecks"]
+layout_mode = 2
+text = "2 feathers colors"
+
+[node name="ThreePlusFeatherCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/FeatherCCount/FeatherColorChecks"]
+layout_mode = 2
+text = "3+ feathers colors"
 
 [node name="WoolCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
@@ -1155,16 +1756,20 @@ theme_override_constants/separation = 8
 alignment = 1
 script = SubResource("GDScript_7sqa7")
 
-[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
+[node name="FeatherColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
 layout_mode = 2
-text = "Colors:"
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount"]
+[node name="OneWoolCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount/FeatherColorChecks"]
 layout_mode = 2
-alignment = 1
-select_all_on_focus = true
+text = "1 wool color"
+
+[node name="TwoWoolCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount/FeatherColorChecks"]
+layout_mode = 2
+text = "2 wool colors"
+
+[node name="ThreePlusWoolCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/WoolCCount/FeatherColorChecks"]
+layout_mode = 2
+text = "3+ wool colors"
 
 [node name="SkinCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
@@ -1181,16 +1786,20 @@ theme_override_constants/separation = 8
 alignment = 1
 script = SubResource("GDScript_avl4o")
 
-[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
+[node name="SkinColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
 layout_mode = 2
-text = "Colors:"
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount"]
+[node name="OneSkinCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount/SkinColorChecks"]
 layout_mode = 2
-alignment = 1
-select_all_on_focus = true
+text = "1 skin color"
+
+[node name="TwoSkinCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount/SkinColorChecks"]
+layout_mode = 2
+text = "2 skin colors"
+
+[node name="ThreePlusSkinCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/SkinCCount/SkinColorChecks"]
+layout_mode = 2
+text = "3+ skin colors"
 
 [node name="ExoCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
 layout_mode = 2
@@ -1207,16 +1816,50 @@ theme_override_constants/separation = 8
 alignment = 1
 script = SubResource("GDScript_mpru2")
 
-[node name="Cols" type="Label" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
+[node name="ExoColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
 layout_mode = 2
-text = "Colors:"
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="BodyColors" type="SpinBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount"]
+[node name="OneExoCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount/ExoColorChecks"]
 layout_mode = 2
+text = "1 exoskeleton color"
+
+[node name="TwoExoCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount/ExoColorChecks"]
+layout_mode = 2
+text = "2 exoskeleton colors"
+
+[node name="ThreePlusExoCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/ExoCCount/ExoColorChecks"]
+layout_mode = 2
+text = "3+ exoskeleton colors"
+
+[node name="BodyChkBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox" node_paths=PackedStringArray("node_to_display")]
+layout_mode = 2
+tooltip_text = "If you don't know what the character has, use this instead."
+theme = ExtResource("9_pvv55")
+text = "Body"
+script = ExtResource("9_cooxf")
+suggestions_to_include = "*color* body"
+node_to_display = NodePath("../BodyCount")
+
+[node name="BodyCount" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
-select_all_on_focus = true
+script = SubResource("GDScript_5fj47")
+
+[node name="BodyColorChecks" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/BodyCount"]
+layout_mode = 2
+
+[node name="OneBodyCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/BodyCount/BodyColorChecks"]
+layout_mode = 2
+text = "1 body color"
+
+[node name="TwoBodyCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/BodyCount/BodyColorChecks"]
+layout_mode = 2
+text = "2 body colors"
+
+[node name="ThreePlusBodyCheck" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/BdPropsHbox/ScrollContainer/CheckHBox/BodyCount/BodyColorChecks"]
+layout_mode = 2
+text = "3+ body colors"
 
 [node name="Stance" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
@@ -1225,79 +1868,121 @@ layout_mode = 2
 layout_mode = 2
 text = "Stances:"
 
-[node name="SmartCheckboxes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="SmartCheckboxes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer"]
 layout_mode = 2
 
-[node name="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Floating"
 tags_to_include = "floating"
 suggestions_to_include = "levitation"
 
-[node name="CheckBox7" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox7" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Flying"
 tags_to_include = "flying"
 suggestions_to_include = "wings, midair"
 
-[node name="CheckBox2" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox2" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Jumping"
 tags_to_include = "jumping"
 
-[node name="CheckBox3" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+[node name="KneelingCheck" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+layout_mode = 2
+text = "Kneeling"
+tags_to_include = "kneeling"
+suggestions_to_include = "on ground"
+node_to_display = NodePath("../KneelingOption")
+
+[node name="KneelingOption" type="MenuButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
+layout_mode = 2
+text = "Kneeling Options"
+flat = false
+item_count = 3
+popup/item_0/text = "On one knee"
+popup/item_0/checkable = 1
+popup/item_0/id = 0
+popup/item_1/text = "All fours"
+popup/item_1/checkable = 1
+popup/item_1/id = 1
+popup/item_2/text = "Ass up"
+popup/item_2/checkable = 1
+popup/item_2/id = 2
+script = SubResource("GDScript_0e41a")
+
+[node name="CheckBox3" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Lying"
 tags_to_include = "lying"
 suggestions_to_include = "lying on *surface*"
 node_to_display = NodePath("../LyingOptionButton")
 
-[node name="LyingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+[node name="LyingOptionButton" type="MenuButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
 layout_mode = 2
+text = "Lying Options"
+flat = false
 item_count = 3
-selected = 0
 popup/item_0/text = "On back"
+popup/item_0/checkable = 1
 popup/item_0/id = 0
 popup/item_1/text = "On front"
+popup/item_1/checkable = 1
 popup/item_1/id = 1
 popup/item_2/text = "On side"
+popup/item_2/checkable = 1
 popup/item_2/id = 2
 script = SubResource("GDScript_2kyf3")
 
-[node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
+[node name="CheckBox4" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Sitting"
 tags_to_include = "sitting"
-suggestions_to_include = "sitting on *surface*, reclining"
 node_to_display = NodePath("../SittingOptionButton")
 
-[node name="SittingOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes"]
+[node name="SittingOptionButton" type="MenuButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
 layout_mode = 2
-item_count = 7
-selected = 0
-popup/item_0/text = "- on bodypart -"
+text = "Sitting Options"
+flat = false
+item_count = 3
+popup/item_0/text = "On ground"
+popup/item_0/checkable = 1
 popup/item_0/id = 0
-popup/item_1/text = "Sitting on another"
+popup/item_1/text = "On furniture"
+popup/item_1/checkable = 1
 popup/item_1/id = 1
-popup/item_2/text = "Sitting on balls"
+popup/item_2/text = "On object"
+popup/item_2/checkable = 1
 popup/item_2/id = 2
-popup/item_3/text = "Sitting on knot"
-popup/item_3/id = 3
-popup/item_4/text = "Sitting on lap"
-popup/item_4/id = 4
-popup/item_5/text = "Sitting on penis"
-popup/item_5/id = 5
-popup/item_6/text = "Sitting on tail"
-popup/item_6/id = 6
 script = SubResource("GDScript_axjs3")
 
-[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="CheckBox5" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" node_paths=PackedStringArray("node_to_display") instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Standing"
 tags_to_include = "standing"
 suggestions_to_include = "leaning back"
+node_to_display = NodePath("../StandingOptionButton")
 
-[node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
+[node name="StandingOptionButton" type="MenuButton" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes"]
+layout_mode = 2
+text = "Standing Options"
+flat = false
+item_count = 2
+popup/item_0/text = "On one leg"
+popup/item_0/checkable = 1
+popup/item_0/id = 0
+popup/item_1/text = "Leaning forward"
+popup/item_1/checkable = 1
+popup/item_1/id = 1
+script = SubResource("GDScript_nsq2n")
+
+[node name="CheckBox6" parent="MarginContainer/Margin/MarginContainer/All/Stance/ScrollContainer/SmartCheckboxes" instance=ExtResource("9_vbkwx")]
 layout_mode = 2
 text = "Swimming"
 tags_to_include = "swimming"
@@ -1425,7 +2110,7 @@ script = ExtResource("10_3npvb")
 [node name="HeigthView" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
 size_flags_vertical = 4
-item_count = 6
+item_count = 7
 selected = 0
 popup/item_0/text = "- Unknown angle -"
 popup/item_0/id = 5
@@ -1437,8 +2122,10 @@ popup/item_3/text = "Regular"
 popup/item_3/id = 0
 popup/item_4/text = "High-angle view"
 popup/item_4/id = 3
-popup/item_5/text = "Bird's eye view"
+popup/item_5/text = "Bird's-eye view"
 popup/item_5/id = 4
+popup/item_6/text = "- Multiple -"
+popup/item_6/id = 6
 
 [node name="AngleViewOptionButton" type="OptionButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 layout_mode = 2
@@ -1453,7 +2140,11 @@ popup/item_1/id = 2
 popup/item_2/text = "Side"
 popup/item_2/id = 3
 
-[node name="RearViewCheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="RearViewCheckButton" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "Rear view"
@@ -1461,7 +2152,64 @@ text = "Rear view"
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("11_yms3t")
+
+[node name="MultipleAngles" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox"]
+layout_mode = 2
+alignment = 1
+script = SubResource("GDScript_egkod")
+
+[node name="AbgleTyles" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles"]
+layout_mode = 2
+text = "Angles:"
+
+[node name="WormBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles"]
+layout_mode = 2
+text = "Worm's eye"
+
+[node name="LowBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles"]
+layout_mode = 2
+text = "Low-angle"
+
+[node name="HighBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles"]
+layout_mode = 2
+text = "High-angle"
+
+[node name="BirdBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/AbgleTyles"]
+layout_mode = 2
+text = "Bird's eye"
+
+[node name="ViewTypes" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes"]
+layout_mode = 2
+text = "Views:"
+
+[node name="FrontBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes"]
+layout_mode = 2
+text = "Front view"
+
+[node name="SideBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes"]
+layout_mode = 2
+text = "Side view"
+
+[node name="34Box" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes"]
+layout_mode = 2
+text = "Three-quarter view "
+
+[node name="RearBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles/ViewTypes"]
+layout_mode = 2
+text = "Rear view"
+
+[node name="HelpAngleButton" type="Button" parent="MarginContainer/Margin/MarginContainer/All/AngleTypes/ElementsHBox/MultipleAngles"]
+layout_mode = 2
+text = "Open Selector"
 
 [node name="Comics" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All"]
 layout_mode = 2
@@ -1474,12 +2222,22 @@ text = "Scenes"
 [node name="Elements" type="HBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics"]
 layout_mode = 2
 
-[node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements"]
+[node name="ScenesImages" type="VBoxContainer" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements"]
+layout_mode = 2
+alignment = 1
+
+[node name="ShowsMultipleCheckBox" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ScenesImages"]
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "When a picture contains 2 or more related images. Can show progression."
 theme = ExtResource("9_pvv55")
 text = "Multiple scenes"
+
+[node name="MultipleImages" type="CheckBox" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements/ScenesImages"]
+layout_mode = 2
+tooltip_text = "Images that contain multiple separate images or animations that aren't sequential to each other"
+theme = ExtResource("9_pvv55")
+text = "Multiple Images"
 
 [node name="IsComicCheckBox" type="CheckButton" parent="MarginContainer/Margin/MarginContainer/All/Comics/Elements"]
 layout_mode = 2
@@ -1851,3 +2609,155 @@ text = "This gender is:"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.392157, 1, 0.352941, 1)
 text = "Male"
+
+[node name="WhatMyAngle" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("20_60004")
+
+[node name="AngleBackgroundDim" type="ColorRect" parent="WhatMyAngle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="Border" type="ColorRect" parent="WhatMyAngle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 272.0
+offset_top = 96.0
+offset_right = -272.0
+offset_bottom = -96.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="WhatMyAngle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="WhatMyAngle/CenterContainer"]
+custom_minimum_size = Vector2(0, 512)
+layout_mode = 2
+
+[node name="AngleBackground" type="ColorRect" parent="WhatMyAngle/CenterContainer/PanelContainer"]
+layout_mode = 2
+color = Color(0.211765, 0.239216, 0.290196, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="WhatMyAngle/CenterContainer/PanelContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Select all that apply"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HighAngle" type="HBoxContainer" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HighFront" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HighAngle"]
+layout_mode = 2
+icon = ExtResource("20_kwqmv")
+
+[node name="Highthrefour" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HighAngle"]
+layout_mode = 2
+icon = ExtResource("21_3wpb7")
+
+[node name="HighSide" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HighAngle"]
+layout_mode = 2
+icon = ExtResource("22_ftf4x")
+
+[node name="HighBackThreeFour" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HighAngle"]
+layout_mode = 2
+icon = ExtResource("23_nw71h")
+
+[node name="HighBack" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HighAngle"]
+layout_mode = 2
+icon = ExtResource("24_q4yuv")
+
+[node name="RegularAngle" type="HBoxContainer" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="NormalFront" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/RegularAngle"]
+layout_mode = 2
+icon = ExtResource("11_yms3t")
+
+[node name="Normalthrefour" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/RegularAngle"]
+layout_mode = 2
+icon = ExtResource("25_u648n")
+
+[node name="NormalSide" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/RegularAngle"]
+layout_mode = 2
+icon = ExtResource("26_ysjge")
+
+[node name="NormalBackThreeFour" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/RegularAngle"]
+layout_mode = 2
+icon = ExtResource("27_gscwo")
+
+[node name="NormalBack" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/RegularAngle"]
+layout_mode = 2
+icon = ExtResource("28_wqobu")
+
+[node name="LowAngle" type="HBoxContainer" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="LowFront" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/LowAngle"]
+layout_mode = 2
+icon = ExtResource("29_mma0x")
+
+[node name="LowThreefour" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/LowAngle"]
+layout_mode = 2
+icon = ExtResource("30_i4iqx")
+
+[node name="LowSide" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/LowAngle"]
+layout_mode = 2
+icon = ExtResource("31_ddbip")
+
+[node name="LowBackThreeFour" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/LowAngle"]
+layout_mode = 2
+icon = ExtResource("32_goasr")
+
+[node name="LowBack" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/LowAngle"]
+layout_mode = 2
+icon = ExtResource("33_akc36")
+
+[node name="ExtremeAngles" type="HBoxContainer" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Worm" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/ExtremeAngles"]
+layout_mode = 2
+icon = ExtResource("34_2047v")
+
+[node name="Bird" type="CheckBox" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/ExtremeAngles"]
+layout_mode = 2
+icon = ExtResource("35_y064h")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CancelButton" type="Button" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="AcceptAngleButton" type="Button" parent="WhatMyAngle/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Accept"

@@ -2,9 +2,9 @@ extends Control
 
 @export var aliases_vbox: VBoxContainer
 
-@onready var strength_slider = $SettingsContainer/SettingsSets/SuggestionStrength/HSlider
+#@onready var strength_slider = $SettingsContainer/SettingsSets/SuggestionStrength/HSlider
 @onready var recreate_database_btn = $SettingsContainer/SettingsSets/UtilityButtons/RecreateDatabaseBtn
-@onready var str_percentage_spinbox: SpinBox = $SettingsContainer/SettingsSets/SuggestionStrength/PercentageSpinBox
+@onready var str_percentage_spinbox: SpinBox = $SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength/PercentageSpinBox
 
 @onready var open_tags_button = $SettingsContainer/SettingsSets/UtilityButtons/OpenTagsButton
 @onready var settings_bar: PopupMenu = $"../MenuBar/API"
@@ -19,6 +19,7 @@ extends Control
 
 @onready var database_location_file_dialog: FileDialog = $DatabaseLocationFileDialog
 @onready var hydrus_api = $HydrusAPI
+@onready var remove_prompt_use_btn: CheckButton = $SettingsContainer/SettingsSets/UsePrompts/RemovePromptUseBtn
 
 
 func _ready():
@@ -33,9 +34,10 @@ func _ready():
 	settings_bar.id_pressed.connect(settings_menu_press)
 	
 	open_tags_button.pressed.connect(open_tags_folder)
-	strength_slider.value = Tagger.settings.suggestion_strength
+	#strength_slider.value = Tagger.settings.suggestion_strength
 	str_percentage_spinbox.value = Tagger.settings.suggestion_strength
 	recreate_database_btn.pressed.connect(__recreate_database)
+	remove_prompt_use_btn.toggled.connect(on_remove_prompt_btn_pressed)
 
 
 func settings_menu_press(button_id: int) -> void:
@@ -43,6 +45,10 @@ func settings_menu_press(button_id: int) -> void:
 		api_loader.show()
 	elif button_id == 1:
 		hydrus_api.show()
+
+
+func on_remove_prompt_btn_pressed(is_toggled: bool) -> void:
+	Tagger.settings.remove_prompt_sugg_on_use = is_toggled
 
 
 func open_api_screen() -> void:

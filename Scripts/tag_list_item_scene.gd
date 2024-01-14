@@ -9,6 +9,7 @@ signal entry_removed(entry_name, node_ref)
 @onready var entries_line_edit: LineEdit = $EntriesLineEdit
 @onready var save_button: Button = $HBoxContainer/SaveButton
 @onready var delete_button: Button = $HBoxContainer/DeleteButton
+@onready var sort_check_box: CheckBox = $HBoxContainer/SortCheckBox
 
 
 func _ready():
@@ -24,6 +25,10 @@ func set_key(key: String) -> void:
 	key_line_edit.text = key
 
 
+func set_can_sort(can_sort: bool) -> void:
+	sort_check_box.button_pressed = can_sort
+
+
 func set_entries(entries_array: Array) -> void:
 	entries_line_edit.text = Utils.array_to_string(entries_array)
 
@@ -34,8 +39,16 @@ func save_entries() -> void:
 	
 	for entry in entries_array:
 		final_array.append(entry.strip_edges())
-	final_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
-	Tagger.settings_lists.tag_types[key_line_edit.text] = final_array
+	
+	if sort_check_box.button_pressed:
+		final_array.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
+	
+	Tagger.settings_lists.tag_types[key_line_edit.text] = {
+		"tags": final_array,
+		"sort": sort_check_box.button_pressed
+		}
+	
+	entries_line_edit.text = Utils.array_to_string(final_array)
 	
 	save_button.text = "Saved!"
 	save_button.disabled = true

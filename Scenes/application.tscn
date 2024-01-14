@@ -1,4 +1,4 @@
-[gd_scene load_steps=67 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=72 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -41,12 +41,73 @@
 [ext_resource type="PackedScene" uid="uid://nbgmvc2e0hkg" path="res://Scenes/tag_template_creator.tscn" id="22_a38qu"]
 [ext_resource type="Script" path="res://Scripts/tagger_settings_script.gd" id="24_kxx7k"]
 [ext_resource type="PackedScene" uid="uid://cds4jrd1h62jv" path="res://Scenes/tool_categories.tscn" id="24_pw75l"]
+[ext_resource type="PackedScene" uid="uid://dtplrc3b5b4i3" path="res://Scenes/add_custom_tag.tscn" id="24_uotq2"]
+[ext_resource type="PackedScene" uid="uid://ddgl4s8c17ck1" path="res://Scenes/numer_tag_tool.tscn" id="25_frre5"]
 [ext_resource type="Script" path="res://Scripts/default_folder_file_dialog.gd" id="28_rjvdb"]
 [ext_resource type="Texture2D" uid="uid://dcgkj1ju7gk0v" path="res://Textures/Splash.png" id="29_gik5o"]
 [ext_resource type="Script" path="res://Scripts/change_db_confirm.gd" id="31_g7kp8"]
 [ext_resource type="Script" path="res://Scripts/database_file_dialog.gd" id="32_3ueat"]
 [ext_resource type="Script" path="res://Scripts/hydrus_login_script.gd" id="41_uxv55"]
 [ext_resource type="Texture2D" uid="uid://dfjt1p86v6ykl" path="res://Textures/Cross.svg" id="44_wvsh6"]
+
+[sub_resource type="GDScript" id="GDScript_xaxud"]
+script/source = "extends PopupMenu
+
+@onready var inc_tag_cat: PopupMenu = $inc_tag_cat
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	add_submenu_item(\"Include category prefix\", \"inc_tag_cat\", 200)
+	var enum_names: Array = Tagger.Categories.keys()
+	for item in Tagger.CategorySorting:
+		inc_tag_cat.add_check_item(Utils.just_capitalize(enum_names[item]), item)
+		if Tagger.settings.include_categories[enum_names[item].to_lower()][\"include\"]:
+			inc_tag_cat.set_item_checked(
+				inc_tag_cat.get_item_index(item),
+				true)
+	add_item(\"Clear include category\", 999)
+	id_pressed.connect(on_id_pressed)
+	#for category in Tagger.CategorySorting:
+		#if Tagger.settings.include_categories[enum_names[category].to_lower()][\"include\"]:
+			#inc_tag_cat.set_item_checked(
+				#inc_tag_cat.get_item_index(category),
+				#true)
+
+
+func on_id_pressed(id_number: int) -> void:
+	if id_number == 999:
+		var enum_keys: Array = Tagger.Categories.keys()
+		for index in range(inc_tag_cat.item_count):
+			if inc_tag_cat.is_item_checked(index):
+				inc_tag_cat.set_item_checked(index, false)
+				Tagger.settings.include_categories[enum_keys[inc_tag_cat.get_item_id(index)].to_lower()][\"include\"] = false
+
+"
+
+[sub_resource type="GDScript" id="GDScript_hqxxy"]
+resource_name = "check_toggle"
+script/source = "extends PopupMenu
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	hide_on_checkable_item_selection = false
+	#216
+	max_size = Vector2(max_size.x, 216)
+	index_pressed.connect(on_item_index_activated)
+
+
+func on_item_index_activated(item_index: int) -> void:
+	var is_checked: bool = not is_item_checked(item_index)
+	var item_key: String = get_item_text(item_index).to_lower()
+	set_item_checked(
+		item_index,
+		is_checked
+	)
+	
+	Tagger.settings.include_categories[item_key][\"include\"] = is_checked
+
+"
 
 [sub_resource type="GDScript" id="GDScript_t2bdg"]
 resource_name = "open_search_parents"
@@ -437,6 +498,24 @@ func _unhandled_key_input(event):
 
 "
 
+[sub_resource type="GDScript" id="GDScript_r0nvr"]
+resource_name = "start_hidden"
+script/source = "extends CenterContainer
+
+@onready var add_custom_tag = $AddCustomTag
+@onready var numer_tag = $NumerTag
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	if self.visible:
+		hide()
+	if add_custom_tag.visible:
+		add_custom_tag.hide()
+	if numer_tag.visible:
+		numer_tag.hide()
+"
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6dv02"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
@@ -446,22 +525,28 @@ script/source = "extends Tree
 
 func _ready():
 	var _alias_dict: Dictionary = Tagger.alias_database.get_alias_dictionary()
-	
+	var _alias_keys = _alias_dict.keys()
+	_alias_keys.sort_custom(func(a, b): return a.naturalnocasecmp_to(b) < 0)
 	var _root_level = create_item()
 	_root_level.set_text(0, \"Aliases\")
 	
-	for correct_alias in _alias_dict.keys():
+	for correct_alias in _alias_keys:
 		var _item_model = create_item(_root_level)
 		_item_model.set_text(0, correct_alias)
-		_item_model.collapsed = true
 
 		for aliased_item in _alias_dict[correct_alias]:
-			create_tree_item(aliased_item, _item_model)
+			create_tree_item(aliased_item, _item_model, true)
 	
 
-func create_tree_item(_item_text: String, _parent_item):
+func create_tree_item(_item_text: String, _parent_item: TreeItem, create_collapsed: bool = false):
+	if create_collapsed and not _parent_item.collapsed:
+		_parent_item.collapsed = true
+	elif not create_collapsed and _parent_item.collapsed:
+		_parent_item.collapsed = false
+	
 	var item = create_item(_parent_item)
 	item.set_text(0, _item_text)
+	scroll_to_item(item)
 
 
 func create_item_and_subitem(item_text: String, _parent_item, subitem_string: String) -> void:
@@ -470,6 +555,7 @@ func create_item_and_subitem(item_text: String, _parent_item, subitem_string: St
 	
 	var sub_item = create_item(parent_item)
 	sub_item.set_text(0, subitem_string)
+	scroll_to_item(sub_item)
 
 "
 
@@ -841,12 +927,11 @@ color = Color(0.25098, 0.282353, 0.341176, 1)
 [node name="MenuBar" type="MenuBar" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_right = 0.056
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 321.32
-offset_bottom = 48.0
-mouse_filter = 1
+anchor_left = 0.00625
+anchor_top = 0.0111111
+anchor_right = 0.307031
+anchor_bottom = 0.0666667
+metadata/_edit_use_anchors_ = true
 
 [node name="Menu" type="PopupMenu" parent="MenuBar"]
 unique_name_in_owner = true
@@ -918,6 +1003,11 @@ item_12/text = "Enable offline suggestions"
 item_12/checkable = 1
 item_12/checked = true
 item_12/id = 3
+script = SubResource("GDScript_xaxud")
+
+[node name="inc_tag_cat" type="PopupMenu" parent="MenuBar/Tagger"]
+title = "inc_tag_cat"
+script = SubResource("GDScript_hqxxy")
 
 [node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
 title = "Tag Creator"
@@ -2866,6 +2956,7 @@ text = "Add"
 metadata/_edit_use_anchors_ = true
 
 [node name="TagGroupsReview" type="Control" parent="TagReviewer"]
+visible = false
 layout_mode = 1
 anchor_top = -0.0712164
 anchor_right = 1.0
@@ -2975,6 +3066,7 @@ metadata/_edit_use_anchors_ = true
 [node name="WikiDisplayRTLabel" parent="Wiki/VBoxContainer/HBoxContainer/VBoxContainer" instance=ExtResource("12_rknam")]
 layout_mode = 2
 size_flags_vertical = 3
+is_on_wiki = true
 
 [node name="Imeges" type="Control" parent="Wiki/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -2991,16 +3083,6 @@ step = 1.0
 show_percentage = false
 script = SubResource("GDScript_5wvn0")
 metadata/_edit_use_anchors_ = true
-
-[node name="ColorRect" type="ColorRect" parent="Wiki/VBoxContainer/HBoxContainer/Imeges"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.321569, 0.356863, 0.427451, 1)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Wiki/VBoxContainer/HBoxContainer/Imeges"]
 layout_mode = 1
@@ -3057,6 +3139,21 @@ expand = true
 loop = true
 buffering_msec = 1000
 script = SubResource("GDScript_exbap")
+
+[node name="CustomTagContainer" type="CenterContainer" parent="Wiki"]
+visible = false
+layout_mode = 0
+offset_right = 1279.0
+offset_bottom = 680.0
+mouse_filter = 0
+script = SubResource("GDScript_r0nvr")
+
+[node name="AddCustomTag" parent="Wiki/CustomTagContainer" instance=ExtResource("24_uotq2")]
+layout_mode = 2
+custom_add_text = "Search"
+
+[node name="NumerTag" parent="Wiki/CustomTagContainer" instance=ExtResource("25_frre5")]
+layout_mode = 2
 
 [node name="Tools" type="Control" parent="."]
 visible = false
@@ -3356,7 +3453,7 @@ alignment = 1
 [node name="SettingsSets" type="VBoxContainer" parent="Settings/SettingsContainer"]
 custom_minimum_size = Vector2(504, 0)
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="DefaultSiteHBox" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
@@ -3375,24 +3472,19 @@ layout_mode = 2
 set_on_load = true
 save_on_set = true
 
-[node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+[node name="SuggestionStrength" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 script = ExtResource("15_qm1be")
 
-[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+[node name="Label" type="Label" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength"]
 layout_mode = 2
-text = "Suggestion Strength:"
+text = "Suggestion confidence:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-
-[node name="PercentageSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/SuggestionStrength"]
+[node name="PercentageSpinBox" type="SpinBox" parent="Settings/SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength"]
 layout_mode = 2
 alignment = 1
 suffix = "%"
@@ -3502,6 +3594,15 @@ size_flags_horizontal = 6
 disabled = true
 text = "Load GIFs"
 
+[node name="UsePrompts" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
+layout_mode = 2
+
+[node name="RemovePromptUseBtn" type="CheckButton" parent="Settings/SettingsContainer/SettingsSets/UsePrompts"]
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+text = "Remove special suggestions on use "
+
 [node name="DatabaseLocation" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets"]
 layout_mode = 2
 
@@ -3564,6 +3665,7 @@ script = ExtResource("16_ojscj")
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("8_rcl5d")
+hide_root = true
 script = SubResource("GDScript_hr4cx")
 
 [node name="AliasesLineEdits" type="HBoxContainer" parent="Settings/SettingsContainer/SettingsSets/Aliases"]
@@ -3750,7 +3852,7 @@ alignment = 1
 modulate = Color(0, 0, 0, 0.392157)
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "v 1.2.0"
+text = "v 1.3.0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
