@@ -103,4 +103,3 @@ func get_tag_groups() -> Dictionary:
 					tag_groups[group]["tags"].erase(_tag)
 	return tag_groups
 
-

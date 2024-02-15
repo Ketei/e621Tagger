@@ -369,7 +369,6 @@ func add_new_tag(tag_name: String, add_from_signal: bool = true, search_online: 
 		append_registered_tag(tag_load, search_online)
 		var html_code: String = Tagger.settings.category_color_code[Tagger.Categories.keys()[tag_load.category]]
 		add_index = item_list.add_item(tag_name, load("res://Textures/valid_tag.png"))
-			
 		item_list.set_item_custom_fg_color(
 				add_index,
 				Color.html(html_code))
