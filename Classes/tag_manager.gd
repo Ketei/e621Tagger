@@ -6,6 +6,7 @@ extends Resource
 
 @export var relation_paths: Dictionary = {}
 
+var empty_array: PackedStringArray = []
 
 static func load_database(implications_path: String) -> TagManager:
 	var _relation_return: TagManager = TagManager.new()
@@ -255,4 +256,31 @@ func get_tag_type(tag_name: String) -> Tagger.Categories:
 		return Tagger.Categories.GENERAL
 
 
+func get_tag_metadata(tag_name: String) -> Dictionary:
+	var _tag_data: Tag = get_tag(tag_name)
+	return {
+		"id": -1,
+		"priority": _tag_data.tag_priority,
+		"parents": PackedStringArray(_tag_data.parents),
+		"conflicts": PackedStringArray(_tag_data.conflicts),
+		"post_count": -1,
+		"related_tags": empty_array,
+		"suggested_tags": PackedStringArray(_tag_data.suggestions),
+		"category": _tag_data.category,
+		"is_locked": false,
+		"is_registered": true}
+
+
+func get_empty_metadata() -> Dictionary:
+	return {
+		"id": -1,
+		"priority": 0,
+		"parents": empty_array,
+		"conflicts": empty_array,
+		"post_count": -1,
+		"related_tags": empty_array,
+		"suggested_tags": empty_array,
+		"category": Tagger.Categories.GENERAL,
+		"is_locked": false,
+		"is_registered": false}
 

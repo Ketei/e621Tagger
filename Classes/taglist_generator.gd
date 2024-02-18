@@ -134,6 +134,47 @@ func explore_parents_v2(_is_first_run: bool = true) -> void:
 		explore_parents_v2(false)
 
 
+func explore_parents_v3(_is_first_run: bool = true) -> void:
+	if _is_first_run:
+		types_count["species"] = 0
+		types_count["genders"] = 0
+		types_count["body_types"] = 0
+		_groped_dads.clear()
+		_kid_return.clear()
+		_offline_suggestions.clear()
+	
+	var tag_file: Tag = null
+	var _new_dads: Array = []
+	
+	for tag_name in _dad_queue:
+		_groped_dads.append(tag_name)
+		if not _kid_return.has(tag_name):
+			_kid_return.append(tag_name)
+		
+		if Tagger.tag_manager.has_tag(tag_name):
+			tag_file = Tagger.tag_manager.get_tag(tag_name)
+			
+			if tag_file.category == Tagger.Categories.SPECIES:
+				types_count["species"] += 1
+			
+			if tag_name in character_bodytypes:
+				types_count["body_types"] += 1
+			elif tag_name in character_genders:
+				types_count["genders"] += 1
+			
+			for new_parent in tag_file.parents:
+				if not _groped_dads.has(new_parent) and not _dad_queue.has(new_parent):
+					_new_dads.append(new_parent)
+
+			for suggestion in tag_file.suggestions:
+				if not _offline_suggestions.has(suggestion):
+					_offline_suggestions.append(suggestion)
+	
+	if not _new_dads.is_empty():
+		_dad_queue = _new_dads
+		explore_parents_v3(false)
+
+
 func create_list_from_array(array_data: Array[String], whitespace_char: String, separator_char: String) -> String:
 	var _return_string: String = ""
 	

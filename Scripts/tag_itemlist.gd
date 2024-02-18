@@ -11,9 +11,6 @@ signal open_context_clicked(
 
 @export var can_remove: bool = false
 
-var associated_array: Array
-var associated_dict: Dictionary
-
 
 func _ready():
 	item_clicked.connect(tag_clicked)
@@ -37,29 +34,25 @@ func empty_click_deselect(_at_position: Vector2, _mouse_button_index: int) -> vo
 
 
 func remove_item_from_list(item_index: int) -> void:
-	var item_text: String = get_item_text(item_index)
-	if associated_array:
-		associated_array.erase(item_text)
-	if associated_dict:
-		associated_dict.erase(item_text)
+	#var item_text: String = get_item_text(item_index)
 	remove_item(item_index)
 	
 	
-func add_item_to_list(item_to_add: String) -> void:
-	var can_add: bool = true
-	
-	if associated_array:
-		if associated_array.has(item_to_add):
-			can_add = false
-	
-	if associated_dict:
-		if associated_dict.has(item_to_add):
-			can_add = false
-	
-	if not can_add:
-		return
-	
-	add_item(item_to_add)
-	associated_array.append(item_to_add)
+#func add_item_to_list(item_to_add: String) -> void:
+	#var can_add: bool = true
+	#
+	#if associated_array:
+		#if associated_array.has(item_to_add):
+			#can_add = false
+	#
+	#if associated_dict:
+		#if associated_dict.has(item_to_add):
+			#can_add = false
+	#
+	#if not can_add:
+		#return
+	#
+	#add_item(item_to_add)
+	#associated_array.append(item_to_add)
 
 

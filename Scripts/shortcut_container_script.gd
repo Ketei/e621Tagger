@@ -34,5 +34,6 @@ func update_shortcut() -> void:
 
 func remove_shortcut() -> void:
 	Tagger.settings_lists.shortcuts.erase(shortcut)
+	Tagger.settings_lists.sort_shortcuts()
 	queue_free()
 

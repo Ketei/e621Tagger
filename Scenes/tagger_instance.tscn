@@ -1,9 +1,8 @@
-[gd_scene load_steps=29 format=3 uid="uid://gv61ihnu4sbh"]
+[gd_scene load_steps=28 format=3 uid="uid://gv61ihnu4sbh"]
 
 [ext_resource type="Script" path="res://Scripts/tagger_controls.gd" id="1_u1cpf"]
 [ext_resource type="Script" path="res://Classes/taglist_generator.gd" id="2_enrd1"]
 [ext_resource type="Theme" uid="uid://bkuaptm74o3oc" path="res://Theme/BaseTheme.tres" id="3_rq6wp"]
-[ext_resource type="Texture2D" uid="uid://6b2a6r2r2br2" path="res://Textures/WarningIcon.svg" id="4_hxtr0"]
 [ext_resource type="Script" path="res://Scripts/tag_itemlist.gd" id="5_fpeot"]
 [ext_resource type="Texture2D" uid="uid://dsgcifoux12h5" path="res://Textures/SearchIcon.svg" id="5_vrc8r"]
 [ext_resource type="Script" path="res://Scripts/tag_quick_search.gd" id="7_gh0lf"]
@@ -34,7 +33,7 @@ func _ready():
 	text_changed.connect(lineedit_text_changed)
 	timer.timeout.connect(timer_timeout)
 	item_list.item_activated.connect(smart_selected)
-	focus_exited.connect(on_focus_lost)
+	#focus_exited.connect(on_focus_lost)
 	item_list.focus_exited.connect(list_focus_lost)
 
 
@@ -59,10 +58,11 @@ func _unhandled_key_input(event: InputEvent):
 
 
 func list_focus_lost() -> void:
-	item_list.hide()
+	if not item_list.has_focus():
+		item_list.hide()
 
 
-func on_focus_lost() -> void:
+func on_focus_lost() -> void: # Is it useful?
 	if not yielded_focus:
 		item_list.hide()
 	else:
@@ -277,19 +277,6 @@ item_4/id = 3
 item_5/text = "Set tag property"
 item_5/id = 4
 
-[node name="WarningRect" type="TextureRect" parent="."]
-layout_mode = 0
-offset_left = 1240.0
-offset_top = -40.0
-offset_right = 1272.0
-offset_bottom = -8.0
-tooltip_text = "- 0 character tags detected. Recommended tag: zero pictured
-- No body type specified.
-- No gender tags included.
-- No species tags added."
-theme = ExtResource("3_rq6wp")
-texture = ExtResource("4_hxtr0")
-
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
 offset_left = 16.0
@@ -359,7 +346,6 @@ icon_alignment = 1
 expand_icon = true
 
 [node name="SuggestedImpliedTags" type="VBoxContainer" parent="HBoxContainer"]
-custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
@@ -427,33 +413,6 @@ custom_minimum_size = Vector2(0, 192)
 layout_mode = 2
 script = ExtResource("5_fpeot")
 can_remove = true
-
-[node name="ImpliedTags" type="VBoxContainer" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Label2" type="Label" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/ImpliedTags"]
-custom_minimum_size = Vector2(0, 27)
-layout_mode = 2
-text = "Implied tags:"
-vertical_alignment = 1
-metadata/_edit_use_anchors_ = true
-
-[node name="ImpliedList" type="ItemList" parent="HBoxContainer/SuggestedImpliedTags/HBoxContainer/ImpliedTags"]
-layout_mode = 2
-size_flags_vertical = 3
-theme = ExtResource("3_rq6wp")
-allow_rmb_select = true
-same_column_width = true
-script = ExtResource("5_fpeot")
-
-[node name="CleanSuggestionsButton" type="Button" parent="HBoxContainer/SuggestedImpliedTags"]
-custom_minimum_size = Vector2(0, 32)
-layout_mode = 2
-tooltip_text = "Removes all the suggested tags that exist inside the implied tags or manually added tags."
-theme = ExtResource("3_rq6wp")
-text = "Clean Suggestions"
 
 [node name="FinalTags" type="VBoxContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(306, 0)
