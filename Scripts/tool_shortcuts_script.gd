@@ -28,6 +28,7 @@ func create_shortcut() -> void:
 		return
 	
 	Tagger.settings_lists.shortcuts[_shortcut] = _turns_into
+	Tagger.settings_lists.sort_shortcuts()
 	
 	var new_short_display: ShortcutContainer = shortcut_tag_scene.instantiate()
 	new_short_display.set_shortcut(_shortcut, _turns_into)

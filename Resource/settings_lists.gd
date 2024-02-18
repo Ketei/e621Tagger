@@ -550,17 +550,18 @@ extends Resource
 @export var tag_types: Dictionary = {}
 @export var list_version: int = 2
 
+var sorted_shortcuts: Array = []
+
 static var current_version: int = 2
 
 static func load_database(lists_path: String) -> SettingLists:
 	if ResourceLoader.exists(lists_path, "SettingLists"):
 		var list_load: SettingLists = ResourceLoader.load(lists_path)
 		if list_load.list_version == 1:
+			print_debug("Warning: Old version of lists detected. File will be recreated. Old lists file will be backeed up.")
+			ResourceSaver.save(list_load, Tagger.lists_path.get_basename() + "_old.tres")
+			list_load = SettingLists.new()
 			list_load.list_version = current_version
-			var fixed_dict: Dictionary = {}
-			for key in list_load.tag_types.keys():
-				fixed_dict[key] = {"sort": true, "tags": list_load.tag_types[key]}
-			list_load.tag_types = fixed_dict.duplicate(true)
 		return list_load
 	else:
 		var _new_list: SettingLists = SettingLists.new()
@@ -570,6 +571,11 @@ static func load_database(lists_path: String) -> SettingLists:
 
 func save() -> void:
 	ResourceSaver.save(self, Tagger.lists_path)
+
+
+func sort_shortcuts() -> void:
+	sorted_shortcuts = shortcuts.keys()
+	sorted_shortcuts.sort_custom(func(a, b): return b.length() < a.length())
 
 
 func remove_from_suggestion_review_blacklist(tag_to_remove: String) -> void:

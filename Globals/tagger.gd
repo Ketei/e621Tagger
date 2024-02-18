@@ -71,7 +71,7 @@ enum Notifications {
 
 
 var e6_headers_data: Dictionary = {
-	"User-Agent": "TaglistMaker/1.3.1 (by Ketei)",
+	"User-Agent": "TaglistMaker/1.4.0 (by Ketei)",
 }
 
 const valid_textures: Array[String] = ["jpg", "png", "gif"]
@@ -115,6 +115,8 @@ func _init():
 	site_settings = SiteSettings.load_settings(settings.database_location + "sites.tres")
 	alias_database = AliasDatabase.load_database(settings.database_location)
 	settings_lists = SettingLists.load_database(settings.database_location + "lists.tres")
+	
+	settings_lists.sort_shortcuts()
 	
 	if ResourceLoader.exists(settings.database_location + "prompt_tags.tres", "PromptTagResource"):
 		prompt_resources = ResourceLoader.load(settings.database_location + "prompt_tags.tres")
