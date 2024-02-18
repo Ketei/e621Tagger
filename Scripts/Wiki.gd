@@ -3,25 +3,6 @@ extends Control
 signal finished_loading_local()
 signal tag_updated
 
-@onready var tag_search_line_edit: LineEdit = $VBoxContainer/HBoxContainer/VBoxContainer/TagSearcher
-@onready var wiki_edit: RichTextLabel = $VBoxContainer/HBoxContainer/VBoxContainer/WikiDisplayRTLabel
-
-@onready var lewd_pic_container: GridContainer = $VBoxContainer/HBoxContainer/Imeges/ScrollContainer/LewdPicsContainer
-@onready var preview_progress_load: ProgressBar = $VBoxContainer/HBoxContainer/Imeges/PreviewProgressLoad
-@onready var wiki_search_cooldown: Timer = $WikiSearchCooldown
-
-@onready var full_screen_display = $FullScreenDisplay
-@onready var wiki_image_requester = $WikiImageRequester
-@onready var wiki_popup_menu: PopupMenu = $"../MenuBar/Wiki"
-@onready var main_application = $".."
-@onready var video_player = $VideoPlayer
-
-@onready var hydrus_api_request: HydrusRequestAPI = $"../HydrusAPIRequest"
-@onready var preview_stopper: ColorRect = $PreviewStopper
-@onready var custom_tag_container: CenterContainer = $CustomTagContainer
-@onready var add_custom_tag: AutofillOptionTag = $CustomTagContainer/AddCustomTag
-@onready var numer_tag: NumberTagTool = $CustomTagContainer/NumerTag
-
 
 var lewd_display = preload("res://Scenes/lewd_pic_display.tscn")
 var video_thumbnails = preload("res://Scenes/video_thumbnail.tscn")
@@ -49,8 +30,30 @@ var hydrus_thumbnail_amount: int = 0
 var prefix_memory: String = ""
 var suffix_memory: String = ""
 
+var wiki_popup_menu: PopupMenu
+
+@onready var tag_search_line_edit: LineEdit = $VBoxContainer/HBoxContainer/VBoxContainer/TagSearcher
+@onready var wiki_edit: RichTextLabel = $VBoxContainer/HBoxContainer/VBoxContainer/WikiDisplayRTLabel
+
+@onready var lewd_pic_container: GridContainer = $VBoxContainer/HBoxContainer/Imeges/ScrollContainer/LewdPicsContainer
+@onready var preview_progress_load: ProgressBar = $VBoxContainer/HBoxContainer/Imeges/PreviewProgressLoad
+@onready var wiki_search_cooldown: Timer = $WikiSearchCooldown
+
+@onready var full_screen_display = $FullScreenDisplay
+@onready var wiki_image_requester = $WikiImageRequester
+@onready var main_application = $".."
+@onready var video_player = $VideoPlayer
+
+@onready var hydrus_api_request: HydrusRequestAPI = $"../HydrusAPIRequest"
+@onready var preview_stopper: ColorRect = $PreviewStopper
+@onready var custom_tag_container: CenterContainer = $CustomTagContainer
+@onready var add_custom_tag: AutofillOptionTag = $CustomTagContainer/AddCustomTag
+@onready var numer_tag: NumberTagTool = $CustomTagContainer/NumerTag
+@onready var wiki_menu: MenuButton = $"../MenuContainer/WikiMenu"
+
 
 func _ready():
+	wiki_popup_menu = wiki_menu.get_popup()
 	preview_progress_load.value_changed.connect(on_progress_bar_change)
 	wiki_edit.search_in_wiki.connect(search_for_tag)
 	wiki_edit.search_for_special.connect(on_search_for_special)

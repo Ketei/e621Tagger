@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxd5ikc0106dm"]
+
+[sub_resource type="GDScript" id="GDScript_hqxxy"]
+resource_name = "check_toggle"
+script/source = "extends PopupMenu
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	hide_on_checkable_item_selection = false
+	#216
+	max_size = Vector2(max_size.x, 216)
+	index_pressed.connect(on_item_index_activated)
+
+
+func on_item_index_activated(item_index: int) -> void:
+	var is_checked: bool = not is_item_checked(item_index)
+	var item_key: String = get_item_text(item_index).to_lower()
+	set_item_checked(
+		item_index,
+		is_checked
+	)
+	
+	Tagger.settings.include_categories[item_key][\"include\"] = is_checked
+
+"
+
+[node name="inc_tag_cato" type="PopupMenu"]
+title = "inc_tag_cato"
+script = SubResource("GDScript_hqxxy")

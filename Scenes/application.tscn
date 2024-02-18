@@ -1,4 +1,4 @@
-[gd_scene load_steps=72 format=3 uid="uid://baevxmkhc4c00"]
+[gd_scene load_steps=71 format=3 uid="uid://baevxmkhc4c00"]
 
 [ext_resource type="Script" path="res://Globals/app_script.gd" id="1_3k5pd"]
 [ext_resource type="PackedScene" uid="uid://b6wj2l5tgewim" path="res://Scenes/e621_requester.tscn" id="2_4gepn"]
@@ -50,23 +50,29 @@
 [ext_resource type="Script" path="res://Scripts/hydrus_login_script.gd" id="41_uxv55"]
 [ext_resource type="Texture2D" uid="uid://dfjt1p86v6ykl" path="res://Textures/Cross.svg" id="44_wvsh6"]
 
-[sub_resource type="GDScript" id="GDScript_xaxud"]
-script/source = "extends PopupMenu
+[sub_resource type="GDScript" id="GDScript_xayf1"]
+resource_name = "temp_menu"
+script/source = "extends MenuButton
 
-@onready var inc_tag_cat: PopupMenu = $inc_tag_cat
+#@onready var inc_tag_cat: PopupMenu = $inc_tag_cato
 
 # Called when the node enters the scene tree for the first time.
+var inc_tag_catto: PopupMenu
+
 func _ready():
-	add_submenu_item(\"Include category prefix\", \"inc_tag_cat\", 200)
+	get_popup().add_theme_constant_override(\"icon_max_width\", 30)
+	inc_tag_catto = preload(\"res://Scenes/submenus/inc_tag_cato.tscn\").instantiate()
+	get_popup().add_child(inc_tag_catto)
+	get_popup().add_submenu_item(\"Include category prefix\", \"inc_tag_cato\", 200)
 	var enum_names: Array = Tagger.Categories.keys()
 	for item in Tagger.CategorySorting:
-		inc_tag_cat.add_check_item(Utils.just_capitalize(enum_names[item]), item)
+		inc_tag_catto.add_check_item(Utils.just_capitalize(enum_names[item]), item)
 		if Tagger.settings.include_categories[enum_names[item].to_lower()][\"include\"]:
-			inc_tag_cat.set_item_checked(
-				inc_tag_cat.get_item_index(item),
+			inc_tag_catto.set_item_checked(
+				inc_tag_catto.get_item_index(item),
 				true)
-	add_item(\"Clear include category\", 999)
-	id_pressed.connect(on_id_pressed)
+	get_popup().add_item(\"Clear include category\", 999)
+	get_popup().id_pressed.connect(on_id_pressed)
 	#for category in Tagger.CategorySorting:
 		#if Tagger.settings.include_categories[enum_names[category].to_lower()][\"include\"]:
 			#inc_tag_cat.set_item_checked(
@@ -77,35 +83,10 @@ func _ready():
 func on_id_pressed(id_number: int) -> void:
 	if id_number == 999:
 		var enum_keys: Array = Tagger.Categories.keys()
-		for index in range(inc_tag_cat.item_count):
-			if inc_tag_cat.is_item_checked(index):
-				inc_tag_cat.set_item_checked(index, false)
-				Tagger.settings.include_categories[enum_keys[inc_tag_cat.get_item_id(index)].to_lower()][\"include\"] = false
-
-"
-
-[sub_resource type="GDScript" id="GDScript_hqxxy"]
-resource_name = "check_toggle"
-script/source = "extends PopupMenu
-
-
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	hide_on_checkable_item_selection = false
-	#216
-	max_size = Vector2(max_size.x, 216)
-	index_pressed.connect(on_item_index_activated)
-
-
-func on_item_index_activated(item_index: int) -> void:
-	var is_checked: bool = not is_item_checked(item_index)
-	var item_key: String = get_item_text(item_index).to_lower()
-	set_item_checked(
-		item_index,
-		is_checked
-	)
-	
-	Tagger.settings.include_categories[item_key][\"include\"] = is_checked
+		for index in range(inc_tag_catto.item_count):
+			if inc_tag_catto.is_item_checked(index):
+				inc_tag_catto.set_item_checked(index, false)
+				Tagger.settings.include_categories[enum_keys[inc_tag_catto.get_item_id(index)].to_lower()][\"include\"] = false
 
 "
 
@@ -924,159 +905,164 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.25098, 0.282353, 0.341176, 1)
 
-[node name="MenuBar" type="MenuBar" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.00625
-anchor_top = 0.0111111
-anchor_right = 0.307031
-anchor_bottom = 0.0666667
-metadata/_edit_use_anchors_ = true
+[node name="MenuContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 443.0
+offset_bottom = 35.0
+theme_override_constants/separation = 8
 
-[node name="Menu" type="PopupMenu" parent="MenuBar"]
-unique_name_in_owner = true
-size = Vector2i(132, 224)
+[node name="MainMenu" type="MenuButton" parent="MenuContainer"]
+layout_mode = 2
+text = "Menu"
+flat = false
 item_count = 8
-item_0/text = "Tag lists"
-item_0/id = 0
-item_1/text = "Load taglist"
-item_1/id = 2
-item_2/text = "Wiki"
-item_2/id = 7
-item_3/text = "Create Tag"
-item_3/id = 4
-item_4/text = "Edit Tag"
-item_4/id = 5
-item_5/text = "Tools"
-item_5/id = 6
-item_6/text = "Settings"
-item_6/id = 3
-item_7/text = "Exit"
-item_7/id = 1
+popup/item_0/text = "Tag lists"
+popup/item_0/id = 0
+popup/item_1/text = "Load taglist"
+popup/item_1/id = 2
+popup/item_2/text = "Wiki"
+popup/item_2/id = 7
+popup/item_3/text = "Create Tag"
+popup/item_3/id = 4
+popup/item_4/text = "Edit Tag"
+popup/item_4/id = 5
+popup/item_5/text = "Tools"
+popup/item_5/id = 6
+popup/item_6/text = "Settings"
+popup/item_6/id = 3
+popup/item_7/text = "Exit"
+popup/item_7/id = 1
 
-[node name="Tagger" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(347, 292)
-theme_override_constants/icon_max_width = 30
-hide_on_checkable_item_selection = false
+[node name="TaggerMenu" type="MenuButton" parent="MenuContainer"]
+layout_mode = 2
+text = "Tagger"
+flat = false
 item_count = 13
-item_0/text = "New List"
-item_0/id = 7
-item_1/text = "Tagger Options"
-item_1/id = 99
-item_1/disabled = true
-item_1/separator = true
-item_2/text = "Tag Wizard"
-item_2/icon = ExtResource("4_xwxxc")
-item_2/id = 9
-item_2/disabled = true
-item_3/text = "Add tag..."
-item_3/id = 12
-item_3/disabled = true
-item_4/text = "Load template"
-item_4/id = 11
-item_4/disabled = true
-item_5/text = ""
-item_5/id = 101
-item_5/disabled = true
-item_5/separator = true
-item_6/text = "Sort Tags"
-item_6/id = 8
-item_6/disabled = true
-item_7/text = "Clear all"
-item_7/id = 0
-item_7/disabled = true
-item_8/text = "Clear suggestions"
-item_8/id = 1
-item_8/disabled = true
-item_9/text = "Conflicts"
-item_9/id = 4
-item_9/disabled = true
-item_10/text = "Global Options"
-item_10/id = 100
-item_10/disabled = true
-item_10/separator = true
-item_11/text = "Enable online suggestions"
-item_11/checkable = 1
-item_11/checked = true
-item_11/id = 2
-item_12/text = "Enable offline suggestions"
-item_12/checkable = 1
-item_12/checked = true
-item_12/id = 3
-script = SubResource("GDScript_xaxud")
+popup/item_0/text = "New List"
+popup/item_0/id = 7
+popup/item_1/text = "Tagger Options"
+popup/item_1/id = 99
+popup/item_1/disabled = true
+popup/item_1/separator = true
+popup/item_2/text = "Tag Wizard"
+popup/item_2/icon = ExtResource("4_xwxxc")
+popup/item_2/id = 9
+popup/item_2/disabled = true
+popup/item_3/text = "Add tag"
+popup/item_3/id = 12
+popup/item_3/disabled = true
+popup/item_4/text = "Load template"
+popup/item_4/id = 11
+popup/item_4/disabled = true
+popup/item_5/text = ""
+popup/item_5/id = 101
+popup/item_5/disabled = true
+popup/item_5/separator = true
+popup/item_6/text = "Sort Tags"
+popup/item_6/id = 8
+popup/item_6/disabled = true
+popup/item_7/text = "Clear all"
+popup/item_7/id = 0
+popup/item_7/disabled = true
+popup/item_8/text = "Clear Suggestions"
+popup/item_8/id = 1
+popup/item_8/disabled = true
+popup/item_9/text = "Conflicts"
+popup/item_9/id = 4
+popup/item_9/disabled = true
+popup/item_10/text = "Suggestion Options"
+popup/item_10/id = 100
+popup/item_10/disabled = true
+popup/item_10/separator = true
+popup/item_11/text = "Search Online"
+popup/item_11/checkable = 1
+popup/item_11/checked = true
+popup/item_11/id = 2
+popup/item_12/text = "Search Offline"
+popup/item_12/checkable = 1
+popup/item_12/checked = true
+popup/item_12/id = 3
+script = SubResource("GDScript_xayf1")
 
-[node name="inc_tag_cat" type="PopupMenu" parent="MenuBar/Tagger"]
-title = "inc_tag_cat"
-script = SubResource("GDScript_hqxxy")
-
-[node name="Tag Creator" type="PopupMenu" parent="MenuBar"]
-title = "Tag Creator"
-size = Vector2i(276, 146)
-hide_on_checkable_item_selection = false
+[node name="CreatorMenu" type="MenuButton" parent="MenuContainer"]
+layout_mode = 2
+text = "Tag Creator"
+flat = false
 item_count = 6
-item_0/text = "Tag aliases"
-item_0/id = 4
-item_1/text = "Conflicts"
-item_1/id = 2
-item_2/text = "Included tag groups"
-item_2/id = 5
-item_3/text = "Options"
-item_3/id = 0
-item_3/separator = true
-item_4/text = "Clear fields"
-item_4/id = 3
-item_5/text = "Open image folder on creation"
-item_5/checkable = 1
-item_5/checked = true
-item_5/id = 1
+popup/item_0/text = "Tag aliases"
+popup/item_0/id = 4
+popup/item_1/text = "Conflicts"
+popup/item_1/id = 2
+popup/item_2/text = "Included tag groups"
+popup/item_2/id = 5
+popup/item_3/text = "Options"
+popup/item_3/id = 0
+popup/item_3/disabled = true
+popup/item_3/separator = true
+popup/item_4/text = "Clear fields"
+popup/item_4/id = 3
+popup/item_5/text = "Open image folder on creation"
+popup/item_5/checkable = 1
+popup/item_5/checked = true
+popup/item_5/id = 5
 
-[node name="Tag Editor" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(274, 197)
-hide_on_checkable_item_selection = false
+[node name="EditorMenu" type="MenuButton" parent="MenuContainer"]
+layout_mode = 2
+text = "Tag Editor"
+flat = false
 item_count = 8
-item_0/text = "Tags"
-item_0/id = 100
-item_0/separator = true
-item_1/text = "Reload tag"
-item_1/id = 0
-item_1/disabled = true
-item_2/text = "Tag conflicts"
-item_2/id = 1
-item_2/disabled = true
-item_3/text = "Delete Tag"
-item_3/id = 2
-item_3/disabled = true
-item_4/text = "Tag Aliases"
-item_4/id = 4
-item_4/disabled = true
-item_5/text = "Tag groups"
-item_5/id = 7
-item_5/disabled = true
-item_6/text = "Settings"
-item_6/id = 101
-item_6/disabled = true
-item_6/separator = true
-item_7/text = "Delete images"
-item_7/checkable = 1
-item_7/id = 3
+popup/item_0/text = "Tags"
+popup/item_0/id = 100
+popup/item_0/disabled = true
+popup/item_0/separator = true
+popup/item_1/text = "Reload Tag"
+popup/item_1/id = 0
+popup/item_1/disabled = true
+popup/item_2/text = "Tag Conflicts"
+popup/item_2/id = 1
+popup/item_2/disabled = true
+popup/item_3/text = "Delete Tag"
+popup/item_3/id = 2
+popup/item_3/disabled = true
+popup/item_4/text = "Tag Aliases"
+popup/item_4/id = 4
+popup/item_4/disabled = true
+popup/item_5/text = "Tag Groups"
+popup/item_5/id = 7
+popup/item_5/disabled = true
+popup/item_6/text = "Settings"
+popup/item_6/id = 101
+popup/item_6/disabled = true
+popup/item_6/separator = true
+popup/item_7/text = "Delete images"
+popup/item_7/checkable = 1
+popup/item_7/id = 3
 
-[node name="Wiki" type="PopupMenu" parent="MenuBar"]
-size = Vector2i(123, 54)
+[node name="WikiMenu" type="MenuButton" parent="MenuContainer"]
+layout_mode = 2
+text = "Tag Wiki"
+flat = false
 item_count = 2
-item_0/text = "Reload Wiki"
-item_0/id = 0
-item_1/text = "Edit tag"
-item_1/id = 1
-item_1/disabled = true
+popup/item_0/text = "Reload"
+popup/item_0/id = 0
+popup/item_1/text = "Edit Tag"
+popup/item_1/id = 1
+popup/item_1/disabled = true
 
-[node name="API" type="PopupMenu" parent="MenuBar"]
+[node name="APIMenu" type="MenuButton" parent="MenuContainer"]
+layout_mode = 2
+text = "API"
+flat = false
 item_count = 2
-item_0/text = "e621"
-item_0/id = 0
-item_1/text = "Hydrus"
-item_1/id = 1
+popup/item_0/text = "e621"
+popup/item_0/id = 0
+popup/item_1/text = "Hydrus"
+popup/item_1/id = 1
 
 [node name="NewTagger" type="Control" parent="."]
+visible = false
 anchors_preset = 0
 offset_top = 48.0
 offset_right = 1280.0
@@ -2181,7 +2167,7 @@ text = "Add Key"
 layout_mode = 2
 text = "Close"
 
-[node name="TagReviewer" type="Control" parent="." node_paths=PackedStringArray("alias_itemlist", "add_alias_lineedit", "aliases_window", "tag_searcher", "tag_search_button", "name_line", "categories_menu", "wiki_edit", "tag_update_button", "parents_item_list", "add_parent_line_edit", "tag_prio_box", "tag_suggestion_list", "tag_suggestion_line_edit", "review_menu", "has_images_check_box", "open_pic_folder_button", "add_conflict_line_edit", "conflicts_item_list", "tag_tooltip_line_edit", "text_change_timer", "preview_bbc_button", "rich_text_label", "preview_bbc_window")]
+[node name="TagReviewer" type="Control" parent="." node_paths=PackedStringArray("alias_itemlist", "add_alias_lineedit", "aliases_window", "tag_searcher", "tag_search_button", "name_line", "categories_menu", "wiki_edit", "tag_update_button", "parents_item_list", "add_parent_line_edit", "tag_prio_box", "tag_suggestion_list", "tag_suggestion_line_edit", "has_images_check_box", "open_pic_folder_button", "add_conflict_line_edit", "conflicts_item_list", "tag_tooltip_line_edit", "text_change_timer", "preview_bbc_button", "rich_text_label", "preview_bbc_window")]
 visible = false
 layout_mode = 1
 anchor_left = 0.001
@@ -2207,7 +2193,6 @@ add_parent_line_edit = NodePath("AllItemsHBox/LeftVbox/ItemListsHBox/ParentTagsV
 tag_prio_box = NodePath("AllItemsHBox/LeftVbox/TagPriorityHBox/TagPrioBox")
 tag_suggestion_list = NodePath("AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/TagSuggestionList")
 tag_suggestion_line_edit = NodePath("AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/SuggestionItemsHBox/TagSuggestionLineEdit")
-review_menu = NodePath("../MenuBar/Tag Editor")
 has_images_check_box = NodePath("AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer/HasImagesCheckBox")
 open_pic_folder_button = NodePath("AllItemsHBox/LeftVbox/TagPriorityHBox/OpenPicFolder")
 add_conflict_line_edit = NodePath("ConflictWindow/AddConflictLineEdit")
@@ -3156,7 +3141,6 @@ custom_add_text = "Search"
 layout_mode = 2
 
 [node name="Tools" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchor_top = 0.089
 anchor_right = 1.0
@@ -3434,6 +3418,7 @@ visible = false
 layout_mode = 2
 
 [node name="Settings" type="Control" parent="." node_paths=PackedStringArray("aliases_vbox")]
+visible = false
 anchors_preset = 0
 offset_top = 56.0
 offset_right = 1280.0

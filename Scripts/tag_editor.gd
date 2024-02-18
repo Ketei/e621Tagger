@@ -22,7 +22,6 @@ signal tag_updated
 @export var tag_suggestion_list: ItemList
 @export var tag_suggestion_line_edit: LineEdit
 
-@export var review_menu: PopupMenu
 @export var has_images_check_box: CheckBox
 
 @export var open_pic_folder_button: Button
@@ -32,17 +31,18 @@ signal tag_updated
 @onready var conflict_window = $ConflictWindow
 @export var tag_tooltip_line_edit: LineEdit
 
-var conflicts_array: Array[String] = []
-
-var parents: Array = []
-var suggestions_array: Array[String] = []
-
 @export var text_change_timer: Timer
 #@export var downloading_samples_label: Label
 #@onready var e621_samples_dl_review = $e621SamplesDLReview
 @export var preview_bbc_button: Button
 @export var rich_text_label: RichTextLabel
 @export var preview_bbc_window: Control
+
+var conflicts_array: Array[String] = []
+
+var parents: Array = []
+var suggestions_array: Array[String] = []
+var review_menu: PopupMenu
 
 @onready var open_auto_complete_parents_btn: Button = $AllItemsHBox/LeftVbox/ItemListsHBox/ParentTagsVbox/PArentsLineHbox/OpenAutoCompleteBTN
 @onready var open_auto_complete_suggestions_btn: Button = $AllItemsHBox/LeftVbox/ItemListsHBox/SuggestionsVbox/SuggestionItemsHBox/OpenAutoCompleteBTN
@@ -51,6 +51,7 @@ var suggestions_array: Array[String] = []
 @onready var has_prompt_data: CheckBox = $AllItemsHBox/LeftVbox/TagNameHbox/VBoxContainer/HasPromptData
 @onready var right_v_box = $AllItemsHBox/RightVBox
 @onready var tag_groups_review = $TagGroupsReview
+@onready var editor_menu: MenuButton = $"../MenuContainer/EditorMenu"
 
 
 
@@ -66,6 +67,7 @@ var tag_aliases_array: Array = []
 
 func _ready():
 	hide()
+	review_menu = editor_menu.get_popup()
 	prompt_includer.hide()
 	show_prompts_btn.toggled.connect(on_prompt_visibility_toggle)
 	parents_item_list.associated_array = parents

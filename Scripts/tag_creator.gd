@@ -6,37 +6,10 @@ signal register_alias(old_name, new_name)
 @export var aliased_itemlist: ItemList
 @export var alias_lineedit: LineEdit
 @export var alias_window_control: Control
-
-@onready var main_application = $".."
-@onready var tag_to_add_line_edit: LineEdit = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/TagToAddLineEdit
-@onready var categories_menu: OptionButton = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/CategoryHBox/CategoriesMenu
-@onready var create_tags_button = $VBoxContainer/CreateTagsButton
-@onready var wiki_info = $VBoxContainer/HBoxContainer/RightPartVBox/WikiInfo
 @export var add_parent_line_edit: LineEdit
-@onready var parent_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox/ParentItemList
-@onready var tag_prio_box: SpinBox = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/PriorityHBox/TagPrioBox
-@onready var suggestion_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox/SuggestionItemList
 @export var suggestion_line_edit: LineEdit
-@onready var has_images_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/HasImagesCheckBox
-@onready var tag_creator_menu: PopupMenu = $"../MenuBar/Tag Creator"
-@onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
-@onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
-@onready var conflict_window = $ConflictWindow
-@onready var download_samples_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/DownloadSamplesCheckBox
-@onready var tooltip_line_edit: LineEdit = $VBoxContainer/HBoxContainer/RightPartVBox/TooltipLineEdit
 
-@onready var bbc_preview_button: Button = $BBCPreviewButton
-@onready var preview_bbc_window = $PreviewBBCWindow
-@onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
-
-@onready var e_621api_request: E621API = $"../e621APIRequest"
-@onready var downloading_samples_lbl: Label = $DownloadingSamplesLbl
-@onready var creator_pop_up_menu: PopupMenu = $CreatorPopUpMenu
-@onready var include_in_prompts: CheckButton = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/CheckButton
-@onready var center_part_v_box = $VBoxContainer/HBoxContainer/CenterPartVBox
-@onready var prompt_includer = $VBoxContainer/HBoxContainer/CenterPartVBox/PromtIncluder
-@onready var tag_groups = $TagGroups
-
+var tag_creator_menu: PopupMenu
 var parent_tags: Array = []
 var conflicts_array: Array[String] = []
 var aliased_tags: Array = []
@@ -57,10 +30,40 @@ var downloads_queued: int = 0:
 
 var left_context_tag: String = ""
 
+@onready var main_application = $".."
+@onready var tag_to_add_line_edit: LineEdit = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/TagToAddLineEdit
+@onready var categories_menu: OptionButton = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/CategoryHBox/CategoriesMenu
+@onready var create_tags_button = $VBoxContainer/CreateTagsButton
+@onready var wiki_info = $VBoxContainer/HBoxContainer/RightPartVBox/WikiInfo
+@onready var parent_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/ParentsVBox/ParentItemList
+@onready var tag_prio_box: SpinBox = $VBoxContainer/HBoxContainer/LeftPartVBox/CatPrioHBox/PriorityHBox/TagPrioBox
+@onready var suggestion_item_list: ItemList = $VBoxContainer/HBoxContainer/LeftPartVBox/HBoxContainer/SuggestionsVBox/SuggestionItemList
+@onready var has_images_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/HasImagesCheckBox
+@onready var conflicts_line_edit: LineEdit = $ConflictWindow/ConflictsLineEdit
+@onready var conflict_item_list: ItemList = $ConflictWindow/ConflictItemList
+@onready var conflict_window = $ConflictWindow
+@onready var download_samples_check_box: CheckBox = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/DownloadSamplesCheckBox
+@onready var tooltip_line_edit: LineEdit = $VBoxContainer/HBoxContainer/RightPartVBox/TooltipLineEdit
+
+@onready var bbc_preview_button: Button = $BBCPreviewButton
+@onready var preview_bbc_window = $PreviewBBCWindow
+@onready var rich_text_label: RichTextLabel = $PreviewBBCWindow/Window/ColorBorder/CenterContainer/WikiDisplayRTLabel
+
+@onready var e_621api_request: E621API = $"../e621APIRequest"
+@onready var downloading_samples_lbl: Label = $DownloadingSamplesLbl
+@onready var creator_pop_up_menu: PopupMenu = $CreatorPopUpMenu
+@onready var include_in_prompts: CheckButton = $VBoxContainer/HBoxContainer/LeftPartVBox/NameHBox/VBoxContainer/CheckButton
+@onready var center_part_v_box = $VBoxContainer/HBoxContainer/CenterPartVBox
+@onready var prompt_includer = $VBoxContainer/HBoxContainer/CenterPartVBox/PromtIncluder
+@onready var tag_groups = $TagGroups
+@onready var creator_menu: MenuButton = $"../MenuContainer/CreatorMenu"
+
+
 func _ready():
 	hide()
-	parent_item_list.associated_array = parent_tags
-	suggestion_item_list.associated_array = tag_suggestion_array
+	tag_creator_menu = creator_menu.get_popup()
+	#parent_item_list.associated_array = parent_tags
+	#suggestion_item_list.associated_array = tag_suggestion_array
 	bbc_preview_button.pressed.connect(preview_bcc)
 	include_in_prompts.toggled.connect(on_include_prompts)
 	

@@ -2,12 +2,13 @@ extends Control
 
 @export var aliases_vbox: VBoxContainer
 
+var settings_bar: PopupMenu
+
 #@onready var strength_slider = $SettingsContainer/SettingsSets/SuggestionStrength/HSlider
-@onready var recreate_database_btn = $SettingsContainer/SettingsSets/UtilityButtons/RecreateDatabaseBtn
+@onready var recreate_database_btn: Button = $SettingsContainer/SettingsSets/UtilityButtons/RecreateDatabaseBtn
 @onready var str_percentage_spinbox: SpinBox = $SettingsContainer/SettingsSets/DefaultSiteHBox/SuggestionStrength/PercentageSpinBox
 
 @onready var open_tags_button = $SettingsContainer/SettingsSets/UtilityButtons/OpenTagsButton
-@onready var settings_bar: PopupMenu = $"../MenuBar/API"
 @onready var save_path_line_edit: LineEdit = $SettingsContainer/SettingsSets/DefaultPathContainer/SavePathLineEdit
 @onready var default_folder_file_dialog = $DefaultFolderFileDialog
 
@@ -20,11 +21,12 @@ extends Control
 @onready var database_location_file_dialog: FileDialog = $DatabaseLocationFileDialog
 @onready var hydrus_api = $HydrusAPI
 @onready var remove_prompt_use_btn: CheckButton = $SettingsContainer/SettingsSets/UsePrompts/RemovePromptUseBtn
+@onready var api_menu: MenuButton = $"../MenuContainer/APIMenu"
 
 
 func _ready():
 	hide()
-	
+	settings_bar = api_menu.get_popup()
 	select_db_path_button.pressed.connect(database_location_file_dialog.show)
 	database_path_line_edit.text = Tagger.settings.database_location
 	

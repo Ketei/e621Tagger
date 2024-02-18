@@ -2,15 +2,27 @@ extends Control
 
 var tagger_preload = preload("res://Scenes/tagger_instance.tscn")
 var instance_dictionary: Dictionary = {}
+var tagger_popup_menu: PopupMenu 
+var active_instance: String = ""
+
 @onready var main_application = $".."
-@onready var tagger_popup_menu: PopupMenu = $"../MenuBar/Tagger"
+@onready var tagger_menu: MenuButton = $"../MenuContainer/TaggerMenu"
+
 @onready var instances_tab_bar: TabBar = $InstancesTabBar
 @onready var instance_holder = $InstanceHolder
 @onready var new_instance_window = $NewInstanceWindow
 
-var active_instance: String = ""
-
 @onready var e_621api_request: E621API = $"../e621APIRequest"
+
+
+func _ready():
+	tagger_popup_menu = tagger_menu.get_popup()
+	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(2), Tagger.settings.search_suggested)
+	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(3), Tagger.settings.load_suggested)
+	
+	tagger_popup_menu.id_pressed.connect(tagger_menu_activated)
+	instances_tab_bar.tab_changed.connect(switch_active_instance)
+	instances_tab_bar.tab_close_pressed.connect(close_new_tagger)
 
 
 func add_to_api_queue(tag_name: String, tag_amount: int, node_ref: Node) -> void:
@@ -41,15 +53,6 @@ func remove_from_api_queue(tag_to_remove: String, reference_node: Node, tag_amou
 		"path": ""
 		}
 	e_621api_request.remove_from_queue(dictionary_to_search)
-
-
-func _ready():
-	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(2), Tagger.settings.search_suggested)
-	tagger_popup_menu.set_item_checked(tagger_popup_menu.get_item_index(3), Tagger.settings.load_suggested)
-	
-	tagger_popup_menu.id_pressed.connect(tagger_menu_activated)
-	instances_tab_bar.tab_changed.connect(switch_active_instance)
-	instances_tab_bar.tab_close_pressed.connect(close_new_tagger)
 
 
 func tagger_menu_activated(id_selected: int) -> void:

@@ -1,7 +1,17 @@
 class_name MainTagger
 extends Control
 
-@onready var menu = %Menu
+# Menus
+@onready var menu: MenuButton = $MenuContainer/MainMenu
+@onready var tagger_menu: MenuButton = $MenuContainer/TaggerMenu
+@onready var creator_menu: MenuButton = $MenuContainer/CreatorMenu
+@onready var editor_menu: MenuButton = $MenuContainer/EditorMenu
+@onready var wiki_menu: MenuButton = $MenuContainer/WikiMenu
+@onready var api_menu: MenuButton = $MenuContainer/APIMenu
+
+
+
+
 @onready var tagger = $NewTagger
 @onready var list_loader = $ListLoader
 @onready var settings = $Settings
@@ -13,17 +23,23 @@ extends Control
 
 #@onready var e_621_requester_quick_search = $Tagger/AddAutoComplete/QuickSearch/e621RequesterQuickSearch
 #@onready var e_621_requester = %e621Requester
-@onready var menu_bar: MenuBar = $MenuBar
+#@onready var menu_bar: MenuBar = $MenuBar
 
 var current_menu: int = -1
 
 
 func _ready():
-	menu_bar.set_menu_hidden(1, false) # Tagger
-	menu_bar.set_menu_hidden(2, true) # Tag Creator
-	menu_bar.set_menu_hidden(3, true) # Review
-	menu_bar.set_menu_hidden(4, true) # Review
-	menu_bar.set_menu_hidden(5, true) # Settings
+	#menu_bar.set_menu_hidden(1, false) # Tagger
+	#menu_bar.set_menu_hidden(2, true) # Tag Creator
+	#menu_bar.set_menu_hidden(3, true) # Review
+	#menu_bar.set_menu_hidden(4, true) # Review
+	#menu_bar.set_menu_hidden(5, true) # Settings
+	menu.visible = true
+	tagger_menu.visible = false
+	creator_menu.visible = false
+	editor_menu.visible = false
+	wiki_menu.visible = false
+	api_menu.visible = false
 	
 	tag_reviewer.tag_updated.connect(load_tag_if_added)
 	tag_reviewer.parents_item_list.create_tag.connect(go_to_create_tag)
@@ -31,7 +47,7 @@ func _ready():
 	tag_creator.tag_created.connect(load_tag_if_added)
 	tag_creator.register_alias.connect(register_alias)
 	Tagger.register_aliases.connect(register_alias)
-	menu.id_pressed.connect(trigger_options)
+	menu.get_popup().id_pressed.connect(trigger_options)
 	
 	trigger_options(0)
 
@@ -49,10 +65,15 @@ func trigger_options(id: int) -> void:
 	current_menu = id
 	
 	if id == 0:
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
+		#menu_bar.set_menu_hidden(2, true) # Tag Creator
+		#menu_bar.set_menu_hidden(3, true) # Review
+		#menu_bar.set_menu_hidden(4, true) # Wiki
+		#menu_bar.set_menu_hidden(5, true) # Settings
+		tagger_menu.visible = true
+		creator_menu.visible = false
+		editor_menu.visible = false
+		wiki_menu.visible = false
+		api_menu.visible = false
 		list_loader.visible = false
 		settings.visible = false
 		tag_creator.visible = false
@@ -60,12 +81,17 @@ func trigger_options(id: int) -> void:
 		tools_window.hide()
 		wiki.hide_node()
 		tagger.visible = true
-		menu_bar.set_menu_hidden(1, false) # Tagger
+		#menu_bar.set_menu_hidden(1, false) # Tagger
 	elif id == 7:
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(5, true) # Settings
+		tagger_menu.visible = false
+		creator_menu.visible = false
+		editor_menu.visible = false
+		wiki_menu.visible = true
+		api_menu.visible = false
+		#menu_bar.set_menu_hidden(1, true) # Tagger
+		#menu_bar.set_menu_hidden(2, true) # Tag Creator
+		#menu_bar.set_menu_hidden(3, true) # Review
+		#menu_bar.set_menu_hidden(5, true) # Settings
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
@@ -73,13 +99,18 @@ func trigger_options(id: int) -> void:
 		tag_reviewer.hide()
 		tools_window.hide()
 		wiki.show_node()
-		menu_bar.set_menu_hidden(4, false) # Wiki
+		#menu_bar.set_menu_hidden(4, false) # Wiki
 	elif id == 2:
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
+		#menu_bar.set_menu_hidden(1, true) # Tagger
+		#menu_bar.set_menu_hidden(2, true) # Tag Creator
+		#menu_bar.set_menu_hidden(3, true) # Review
+		#menu_bar.set_menu_hidden(4, true) # Wiki
+		#menu_bar.set_menu_hidden(5, true) # Settings
+		tagger_menu.visible = false
+		creator_menu.visible = false
+		editor_menu.visible = false
+		wiki_menu.visible = false
+		api_menu.visible = false
 		tagger.visible = false
 		settings.visible = false
 		tag_creator.visible = false
@@ -88,10 +119,15 @@ func trigger_options(id: int) -> void:
 		wiki.hide_node()
 		list_loader.visible = true
 	elif id == 3:
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
+		#menu_bar.set_menu_hidden(1, true) # Tagger
+		#menu_bar.set_menu_hidden(2, true) # Tag Creator
+		#menu_bar.set_menu_hidden(3, true) # Review
+		#menu_bar.set_menu_hidden(4, true) # Wiki
+		tagger_menu.visible = false
+		creator_menu.visible = false
+		editor_menu.visible = false
+		wiki_menu.visible = false
+		api_menu.visible = true
 		tagger.visible = false
 		list_loader.visible = false
 		tag_creator.visible = false
@@ -99,12 +135,17 @@ func trigger_options(id: int) -> void:
 		tools_window.hide()
 		wiki.hide_node()
 		settings.visible = true
-		menu_bar.set_menu_hidden(5, false) # Settings
+		#menu_bar.set_menu_hidden(5, false) # Settings
 	elif id == 5:
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
+		#menu_bar.set_menu_hidden(1, true) # Tagger
+		#menu_bar.set_menu_hidden(2, true) # Tag Creator
+		#menu_bar.set_menu_hidden(4, true) # Wiki
+		#menu_bar.set_menu_hidden(5, true) # Settings
+		tagger_menu.visible = false
+		creator_menu.visible = false
+		editor_menu.visible = true # Visible
+		wiki_menu.visible = false
+		api_menu.visible = false
 		tagger.visible = false
 		list_loader.visible = false
 		tag_creator.visible = false
@@ -112,13 +153,18 @@ func trigger_options(id: int) -> void:
 		tools_window.hide()
 		wiki.hide_node()
 		tag_reviewer.show()
-		menu_bar.set_menu_hidden(3, false) # Review
+		#menu_bar.set_menu_hidden(3, false) # Review
 	elif  id == 6:
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(2, true) # Tag Creator
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
+		#menu_bar.set_menu_hidden(1, true) # Tagger
+		#menu_bar.set_menu_hidden(2, true) # Tag Creator
+		#menu_bar.set_menu_hidden(3, true) # Review
+		#menu_bar.set_menu_hidden(4, true) # Wiki
+		#menu_bar.set_menu_hidden(5, true) # Settings
+		tagger_menu.visible = false
+		creator_menu.visible = false
+		editor_menu.visible = false
+		wiki_menu.visible = false
+		api_menu.visible = false
 		tagger.hide()
 		list_loader.hide()
 		tag_creator.hide()
@@ -128,10 +174,15 @@ func trigger_options(id: int) -> void:
 		tools_window.show()
 		
 	elif id == 4:
-		menu_bar.set_menu_hidden(1, true) # Tagger
-		menu_bar.set_menu_hidden(3, true) # Review
-		menu_bar.set_menu_hidden(4, true) # Wiki
-		menu_bar.set_menu_hidden(5, true) # Settings
+		#menu_bar.set_menu_hidden(1, true) # Tagger
+		#menu_bar.set_menu_hidden(3, true) # Review
+		#menu_bar.set_menu_hidden(4, true) # Wiki
+		#menu_bar.set_menu_hidden(5, true) # Settings
+		tagger_menu.visible = false
+		creator_menu.visible = true
+		editor_menu.visible = false
+		wiki_menu.visible = false
+		api_menu.visible = false
 		tagger.visible = false
 		list_loader.visible = false
 		settings.visible = false
@@ -139,7 +190,7 @@ func trigger_options(id: int) -> void:
 		tools_window.hide()
 		wiki.hide_node()
 		tag_creator.visible = true
-		menu_bar.set_menu_hidden(2, false) # Tag Creator
+		#menu_bar.set_menu_hidden(2, false) # Tag Creator
 		
 	elif id == 1:
 		quit_app()
