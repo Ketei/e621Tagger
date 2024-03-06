@@ -99,6 +99,8 @@ func is_any_window_open() -> bool:
 
 
 func open_template_loader() -> void:
+	if tag_holder.active_instance != instance_name:
+		return
 	template_loader.load_templates()
 	template_loader.show()
 
@@ -202,6 +204,8 @@ func add_simple_tag(tag_name: String, focus_on_add: bool = true) -> int:
 			if Tagger.settings.load_suggested:
 				for suggestion in tag.suggestions:
 					add_suggested_tag_simple(suggestion)
+				for parent_suggest in get_suggestions(get_parents(tag_name)):
+					add_suggested_tag_simple(parent_suggest)
 		else:
 			item_index = added_tag_list.add_item(tag_name, load("res://Textures/generic_tag.png"))
 			added_tag_list.set_item_metadata(
@@ -217,6 +221,52 @@ func add_simple_tag(tag_name: String, focus_on_add: bool = true) -> int:
 		tag_holder.add_to_api_queue(tag_name, 1, self)
 	
 	return item_index
+
+
+func get_parents(tag_name: String) -> Array[String]:
+	var parents: Array[String] = []
+	
+	var explored_parents: Array[String] = []
+	var unexplored_parents: Array = []
+	
+	if not Tagger.tag_manager.has_tag(tag_name):
+		return parents
+	
+	var tag: Tag = Tagger.tag_manager.get_tag(tag_name)
+	unexplored_parents.append_array(tag.parents)
+	
+	while not unexplored_parents.is_empty():
+		var tag_text: String = unexplored_parents.pop_front()
+		
+		if not parents.has(tag_text):
+			parents.append(tag_text)
+		if not explored_parents.has(tag_text):
+			explored_parents.append(tag_text)
+		
+		if Tagger.tag_manager.has_tag(tag_text):
+			var new_parent: Tag = Tagger.tag_manager.get_tag(tag_text)
+			for parent in new_parent.parents:
+				if explored_parents.has(parent) or unexplored_parents.has(parent):
+					continue
+				unexplored_parents.append(parent)
+	
+	return parents
+			
+
+func get_suggestions(parent_tags: Array[String]) -> Array[String]:
+	var return_suggestions: Array[String] = []
+	
+	for parent in parent_tags:
+		if not Tagger.tag_manager.has_tag(parent):
+			continue
+		
+		var tag_load: Tag = Tagger.tag_manager.get_tag(parent)
+		for sug_tag in tag_load.suggestions:
+			if not return_suggestions.has(sug_tag):
+				return_suggestions.append(sug_tag)
+	
+	return return_suggestions
+			
 
 
 func close_instance() -> void:
@@ -709,7 +759,7 @@ func sort_tags_by_category() -> void:
 				added_tag_list.set_item_custom_fg_color(
 						tag_ix,
 						Tagger.settings.category_color_code[
-							Tagger.Categories.keys()[dict["category"]]
+							Tagger.Categories.keys()[dict[tag]["category"]]
 						])
 				
 				if Tagger.tag_manager.has_tag(tag):
@@ -788,6 +838,7 @@ func generate_tag_list() -> void:
 	var tag_dict: Dictionary = {"0": []}
 	var prio_array: Array[int] = []
 	tag_list_generator._dad_queue.clear()
+	final_tag_list_array.clear()
 	final_tag_list.clear()
 
 	for added_ix in range(added_tag_list.item_count):
